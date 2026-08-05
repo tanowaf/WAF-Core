@@ -105,7 +105,7 @@ Which translates into:
   when used in eg. `worker` mode with FrankenPHP
 - taking care about memory leaks
 - prefer end-to-end testing to unit testing, as the specific webserver used to run php does have an impact on the
-  processing by the YAWAF code of http requests, esp. the ones which are not conforming to the http standard
+  processing by the WAF-Core code of http requests, esp. the ones which are not conforming to the http standard
 
 ## Testing
 

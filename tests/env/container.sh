@@ -27,14 +27,14 @@ HOST_PROXYPORT_NGINX="${HOST_PROXYPORT_NGINX:-8080}"
 
 COMPOSER_INSTALL_ON_START="${COMPOSER_INSTALL_ON_START:-false}"
 START_WEBSERVER="${START_WEBSERVER:-all}"
-CONTAINER_NAME_PREFIX="${CONTAINER_NAME_PREFIX:-yawaf}"
-CONTAINER_IMAGE_PREFIX="${CONTAINER_IMAGE_PREFIX:-yawaf_}"
+CONTAINER_NAME_PREFIX="${CONTAINER_NAME_PREFIX:-tw_wafcore}"
+CONTAINER_IMAGE_PREFIX="${CONTAINER_IMAGE_PREFIX:-tw-wafcore}"
 CONTAINER_USER=docker
 CONTAINER_WORKSPACE_DIR="/home/${CONTAINER_USER}/workspace"
 DOCKER_CMD="${DOCKER_CMD:-docker}"
 
-IMAGE_NAME="${CONTAINER_NAME_PREFIX}:${UBUNTU_VERSION}-${PHP_VERSION}-${WEBSERVER_TYPE}"
-CONTAINER_NAME="${CONTAINER_IMAGE_PREFIX}${UBUNTU_VERSION}_${PHP_VERSION}_${WEBSERVER_TYPE}"
+IMAGE_NAME="${CONTAINER_IMAGE_PREFIX}:${UBUNTU_VERSION}-${PHP_VERSION}-${WEBSERVER_TYPE}"
+CONTAINER_NAME="${CONTAINER_NAME_PREFIX}${UBUNTU_VERSION}_${PHP_VERSION}_${WEBSERVER_TYPE}"
 
 ROOT_DIR="$(dirname -- "$(dirname -- "$(dirname -- "$(readlink -f "$0")")")")"
 
@@ -76,8 +76,8 @@ Environment variables:
     HOST_HTTPPORT_\$SRV     default value: 80/81/1082. Set to 'no' to disable exposing the container port to the host
     HOST_PROXYPORT_\$SRV    default value: 8080/8081/8082. Set to 'no' to disable exposing the container port to the host
   used by both build and start:
-    CONTAINER_IMAGE_PREFIX default value: 'yawaf_'. Change if you build/run many containers in parallel
-    CONTAINER_NAME_PREFIX  default value: 'yawaf'. Change if you build/run many containers in parallel
+    CONTAINER_IMAGE_PREFIX default value: 'tw-wafcore'. Change if you build/run many containers in parallel
+    CONTAINER_NAME_PREFIX  default value: 'tw_wafcore'. Change if you build/run many containers in parallel
   used by the 'runtests' and 'runcoverage' actions:
     TEST_WEBSERVER         default value: nginx. Can be set to apache, frankenphp
 "

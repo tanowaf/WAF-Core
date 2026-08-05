@@ -7,11 +7,11 @@ use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
 /**
- * Sends log messages to Apache, as notes. Those can be logged by adding `%{YAWAFLogMessage}n` the `LogFormat` directive
+ * Sends log messages to Apache, as notes. Those can be logged by adding `%{YaWAFLogMessage}n` the `LogFormat` directive
  */
 class ApacheLogger extends AbstractLogger
 {
-    const DefaultNoteName = 'YAWAFLogMessage';
+    const DefaultNoteName = 'YaWAFLogMessage';
 
     use ConditionalLoggerTrait;
 

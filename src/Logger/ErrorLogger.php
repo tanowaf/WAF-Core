@@ -26,7 +26,7 @@ class ErrorLogger
     {
         if (@static::$map[$level]) {
 /// @todo... add context data
-            $message = 'YAWAF ' . ucfirst($level) . ': ' . $message;
+            $message = 'YaWAF ' . ucfirst($level) . ': ' . $message;
             error_log($message);
         }
     }

@@ -32,7 +32,7 @@ class Proxy implements ProxyInterface, LoggerAwareInterface
     protected UpstreamClientInterface $client;
     protected array $overrideHeaders = [];
     protected array $overriddenHeaders = [];
-    protected string $viaHeaderPseudonym = 'YAWAF';
+    protected string $viaHeaderPseudonym = 'YaWAF';
     /// enable this to let the proxy answer to TRACE requests with Max-Forwards=0 if asked to
     protected bool $answerTraceRequests = false;
     /// NB: only used in answers to OPTIONS requests. This is not a list used to drop incoming requests! TRACE gets added dynamically
@@ -55,7 +55,7 @@ class Proxy implements ProxyInterface, LoggerAwareInterface
             $httpClient = (new UpstreamClientFactory())->createClient((array)$httpClient);
         }
         $this->client = $httpClient;
-        $this->overrideHeaders['User-Agent'] = 'YAWAF Proxy HttpClient' . (
+        $this->overrideHeaders['User-Agent'] = 'YaWAF Proxy HttpClient' . (
             ($cua = $this->$this->client->getUserAgent()) !== '' ? ' (' . $cua . ')' : ''
         );
     }

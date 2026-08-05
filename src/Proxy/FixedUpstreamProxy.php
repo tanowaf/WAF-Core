@@ -34,7 +34,7 @@ class FixedUpstreamProxy extends Proxy
         }
         $this->uriFactory = $uriFactory;
         $this->client = $this->setUpstream($upstream, $httpClient);
-        $this->overrideHeaders['User-Agent'] = 'YAWAF Proxy HttpClient' . (
+        $this->overrideHeaders['User-Agent'] = 'YaWAF Proxy HttpClient' . (
             ($cua = $this->client->getUserAgent()) !== '' ? ' (' . $cua . ')' : ''
         );
     }

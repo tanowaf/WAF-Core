@@ -22,7 +22,7 @@
   - review: can we do the same (but better) as all the haproxy rules in NC-AIO haproxy.cfg?
   - review: can we implement all rules from OWASP Top 10?
     Also, take a look at OWASP Coraza:
-    - can we automatically transform YAWAF rules into Coraza ones? And vice-versa?
+    - can we automatically transform WAF-Core rules into Coraza ones? And vice-versa?
     - take hints from features supported by Coraza, eg. setting resource limits (eg. on resp body size etc),
       have 'log' as rule actions, have a do-not-deny-but-log-violations mode, etc...
   - xml req./resp. body with xpath/css matchers
@@ -77,7 +77,7 @@
       - use a cloud-based platform that provides those ready-built, rather than installing each one by ourselves?
         Either that, or move to a multi-container setup for testing...
       - we will give a strong preference to how frankenphp sets up $_SERVER, as that will be the default way to
-        deploy a WAF based on this code (in the downstream YAWAF and YADSP projects)
+        deploy a WAF based on this code (in the downstream YaWAF and YaDSP projects)
       - swoole has built-in support for psr-15 (mapping an \OpenSwoole\HTTP\Request to a psr one, see https://github.com/openswoole/openswoole/blob/master/core/src/Helper.php)
   - add tests which make use of middleware from other projects, eg. rate-limiting and caching
 
