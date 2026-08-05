@@ -14,7 +14,8 @@
         "psr/http-server-handler": "^1.0.2",
         "psr/http-server-middleware": "^1.0.2",
         "psr/log": "^3.0.2",
-        "symfony/json-path": "^7.4.12"
+        "symfony/json-path": "^7.4.12",
+        "tanowaf/http-core": "dev-main"
     },
     "require-dev": {
         "ext-curl": "*",
