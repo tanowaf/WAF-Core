@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Tests;
 
-use GuzzleHttp\Handler\StreamHandler;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
