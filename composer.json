@@ -23,8 +23,8 @@
         "guzzlehttp/guzzle": "^8.0.0",
         "laminas/laminas-httphandlerrunner": "^2.13.0",
         "phpunit/phpunit": "^11.5.55|^12.5.29|^13.2.1",
-        "symfony/dotenv": "^v7.4.11|^8.0.11",
-        "symfony/http-client": "^7.4.9",
+        "symfony/dotenv": "^v7.4.15|^8.0.15",
+        "symfony/http-client": "^7.0.10",
         "symfony/psr-http-message-bridge": "^v7.4.8|^8.0.8|^8.10",
         "yoast/phpunit-polyfills": "^4.0"
     },
