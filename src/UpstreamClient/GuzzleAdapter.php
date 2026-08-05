@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\UpstreamClient;
+namespace TanoWAF\WAFCore\UpstreamClient;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -11,8 +11,8 @@ use GuzzleHttp\RequestOptions;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use YAWAF\Core\Exception\UpstreamRequestError;
-use YAWAF\Core\Exception\UpstreamRequestTimeout;
+use TanoWAF\WAFCore\Exception\UpstreamRequestError;
+use TanoWAF\WAFCore\Exception\UpstreamRequestTimeout;
 
 class GuzzleAdapter implements UpstreamClientInterface
 {

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use YAWAF\Core\Filter\Bidirectional\UnixCompressor;
+use TanoWAF\WAFCore\Filter\Bidirectional\UnixCompressor;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class AC_CompressSmokeTest extends TestCase

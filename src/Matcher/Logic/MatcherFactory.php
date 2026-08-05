@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Logic;
+namespace TanoWAF\WAFCore\Matcher\Logic;
 
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Matcher\MatcherFactoryAwareTrait;
-use YAWAF\Core\Matcher\MatcherFactoryInterface;
-use YAWAF\Core\Matcher\MatcherInterface;
-use YAWAF\Core\Matcher\SuffixedMatcherFactory;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Matcher\MatcherFactoryAwareTrait;
+use TanoWAF\WAFCore\Matcher\MatcherFactoryInterface;
+use TanoWAF\WAFCore\Matcher\MatcherInterface;
+use TanoWAF\WAFCore\Matcher\SuffixedMatcherFactory;
 
 class MatcherFactory extends SuffixedMatcherFactory implements MatcherFactoryInterface
 {
@@ -26,7 +26,7 @@ class MatcherFactory extends SuffixedMatcherFactory implements MatcherFactoryInt
     /**
      * @param string $type
      * @param mixed $values
-     * @return \YAWAF\Core\Matcher\MatcherInterface
+     * @return \TanoWAF\WAFCore\Matcher\MatcherInterface
      * @throws \Exception
      */
     public function fromConfiguration(string $type, mixed $values): MatcherInterface

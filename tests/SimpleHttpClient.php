@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 /// @todo feature creep: turn this into a Psr-18 client implementing UpstreamClientInterface
 class SimpleHttpClient

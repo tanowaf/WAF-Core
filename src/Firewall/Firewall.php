@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Firewall;
+namespace TanoWAF\WAFCore\Firewall;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -10,9 +10,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\RequestDenied;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
-use YAWAF\Core\Stdlib;
+use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Stdlib;
 
 /**
  * The class doing the actual filtering of Requests and Responses

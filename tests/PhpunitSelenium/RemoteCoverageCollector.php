@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests\PhpunitSelenium;
+namespace TanoWAF\WAFCore\Tests\PhpunitSelenium;
 
 class RemoteCoverageCollector
 {

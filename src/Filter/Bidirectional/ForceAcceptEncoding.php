@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Filter\Bidirectional;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Http\BodyCompressorTrait;
+use TanoWAF\WAFCore\Http\BodyCompressorTrait;
 
 /**
  * Used to force  to enable/disable accepting encoded (compressed) responses.

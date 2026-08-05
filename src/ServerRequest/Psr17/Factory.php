@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\ServerRequest\Psr17;
+namespace TanoWAF\WAFCore\ServerRequest\Psr17;
 
 use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;

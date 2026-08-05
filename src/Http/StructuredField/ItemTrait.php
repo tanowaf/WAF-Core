@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http\StructuredField;
+namespace TanoWAF\WAFCore\Http\StructuredField;
 
-use YAWAF\Core\Http\HeaderFormat;
-use YAWAF\Core\Stdlib;
+use TanoWAF\WAFCore\Http\HeaderFormat;
+use TanoWAF\WAFCore\Stdlib;
 
 trait ItemTrait
 {

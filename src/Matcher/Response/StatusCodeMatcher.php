@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Response;
+namespace TanoWAF\WAFCore\Matcher\Response;
 
 use Psr\Http\Message\ResponseInterface;
-use YAWAF\Core\Matcher\RegExpListMatcherTrait;
+use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 class StatusCodeMatcher extends BaseMatcher
 {

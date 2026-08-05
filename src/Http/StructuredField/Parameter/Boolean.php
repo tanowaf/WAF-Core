@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http\StructuredField\Parameter;
+namespace TanoWAF\WAFCore\Http\StructuredField\Parameter;
 
-use YAWAF\Core\Http\HeaderFormat;
+use TanoWAF\WAFCore\Http\HeaderFormat;
 
 class Boolean extends Base
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Http;
+namespace TanoWAF\WAFCore\Http;
 
 trait HeaderParserAwareTrait
 {

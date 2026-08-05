@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Logger;
+namespace TanoWAF\WAFCore\Logger;
 
 class JsonFileLogger extends FileLogger
 {

@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use GuzzleHttp\Psr7\ServerRequest as GuzzleServerRequest;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
-use YAWAF\Core\ServerRequest\Psr7\Creator as ServerRequestCreator;
-use YAWAF\Core\Stdlib;
-use YAWAF\Core\Tracer\RequestTracerTrait;
+use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
+use TanoWAF\WAFCore\Stdlib;
+use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
 
 class TestServer
 {

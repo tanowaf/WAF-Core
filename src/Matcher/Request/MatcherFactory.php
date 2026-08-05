@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Request;
+namespace TanoWAF\WAFCore\Matcher\Request;
 
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Http\HeaderParserFactory;
-use YAWAF\Core\Matcher\MatcherFactoryInterface;
-use YAWAF\Core\Matcher\MatcherInterface;
-use YAWAF\Core\Matcher\Message\MatcherFactory as BaseMatcherFactory;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Matcher\MatcherFactoryInterface;
+use TanoWAF\WAFCore\Matcher\MatcherInterface;
+use TanoWAF\WAFCore\Matcher\Message\MatcherFactory as BaseMatcherFactory;
 
 class MatcherFactory extends BaseMatcherFactory implements MatcherFactoryInterface
 {

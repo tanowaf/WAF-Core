@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Firewall;
+namespace TanoWAF\WAFCore\Firewall;
 
 enum RuleAction: string
 {

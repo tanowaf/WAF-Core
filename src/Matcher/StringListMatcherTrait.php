@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Matcher;
+namespace TanoWAF\WAFCore\Matcher;
 
 /**
  * Allows matching a string that must fall within an allowed list of values

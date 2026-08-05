@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher;
+namespace TanoWAF\WAFCore\Matcher;
 
-use YAWAF\Core\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
 
 class ChainFactory implements MatcherFactoryInterface
 {

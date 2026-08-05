@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Matcher;
+namespace TanoWAF\WAFCore\Matcher;
 
 /**
  * Common functionality for most matcher factories: supports a known list of matcher types, identified by a string

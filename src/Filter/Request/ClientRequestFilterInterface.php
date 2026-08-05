@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Filter\Request;
+namespace TanoWAF\WAFCore\Filter\Request;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use YAWAF\Core\Exception\RequestDenied;
+use TanoWAF\WAFCore\Exception\RequestDenied;
 
 interface ClientRequestFilterInterface
 {

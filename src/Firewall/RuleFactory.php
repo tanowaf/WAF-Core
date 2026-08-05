@@ -1,21 +1,21 @@
 <?php
 
-namespace YAWAF\Core\Firewall;
+namespace TanoWAF\WAFCore\Firewall;
 
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Http\HeaderParserFactory;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
-use YAWAF\Core\Matcher\ChainFactory;
-use YAWAF\Core\Matcher\Logic\AndMatcher;
-use YAWAF\Core\Matcher\Logic\MatcherFactory as LogicMatcherFactory;
-use YAWAF\Core\Matcher\MatcherFactoryInterface;
-use YAWAF\Core\Matcher\Request\MatcherFactory as RequestMatcherFactory;
-use YAWAF\Core\Matcher\Request\RequestMatcherInterface;
-use YAWAF\Core\Matcher\Response\MatcherFactory as ResponseMatcherFactory;
-use YAWAF\Core\Matcher\Response\ResponseMatcherInterface;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Matcher\ChainFactory;
+use TanoWAF\WAFCore\Matcher\Logic\AndMatcher;
+use TanoWAF\WAFCore\Matcher\Logic\MatcherFactory as LogicMatcherFactory;
+use TanoWAF\WAFCore\Matcher\MatcherFactoryInterface;
+use TanoWAF\WAFCore\Matcher\Request\MatcherFactory as RequestMatcherFactory;
+use TanoWAF\WAFCore\Matcher\Request\RequestMatcherInterface;
+use TanoWAF\WAFCore\Matcher\Response\MatcherFactory as ResponseMatcherFactory;
+use TanoWAF\WAFCore\Matcher\Response\ResponseMatcherInterface;
 
 class RuleFactory
 {
@@ -170,7 +170,7 @@ class RuleFactory
 
     /**
      * @param array $config
-     * @return \YAWAF\Core\Matcher\MatcherFactoryInterface
+     * @return \TanoWAF\WAFCore\Matcher\MatcherFactoryInterface
      * @throws \Exception
      */
     protected function getRequestMatcherFactory(array $config): MatcherFactoryInterface
@@ -186,7 +186,7 @@ class RuleFactory
 
     /**
      * @param array $config
-     * @return \YAWAF\Core\Matcher\MatcherFactoryInterface
+     * @return \TanoWAF\WAFCore\Matcher\MatcherFactoryInterface
      * @throws \Exception
      */
     protected function getResponseMatcherFactory(array $config): MatcherFactoryInterface

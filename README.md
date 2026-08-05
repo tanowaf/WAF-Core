@@ -1,4 +1,4 @@
-# Yet Another Web API Firewall - core
+# TanoWAF - WAF core
 
 A PHP library for building Web API Firewalls - and other assorted HTTP Proxies.
 
@@ -68,7 +68,7 @@ Not in scope (yet?):
 
 ## Installation
 
-Via Composer: `composer require gggeek/yet-another-waf-core:dev-main`
+Via Composer: `composer require tanowaf/yet-another-waf-core:dev-main`
 
 Then install either `symfony/http-client` or `guzzlehttp/guzzle`.
 
@@ -76,8 +76,8 @@ Then install either `symfony/http-client` or `guzzlehttp/guzzle`.
 
 More examples will come...
 
-For the moment, see projects https://github.com/gggeek/yet-another-docker-socket-proxy and
-https://github.com/gggeek/yet-another-waf as examples.
+For the moment, see projects https://github.com/tanowaf/yet-another-docker-socket-proxy and
+https://github.com/tanowaf/yet-another-waf as examples.
 
 Or take a look at the Proxy used for the unit testing suite in `./tests/public`
 
@@ -134,9 +134,9 @@ The testsuite can be run using FrankenPHP or Apache as webserver with the follow
 Use of this software is subject to the terms in the [LICENSE](LICENSE) file
 
 
-[![License](https://poser.pugx.org/gggeek/yet-another-waf-core/license)](https://packagist.org/packages/gggeek/yet-another-waf-core)
-[![Latest Stable Version](https://poser.pugx.org/gggeek/yet-another-waf-core/v/stable)](https://packagist.org/packages/gggeek/yet-another-waf-core)
-[![Total Downloads](https://poser.pugx.org/gggeek/yet-another-waf-core/downloads)](https://packagist.org/packages/gggeek/yet-another-waf-core)
+[![License](https://poser.pugx.org/tanowaf/yet-another-waf-core/license)](https://packagist.org/packages/tanowaf/yet-another-waf-core)
+[![Latest Stable Version](https://poser.pugx.org/tanowaf/yet-another-waf-core/v/stable)](https://packagist.org/packages/tanowaf/yet-another-waf-core)
+[![Total Downloads](https://poser.pugx.org/tanowaf/yet-another-waf-core/downloads)](https://packagist.org/packages/tanowaf/yet-another-waf-core)
 
-[![Build Status](https://github.com/gggeek/yet-another-waf-core/actions/workflows/ci.yaml/badge.svg)](https://github.com/gggeek/yet-another-waf-core/actions/workflows/ci.yaml)
-[![Code Coverage](https://codecov.io/github/gggeek/yet-another-waf-core/branch/main/graph/badge.svg)](https://app.codecov.io/github/gggeek/yet-another-waf-core)
+[![Build Status](https://github.com/tanowaf/yet-another-waf-core/actions/workflows/ci.yaml/badge.svg)](https://github.com/tanowaf/yet-another-waf-core/actions/workflows/ci.yaml)
+[![Code Coverage](https://codecov.io/github/tanowaf/yet-another-waf-core/branch/main/graph/badge.svg)](https://app.codecov.io/github/tanowaf/yet-another-waf-core)

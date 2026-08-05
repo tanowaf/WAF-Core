@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Filter\Bidirectional;
 
 /**
  * Implement compression the same way as the unix `compress` utility.

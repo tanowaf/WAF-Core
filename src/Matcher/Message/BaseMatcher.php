@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Matcher\Request\RequestMatcherInterface;
-use YAWAF\Core\Matcher\Response\ResponseMatcherInterface;
+use TanoWAF\WAFCore\Matcher\Request\RequestMatcherInterface;
+use TanoWAF\WAFCore\Matcher\Response\ResponseMatcherInterface;
 
 abstract class BaseMatcher implements MessageMatcherInterface, RequestMatcherInterface, ResponseMatcherInterface
 {

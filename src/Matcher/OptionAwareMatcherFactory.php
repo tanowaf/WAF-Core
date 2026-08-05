@@ -1,8 +1,8 @@
 <?php
 
-namespace YAWAF\Core\Matcher;
+namespace TanoWAF\WAFCore\Matcher;
 
-use YAWAF\Core\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
 
 /**
  * Implements functionality common to Matcher factories:

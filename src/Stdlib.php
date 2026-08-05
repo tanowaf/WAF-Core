@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core;
+namespace TanoWAF\WAFCore;
 
 class Stdlib
 {

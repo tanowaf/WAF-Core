@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Exception;
+namespace TanoWAF\WAFCore\Exception;
 
 class InvalidHeaderValue extends \Exception
 {

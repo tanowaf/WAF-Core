@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Runner\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Data\RawCodeCoverageData;
@@ -14,7 +14,7 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
-use YAWAF\Core\Tests\PhpunitSelenium\RemoteCoverageCollector;
+use TanoWAF\WAFCore\Tests\PhpunitSelenium\RemoteCoverageCollector;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /// @todo... bring back support for collecting code coverage of code executed via http calls

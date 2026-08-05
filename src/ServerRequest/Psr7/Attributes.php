@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\ServerRequest\Psr7;
+namespace TanoWAF\WAFCore\ServerRequest\Psr7;
 
 // A trimmed-down version of Symfony's ParameterBag
 class Attributes

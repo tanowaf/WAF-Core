@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
-use YAWAF\Core\Proxy\Proxy;
+use TanoWAF\WAFCore\Proxy\Proxy;
 
 /// @todo declare dependency on SmokeTest
 class CB_HTTPErrorsTest extends ProxyTestCase

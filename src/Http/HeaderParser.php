@@ -1,17 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http;
+namespace TanoWAF\WAFCore\Http;
 
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Http\HeaderFormat as HF;
-use YAWAF\Core\Http\HeaderQuotedSpansFormat as HQSF;
-use YAWAF\Core\Http\HeaderSpec as HS;
-use YAWAF\Core\Http\StructuredField\Parser as StructuredFieldParser;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
-use YAWAF\Core\Stdlib;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Http\HeaderFormat as HF;
+use TanoWAF\WAFCore\Http\HeaderQuotedSpansFormat as HQSF;
+use TanoWAF\WAFCore\Http\HeaderSpec as HS;
+use TanoWAF\WAFCore\Http\StructuredField\Parser as StructuredFieldParser;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Stdlib;
 
 /// @todo do we need to implement plugins/subclasses to add support for headers used in well-known protocols such as eg. webdav?
 class HeaderParser

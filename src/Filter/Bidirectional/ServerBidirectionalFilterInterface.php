@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Filter\Bidirectional;
 
-use YAWAF\Core\Filter\Request\ServerRequestFilterInterface;
-use YAWAF\Core\Filter\Response\ResponseFilterInterface;
+use TanoWAF\WAFCore\Filter\Request\ServerRequestFilterInterface;
+use TanoWAF\WAFCore\Filter\Response\ResponseFilterInterface;
 
 /**
  * A custom take on Psr\Http\Server\MiddlewareInterface.

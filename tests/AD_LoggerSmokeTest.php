@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
-use YAWAF\Core\Logger\FileLogger;
-use YAWAF\Core\Logger\JsonFileLogger;
-use YAWAF\Core\Logger\LoggerChain;
+use TanoWAF\WAFCore\Logger\FileLogger;
+use TanoWAF\WAFCore\Logger\JsonFileLogger;
+use TanoWAF\WAFCore\Logger\LoggerChain;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class AD_LoggerSmokeTest extends TestCase

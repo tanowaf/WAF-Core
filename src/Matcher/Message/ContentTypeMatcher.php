@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 class ContentTypeMatcher extends HeaderValueMatcher
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Middleware;
+namespace TanoWAF\WAFCore\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

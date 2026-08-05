@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use YAWAF\Core\Http\HeaderFormat as HF;
+use TanoWAF\WAFCore\Http\HeaderFormat as HF;
 
 /**
  * Generates a json file with the spec for all known http headers, starting from the markdown-formatted file in /docs.

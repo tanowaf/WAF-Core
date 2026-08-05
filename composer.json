@@ -1,5 +1,5 @@
 {
-    "name": "gggeek/yet-another-waf-core",
+    "name": "tanowaf/waf-core",
     "description": "A php library for building Web Application Firewalls",
     "license": "GPL-2.0",
     "keywords": [ "waf", "http", "api", "firewall", "proxy", "security", "middleware", "psr-7", "psr-15", "psr-18" ],
@@ -45,12 +45,12 @@
     },
     "autoload": {
         "psr-4": {
-            "YAWAF\\Core\\": "src/"
+            "TanoWAF\\WAFCore\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "YAWAF\\Core\\Tests\\": "tests/"
+            "TanoWAF\\WAFCore\\Tests\\": "tests/"
         }
     }
 }

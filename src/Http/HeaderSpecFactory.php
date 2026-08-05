@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http;
+namespace TanoWAF\WAFCore\Http;
 
-use YAWAF\Core\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
 
 class HeaderSpecFactory
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace YAWAF\Core\Http\StructuredField;
+namespace TanoWAF\WAFCore\Http\StructuredField;
 
-use YAWAF\Core\Http\HeaderFormat;
+use TanoWAF\WAFCore\Http\HeaderFormat;
 
 /**
  * @todo... move away from being fully static to being a normal class and get one instance injected into the HeaderParser

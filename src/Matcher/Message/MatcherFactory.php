@@ -1,16 +1,16 @@
 <?php
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Matcher\Logic\AndMatcher;
-use YAWAF\Core\Matcher\MatcherInterface;
-use YAWAF\Core\Matcher\OptionAwareMatcherFactory;
-use YAWAF\Core\Matcher\Response\StatusCodeMatcher;
-use YAWAF\Core\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Matcher\Logic\AndMatcher;
+use TanoWAF\WAFCore\Matcher\MatcherInterface;
+use TanoWAF\WAFCore\Matcher\OptionAwareMatcherFactory;
+use TanoWAF\WAFCore\Matcher\Response\StatusCodeMatcher;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
 
 /**
  * Used to share code for setting up those matchers that ar identical between request and response

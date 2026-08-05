@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http;
+namespace TanoWAF\WAFCore\Http;
 
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\RequestBodyCantBeCompressed;
-use YAWAF\Core\Exception\RequestBodyCantBeDecompressed;
-use YAWAF\Core\Exception\ResponseBodyCantBeCompressed;
-use YAWAF\Core\Exception\ResponseBodyCantBeDecompressed;
-use YAWAF\Core\Exception\UnsupportedMediaType;
+use TanoWAF\WAFCore\Exception\RequestBodyCantBeCompressed;
+use TanoWAF\WAFCore\Exception\RequestBodyCantBeDecompressed;
+use TanoWAF\WAFCore\Exception\ResponseBodyCantBeCompressed;
+use TanoWAF\WAFCore\Exception\ResponseBodyCantBeDecompressed;
+use TanoWAF\WAFCore\Exception\UnsupportedMediaType;
 
 /**
  * @todo according to https://en.wikipedia.org/wiki/HTTP_compression, there are many unofficial compression schemes

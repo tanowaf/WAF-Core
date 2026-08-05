@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
-use YAWAF\Core\Http\BodyCompressorTrait;
+use TanoWAF\WAFCore\Http\BodyCompressorTrait;
 
 class CC_HTTPCompressionTest extends ProxyTestCase
 {

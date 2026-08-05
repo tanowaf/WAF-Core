@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\MessageInterface;
-use YAWAF\Core\Http\HeaderParser;
-use YAWAF\Core\Http\HeaderParserAwareTrait;
-//use YAWAF\Core\Http\HeaderParserOnError;
-use YAWAF\Core\Matcher\RegExpListMatcherTrait;
+use TanoWAF\WAFCore\Http\HeaderParser;
+use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
+//use TanoWAF\WAFCore\Http\HeaderParserOnError;
+use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 class HeaderValueMatcher extends BaseMatcher
 {

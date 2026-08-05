@@ -1,19 +1,19 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Proxy;
+namespace TanoWAF\WAFCore\Proxy;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Exception\RequestDenied;
-use YAWAF\Core\Exception\UpstreamRequestError;
-use YAWAF\Core\Exception\UpstreamRequestTimeout;
-use YAWAF\Core\UpstreamClient\UpstreamClientFactory;
-use YAWAF\Core\UpstreamClient\UpstreamClientInterface;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Exception\UpstreamRequestError;
+use TanoWAF\WAFCore\Exception\UpstreamRequestTimeout;
+use TanoWAF\WAFCore\UpstreamClient\UpstreamClientFactory;
+use TanoWAF\WAFCore\UpstreamClient\UpstreamClientInterface;
 
 class FixedUpstreamProxy extends Proxy
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\MessageInterface;
 

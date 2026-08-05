@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Request;
+namespace TanoWAF\WAFCore\Matcher\Request;
 
-use YAWAF\Core\Matcher\Message\HeaderValueMatcher;
+use TanoWAF\WAFCore\Matcher\Message\HeaderValueMatcher;
 
 class UserAgentMatcher extends HeaderValueMatcher
 {

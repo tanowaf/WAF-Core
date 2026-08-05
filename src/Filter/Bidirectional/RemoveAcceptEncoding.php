@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Filter\Bidirectional;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Http\BodyCompressorTrait;
+use TanoWAF\WAFCore\Http\BodyCompressorTrait;
 
 /**
  * NB: as per https://www.rfc-editor.org/info/rfc9110/#section-12.5.3-10.1:

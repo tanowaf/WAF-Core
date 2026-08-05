@@ -1,12 +1,12 @@
 <?php
 
-namespace YAWAF\Core\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Filter\Bidirectional;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Tracer\RequestTracerTrait;
-use YAWAF\Core\Tracer\ResponseTracerTrait;
+use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
+use TanoWAF\WAFCore\Tracer\ResponseTracerTrait;
 
 class Tracer extends MiddlewareFilter implements ClientBidirectionalFilterInterface
 {

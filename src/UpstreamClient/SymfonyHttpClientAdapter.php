@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\UpstreamClient;
+namespace TanoWAF\WAFCore\UpstreamClient;
 
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
@@ -11,8 +11,8 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\NativeHttpClient;
 use Symfony\Component\HttpClient\Psr18Client;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use YAWAF\Core\Exception\UpstreamRequestError;
-use YAWAF\Core\Exception\UpstreamRequestTimeout;
+use TanoWAF\WAFCore\Exception\UpstreamRequestError;
+use TanoWAF\WAFCore\Exception\UpstreamRequestTimeout;
 
 class SymfonyHttpClientAdapter implements UpstreamClientInterface
 {

@@ -1,12 +1,12 @@
 <?php
 
-namespace YAWAF\Core\Firewall;
+namespace TanoWAF\WAFCore\Firewall;
 
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\ConfigurationError;
-use YAWAF\Core\Http\HeaderParserFactory;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
 
 class FirewallFactory
 {

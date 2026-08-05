@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http\StructuredField;
+namespace TanoWAF\WAFCore\Http\StructuredField;
 
-use YAWAF\Core\Http\HeaderFormat;
+use TanoWAF\WAFCore\Http\HeaderFormat;
 
 interface Parameter
 {

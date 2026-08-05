@@ -1,19 +1,19 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Firewall;
+namespace TanoWAF\WAFCore\Firewall;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareTrait;
-use YAWAF\Core\Exception\RequestDenied;
-use YAWAF\Core\Filter\Request\ServerRequestFilterInterface;
-use YAWAF\Core\Filter\Response\ResponseFilterInterface;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
-use YAWAF\Core\Matcher\Logic\AlwaysMatcher;
-use YAWAF\Core\Matcher\Request\RequestMatcherInterface;
-use YAWAF\Core\Matcher\Response\ResponseMatcherInterface;
-use YAWAF\Core\Stdlib;
+use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Filter\Request\ServerRequestFilterInterface;
+use TanoWAF\WAFCore\Filter\Response\ResponseFilterInterface;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Matcher\Logic\AlwaysMatcher;
+use TanoWAF\WAFCore\Matcher\Request\RequestMatcherInterface;
+use TanoWAF\WAFCore\Matcher\Response\ResponseMatcherInterface;
+use TanoWAF\WAFCore\Stdlib;
 
 class Rule implements RequestMatcherInterface, ServerRequestFilterInterface, ResponseFilterInterface
 {

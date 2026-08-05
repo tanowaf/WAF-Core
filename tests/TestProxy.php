@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use GuzzleHttp\Handler\StreamHandler;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Proxy\ProxyInterface;
-use YAWAF\Core\Server\MiddlewareAware;
-use YAWAF\Core\UpstreamClient\GuzzleAdapter;
-use YAWAF\Core\UpstreamClient\SymfonyHttpClientAdapter;
-use YAWAF\Core\UpstreamClient\UpstreamClientFactory;
-use YAWAF\Core\UpstreamClient\UpstreamClientInterface;
+use TanoWAF\WAFCore\Proxy\ProxyInterface;
+use TanoWAF\WAFCore\Server\MiddlewareAware;
+use TanoWAF\WAFCore\UpstreamClient\GuzzleAdapter;
+use TanoWAF\WAFCore\UpstreamClient\SymfonyHttpClientAdapter;
+use TanoWAF\WAFCore\UpstreamClient\UpstreamClientFactory;
+use TanoWAF\WAFCore\UpstreamClient\UpstreamClientInterface;
 
 class TestProxy extends MiddlewareAware
 {

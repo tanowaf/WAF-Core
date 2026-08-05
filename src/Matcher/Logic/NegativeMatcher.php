@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Logic;
+namespace TanoWAF\WAFCore\Matcher\Logic;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Matcher\MatcherInterface;
-use YAWAF\Core\Matcher\Request\RequestMatcherInterface;
-use YAWAF\Core\Matcher\Response\ResponseMatcherInterface;
+use TanoWAF\WAFCore\Matcher\MatcherInterface;
+use TanoWAF\WAFCore\Matcher\Request\RequestMatcherInterface;
+use TanoWAF\WAFCore\Matcher\Response\ResponseMatcherInterface;
 
 class NegativeMatcher implements RequestMatcherInterface, ResponseMatcherInterface
 {

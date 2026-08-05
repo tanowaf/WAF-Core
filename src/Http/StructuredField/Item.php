@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http\StructuredField;
+namespace TanoWAF\WAFCore\Http\StructuredField;
 
 /// @todo... add types, getter/setters to enforce them
-use YAWAF\Core\Http\HeaderFormat;
-use YAWAF\Core\Stdlib;
+use TanoWAF\WAFCore\Http\HeaderFormat;
+use TanoWAF\WAFCore\Stdlib;
 
 interface Item extends Parameter
 {

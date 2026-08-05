@@ -1,10 +1,10 @@
 <?php
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\MessageInterface;
-use YAWAF\Core\Http\BodyCompressorTrait;
-use YAWAF\Core\Matcher\RegExpListMatcherTrait;
+use TanoWAF\WAFCore\Http\BodyCompressorTrait;
+use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 class BodyMatcher extends BaseMatcher
 {
@@ -23,8 +23,8 @@ class BodyMatcher extends BaseMatcher
     }
 
     /**
-     * @throws \YAWAF\Core\Exception\RequestBodyCantBeDecompressed
-     * @throws \YAWAF\Core\Exception\ResponseBodyCantBeDecompressed
+     * @throws \TanoWAF\WAFCore\Exception\RequestBodyCantBeDecompressed
+     * @throws \TanoWAF\WAFCore\Exception\ResponseBodyCantBeDecompressed
      */
     public function matchesMessage(MessageInterface $message): bool
     {

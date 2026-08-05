@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Response;
+namespace TanoWAF\WAFCore\Matcher\Response;
 
-use YAWAF\Core\Matcher\MatcherFactoryInterface;
-use YAWAF\Core\Matcher\Message\MatcherFactory as BaseMatcherFactory;
+use TanoWAF\WAFCore\Matcher\MatcherFactoryInterface;
+use TanoWAF\WAFCore\Matcher\Message\MatcherFactory as BaseMatcherFactory;
 
 class MatcherFactory extends BaseMatcherFactory implements MatcherFactoryInterface
 {

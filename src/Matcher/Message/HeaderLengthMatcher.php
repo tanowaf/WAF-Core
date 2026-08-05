@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Message;
+namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\MessageInterface;
-use YAWAF\Core\Matcher\RegExpListMatcherTrait;
+use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 /**
  * Matches headers whose length (in bytes) is equal or greater than a given value.

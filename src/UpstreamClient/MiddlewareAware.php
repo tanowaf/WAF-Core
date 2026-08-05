@@ -1,14 +1,14 @@
 <?php
 
-namespace YAWAF\Core\UpstreamClient;
+namespace TanoWAF\WAFCore\UpstreamClient;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Filter\Bidirectional\ClientBidirectionalFilterInterface;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Filter\Bidirectional\ClientBidirectionalFilterInterface;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
 
 class MiddlewareAware implements UpstreamClientInterface, LoggerAwareInterface
 {
@@ -27,9 +27,9 @@ class MiddlewareAware implements UpstreamClientInterface, LoggerAwareInterface
 
     /**
      * @throws \Psr\Http\Client\ClientExceptionInterface possibly thrown by other adapters than the Guzzle, Symfony ones
-     * @throws \YAWAF\Core\Exception\RequestDenied
-     * @throws \YAWAF\Core\Exception\UpstreamRequestError
-     * @throws \YAWAF\Core\Exception\UpstreamRequestTimeout
+     * @throws \TanoWAF\WAFCore\Exception\RequestDenied
+     * @throws \TanoWAF\WAFCore\Exception\UpstreamRequestError
+     * @throws \TanoWAF\WAFCore\Exception\UpstreamRequestTimeout
      *
 * @todo... we should probably wrap ClientExceptionInterface (and basically every other error but for UpstreamRequestError, UpstreamRequestTimeout) into an UpstreamRequestError?
      */

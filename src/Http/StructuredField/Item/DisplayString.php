@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http\StructuredField\Item;
+namespace TanoWAF\WAFCore\Http\StructuredField\Item;
 
-use YAWAF\Core\Http\StructuredField\Item;
-use YAWAF\Core\Http\StructuredField\ItemTrait;
-use YAWAF\Core\Http\StructuredField\Parameter\DisplayString as Base;
+use TanoWAF\WAFCore\Http\StructuredField\Item;
+use TanoWAF\WAFCore\Http\StructuredField\ItemTrait;
+use TanoWAF\WAFCore\Http\StructuredField\Parameter\DisplayString as Base;
 
 class DisplayString extends Base implements Item
 {

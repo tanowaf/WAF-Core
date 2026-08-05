@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Http;
+namespace TanoWAF\WAFCore\Http;
 
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;

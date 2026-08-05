@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\UpstreamClient;
+namespace TanoWAF\WAFCore\UpstreamClient;
 
 class UpstreamClientFactory
 {

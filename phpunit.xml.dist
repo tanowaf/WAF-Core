@@ -15,7 +15,7 @@
     </source>
 
     <testsuites>
-        <testsuite name="YAWAF-Core Test Suite">
+        <testsuite name="WAF-Core Test Suite">
             <directory>./tests</directory>
         </testsuite>
     </testsuites>

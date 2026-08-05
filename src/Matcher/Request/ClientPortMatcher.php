@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Matcher\Request;
+namespace TanoWAF\WAFCore\Matcher\Request;
 
 use Psr\Http\Message\ServerRequestInterface;
-use YAWAF\Core\Matcher\RegExpListMatcherTrait;
-use YAWAF\Core\ServerRequest\Psr7\Attributes;
+use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
+use TanoWAF\WAFCore\ServerRequest\Psr7\Attributes;
 
 class ClientPortMatcher extends BaseMatcher
 {

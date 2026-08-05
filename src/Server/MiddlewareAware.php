@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Server;
+namespace TanoWAF\WAFCore\Server;
 
 use Nyholm\Psr7\Response;
 //use Nyholm\Psr7\Stream;
@@ -12,11 +12,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\RequestDenied;
-use YAWAF\Core\Exception\UpstreamRequestError;
-use YAWAF\Core\Exception\UpstreamRequestTimeout;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
-use YAWAF\Core\Proxy\Proxy;
+use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Exception\UpstreamRequestError;
+use TanoWAF\WAFCore\Exception\UpstreamRequestTimeout;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Proxy\Proxy;
 
 /**
  * Allows adding middlewares to execute logic before forwarding the request / after having received the response,

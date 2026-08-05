@@ -1,8 +1,8 @@
 <?php
 
-namespace YAWAF\Core\Http\StructuredField;
+namespace TanoWAF\WAFCore\Http\StructuredField;
 
-use YAWAF\Core\Http\HeaderFormat;
+use TanoWAF\WAFCore\Http\HeaderFormat;
 
 class ParameterFactory
 {

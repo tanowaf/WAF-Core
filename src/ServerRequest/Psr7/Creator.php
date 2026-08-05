@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\ServerRequest\Psr7;
+namespace TanoWAF\WAFCore\ServerRequest\Psr7;
 
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -11,9 +11,9 @@ use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
-use YAWAF\Core\ServerRequest\Psr17\ExtendedFactoryInterface;
-use YAWAF\Core\ServerRequest\Psr17\Factory as ServerRequestFactory;
-use YAWAF\Core\Stdlib;
+use TanoWAF\WAFCore\ServerRequest\Psr17\ExtendedFactoryInterface;
+use TanoWAF\WAFCore\ServerRequest\Psr17\Factory as ServerRequestFactory;
+use TanoWAF\WAFCore\Stdlib;
 
 /**
  * A reimplementation of Nyholm\Psr7Server\ServerRequestCreator, attempting to suit better the forward-proxy use-case and

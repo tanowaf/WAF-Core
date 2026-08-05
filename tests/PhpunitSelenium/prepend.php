@@ -44,7 +44,7 @@ declare(strict_types=1);
  * @since      File available since Release 1.0.0
  */
 
-use YAWAF\Core\Tests\PhpunitSelenium\ExitHandler;
+use TanoWAF\WAFCore\Tests\PhpunitSelenium\ExitHandler;
 
 // By default, the code coverage files are written to the same directory
 // that contains the covered sourcecode files. Use this setting to change

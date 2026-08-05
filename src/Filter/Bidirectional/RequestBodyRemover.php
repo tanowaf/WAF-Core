@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Filter\Bidirectional;
 
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;

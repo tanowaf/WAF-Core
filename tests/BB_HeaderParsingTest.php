@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Tests;
+namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use YAWAF\Core\Http\HeaderFormat;
-use YAWAF\Core\Http\HeaderParser;
-use YAWAF\Core\Http\HeaderQuotedSpansFormat;
-use YAWAF\Core\Http\HeaderSpec;
+use TanoWAF\WAFCore\Http\HeaderFormat;
+use TanoWAF\WAFCore\Http\HeaderParser;
+use TanoWAF\WAFCore\Http\HeaderQuotedSpansFormat;
+use TanoWAF\WAFCore\Http\HeaderSpec;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class BB_HeaderParsingTest extends TestCase

@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Tracer;
+namespace TanoWAF\WAFCore\Tracer;
 
 use Psr\Http\Message\ResponseInterface;
 

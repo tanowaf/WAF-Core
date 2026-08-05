@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Proxy;
+namespace TanoWAF\WAFCore\Proxy;
 
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Stream;
@@ -12,13 +12,13 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use YAWAF\Core\Exception\RequestDenied;
-use YAWAF\Core\Exception\UpstreamRequestError;
-use YAWAF\Core\Exception\UpstreamRequestTimeout;
-use YAWAF\Core\Logger\PrivateLoggerTrait;
-use YAWAF\Core\Tracer\RequestTracerTrait;
-use YAWAF\Core\UpstreamClient\UpstreamClientFactory;
-use YAWAF\Core\UpstreamClient\UpstreamClientInterface;
+use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Exception\UpstreamRequestError;
+use TanoWAF\WAFCore\Exception\UpstreamRequestTimeout;
+use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
+use TanoWAF\WAFCore\UpstreamClient\UpstreamClientFactory;
+use TanoWAF\WAFCore\UpstreamClient\UpstreamClientInterface;
 
 class Proxy implements ProxyInterface, LoggerAwareInterface
 {

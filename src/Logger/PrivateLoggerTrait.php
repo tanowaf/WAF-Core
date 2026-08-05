@@ -1,6 +1,6 @@
 <?php
 
-namespace YAWAF\Core\Logger;
+namespace TanoWAF\WAFCore\Logger;
 
 use Psr\Log\LogLevel;
 

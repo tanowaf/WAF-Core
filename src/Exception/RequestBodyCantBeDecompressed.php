@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace YAWAF\Core\Exception;
+namespace TanoWAF\WAFCore\Exception;
 
 class RequestBodyCantBeDecompressed extends RequestDenied
 {
