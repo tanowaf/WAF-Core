@@ -8,6 +8,9 @@ use TanoWAF\WAFCore\Logger\JsonFileLogger;
 use TanoWAF\WAFCore\Logger\LoggerChain;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
+/**
+ * Tests Loggers, without going through the proxy.
+ */
 class AD_LoggerSmokeTest extends TestCase
 {
     public function testFileLoggers()

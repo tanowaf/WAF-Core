@@ -10,7 +10,10 @@ use TanoWAF\WAFCore\Http\HeaderQuotedSpansFormat;
 use TanoWAF\WAFCore\Http\HeaderSpec;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
-class BB_HeaderParsingTest extends TestCase
+/**
+ * Tests the HeaderParser class - without going through the proxy.
+ */
+class BB_HeaderNormalizationTest extends TestCase
 {
     #[DataProvider('normalizingCustomHeadersDataProvider')]
     public function testNormalizingCustomHeaders(array $values, array $expectedResults, bool $expectErrors = false)

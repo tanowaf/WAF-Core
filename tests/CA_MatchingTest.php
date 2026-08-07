@@ -6,7 +6,10 @@ namespace TanoWAF\WAFCore\Tests;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
-/// @todo declare dependency on SmokeTest
+/**
+ * Tests proxy rules.
+ * @todo declare dependency on Smoke Tests
+ */
 class CA_MatchingTest extends ProxyTestCase
 {
     static protected int $clientPort = 31000;

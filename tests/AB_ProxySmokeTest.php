@@ -5,6 +5,9 @@ namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 
+/**
+ * Tests that the Proxy is in basic working condition - without running any rule.
+ */
 class AB_ProxySmokeTest extends ProxyTestCase
 {
     /**

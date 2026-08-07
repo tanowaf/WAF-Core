@@ -1,0 +1,5 @@
+[
+    {
+        "http_header_rfc_compliant": ["Cookie", "Host", "user-agent"]
+    }
+]

@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Matcher\Message;
 
-use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use TanoWAF\WAFCore\Http\HeaderParser;
 use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
-//use TanoWAF\WAFCore\Http\HeaderParserOnError;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 class HeaderValueMatcher extends BaseMatcher
@@ -16,7 +16,6 @@ class HeaderValueMatcher extends BaseMatcher
 
     protected string $headerName;
     protected bool $headerNameIsRegex = false;
-    //protected HeaderParserOnError $headerValueParsingMode;
 
     /**
      * NB: when passed a header name regex, returns true if at _least one_ header value matches
@@ -29,7 +28,6 @@ class HeaderValueMatcher extends BaseMatcher
         $this->caseInsensitive = $caseInsensitive;
         $this->expandWildcards = $expandWildcards;
         $this->headerNameIsRegex = $expandWildcardsInName;
-        //$this->headerValueParsingMode = $matchInvalidHeaderValues ? HeaderParserOnError::Ignore : HeaderParserOnError::ReplaceWithSpace;
 
         if ($expandWildcardsInName) {
             $this->headerName = $this->regexpDelimiter . $this->wildcardStringToRegexp($headerName, true) . $this->regexpDelimiter . 'i';
@@ -42,7 +40,7 @@ class HeaderValueMatcher extends BaseMatcher
         $this->headerParser = new HeaderParser();
     }
 
-    public function matchesMessage(MessageInterface $message): bool
+    public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
         if ($this->headerNameIsRegex) {
             foreach ($message->getHeaders() as $headerName => $headerValues) {

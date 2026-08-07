@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Matcher\Message;
 
-use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use TanoWAF\WAFCore\Http\HeaderParser;
 use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
@@ -38,7 +39,7 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
         $this->headerParser = new HeaderParser();
     }
 
-    public function matchesMessage(MessageInterface $message): bool
+    public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
         if ($this->headerNameIsRegex) {
             foreach ($message->getHeaders() as $headerName => $headerValues) {

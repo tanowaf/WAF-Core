@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\Matcher\Request\RequestMatcherInterface;
@@ -34,5 +35,5 @@ abstract class BaseMatcher implements MessageMatcherInterface, RequestMatcherInt
         return $this->matchesMessage($response);
     }
 
-    abstract function matchesMessage(MessageInterface $message): bool;
+    abstract function matchesMessage(RequestInterface|ResponseInterface $message): bool;
 }

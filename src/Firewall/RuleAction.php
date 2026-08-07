@@ -8,5 +8,7 @@ enum RuleAction: string
     case Allow = 'allow';
     case Deny = 'deny';
     /// @todo
-    //case Rerun = 'rerun';
+    //case Rerun = 'rerun'; // restart the rule chain, either including or excluding the current rule
+    //case Continue = 'continue';
+    //case Score = 'score';
 }

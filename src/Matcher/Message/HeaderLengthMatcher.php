@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Matcher\Message;
 
-use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 /**
@@ -42,7 +43,7 @@ class HeaderLengthMatcher extends BaseMatcher
         }
     }
 
-    public function matchesMessage(MessageInterface $message): bool
+    public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
         if ($this->matchGreaterOrEqualThan) {
             if ($this->headerNameIsRegex) {

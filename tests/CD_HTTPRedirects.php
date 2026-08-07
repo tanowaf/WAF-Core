@@ -7,6 +7,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use TanoWAF\WAFCore\Proxy\Proxy;
 
+/**
+ * Tests how the proxy deals with redirect responses.
+ */
 class CD_HTTPRedirects extends ProxyTestCase
 {
     /**

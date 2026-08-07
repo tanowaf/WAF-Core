@@ -7,6 +7,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use TanoWAF\WAFCore\Http\BodyCompressorTrait;
 
+/**
+ * Tests the proxy ability to deal with compressed bodies.
+ */
 class CC_HTTPCompressionTest extends ProxyTestCase
 {
     use BodyCompressorTrait;

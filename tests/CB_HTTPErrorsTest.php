@@ -7,7 +7,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use TanoWAF\WAFCore\Proxy\Proxy;
 
-/// @todo declare dependency on SmokeTest
+/**
+ * Tests scenarios in which the proxy should return an http error not related to rules.
+ *
+ * @todo declare dependency on Smoke Tests
+ */
 class CB_HTTPErrorsTest extends ProxyTestCase
 {
     /**

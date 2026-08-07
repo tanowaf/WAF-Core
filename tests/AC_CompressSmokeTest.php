@@ -7,6 +7,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use TanoWAF\WAFCore\Filter\Bidirectional\UnixCompressor;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
+/**
+ * Tests the code dealing with compression, without going through the proxy.
+ */
 class AC_CompressSmokeTest extends TestCase
 {
     /**
@@ -51,7 +54,6 @@ class AC_CompressSmokeTest extends TestCase
         $decompressed = UnixCompressor::uncompress($unixCompressed);
         $this->assertSame($data, $decompressed);
     }
-
 
     /**
      * Returns 10 random binary strings for each of lengths range: 1-10, 10-100, 100-1000, 1000-10000, plus ''

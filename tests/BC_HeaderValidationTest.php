@@ -11,6 +11,7 @@ use TanoWAF\WAFCore\Http\HeaderSpec;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
+ * Tests the HeaderParser class - without going through the proxy.
  * @todo we should move the tested header values to an external file, such as csv, so that it can be easily reused
  *       by other frameworks (or vice-versa, could we reuse the test cases of other sdks)?
  *       Note that it should be a format making it easy both to spot the presence of chars such as "\t" and to avoid

@@ -5,11 +5,11 @@ namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 
+/**
+ * Tests access to the upstream webserver, without going through the proxy.
+ */
 class AA_ServerSmokeTest extends ServerTestCase
 {
-    /**
-     * Tests access to the upstream webserver, without going through the proxy
-     */
     #[DataProvider('serverTestsDataProvider')]
     public function testServer(string|null $clientType = null, string $serverScheme = 'http'): void
     {
