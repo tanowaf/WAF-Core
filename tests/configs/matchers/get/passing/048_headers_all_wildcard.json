@@ -1,0 +1,14 @@
+[
+    {
+        "all_http_headers_in": [
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Proxy-Connection",
+            "User-Agent",
+            "X-Test-*"
+        ]
+    }
+]

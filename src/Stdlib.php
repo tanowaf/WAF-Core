@@ -35,6 +35,16 @@ class Stdlib
         return true;
     }
 
+    public static function array_of_string(array $array): bool
+    {
+        foreach ($array as $item) {
+            if (!is_string($item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Improved version of code from Nyholm\Psr7Server\ServerRequestCreator::getHeadersFromServer(), originally from
      * Laminas\Diactoros\marshalHeadersFromSapi().

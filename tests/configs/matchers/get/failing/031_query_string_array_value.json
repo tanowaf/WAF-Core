@@ -1,5 +1,5 @@
 [
     {
-        "query_string/case_insensitive": {"array": "three"}
+        "query_string_parameter_value/case_insensitive": {"array": "three"}
     }
 ]

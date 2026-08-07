@@ -4,17 +4,14 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\Matcher;
 
 /**
- * Allows matching a string that must fall within an allowed list of regexes
+ * Allows matching a string that must fall within an allowed list of regexes.
  * @todo allow to set (globally?) the regexpDelimiter
  */
 trait RegExpListMatcherTrait
 {
-    /** @var string[] $allowedValues */
-    protected array $allowedValues;
     protected string $regexpDelimiter = ':';
     protected string $regexp;
 
-    //protected bool $caseInsensitive = false;
     protected bool $expandWildcards = true;
     private bool $matchesAnything = false;
 
@@ -30,7 +27,7 @@ trait RegExpListMatcherTrait
             if (!$values) {
                 throw new \InvalidArgumentException('At least one string is required as argument to the matcher');
             }
-            $this->allowedValues = [];
+            $allowedValues = [];
             foreach ($values as $value) {
                 if (!is_string($value)) {
                     throw new \InvalidArgumentException('Only arrays of strings are allowed as argument to the matcher');
@@ -39,9 +36,9 @@ trait RegExpListMatcherTrait
                 if ($regexpPart === '.*') {
                     $this->matchesAnything = true;
                 }
-                $this->allowedValues[] = $regexpPart;
+                $allowedValues[] = $regexpPart;
             }
-            $this->regexp = $this->regexpDelimiter . '(' . implode('|', $this->allowedValues) . ')' . $this->regexpDelimiter;
+            $this->regexp = $this->regexpDelimiter . '(' . implode('|', $allowedValues) . ')' . $this->regexpDelimiter;
         } else {
             $regexpPart = $this->normalizeMatchingRegexp($values);
             if ($regexpPart === '.*') {

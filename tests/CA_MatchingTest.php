@@ -587,7 +587,7 @@ class CA_MatchingTest extends ProxyTestCase
 
     protected function getCommonQueryString(): string
     {
-        /// @todo add a test case for `surprise` (and others?) then remove from this qs all params which are not used by any test case
+        /// @todo add a test case each type of value used (we already test for `surprise`, which, btw, is dropped by php)
         return 'testId=' .$this->testId . '&y=yes&n=no&true=true&false=false&1=1&0=0&0.1=0.1&array[]=one&array[]=two&surprise';
     }
 }

@@ -1,0 +1,7 @@
+[
+    {
+        "all_query_string_parameters_in/no_wildcards": [
+            "test*", "y", "n", "true", "false", "1", "0", "0.1"
+        ]
+    }
+]

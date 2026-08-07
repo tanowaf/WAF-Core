@@ -1,5 +1,5 @@
 [
     {
-        "query_string/no_wildcards": {"y": "*"}
+        "query_string_parameter_value/no_wildcards": {"y": "*"}
     }
 ]

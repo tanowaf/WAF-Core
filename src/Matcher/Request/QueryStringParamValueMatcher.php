@@ -6,7 +6,7 @@ namespace TanoWAF\WAFCore\Matcher\Request;
 use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
-class QueryStringMatcher extends BaseMatcher
+class QueryStringParamValueMatcher extends BaseMatcher
 {
     use RegExpListMatcherTrait;
 
@@ -14,14 +14,12 @@ class QueryStringMatcher extends BaseMatcher
     protected bool $parameterNameIsRegex = false;
 
     /**
-     * @todo allow wildcards $parameterName, while allowing disabling separately wildcards for name and for value
      * @param string|string[] $filter
      * @throws \InvalidArgumentException
      */
     public function __construct(string $parameterName, string|array $filter, bool $caseInsensitive = false, bool $expandWildcards = true,
         bool $expandWildcardsInName = false)
     {
-        //$this->caseInsensitive = $caseInsensitive;
         $this->expandWildcards = $expandWildcards;
         $this->parameterNameIsRegex = $expandWildcardsInName;
         if ($this->parameterNameIsRegex) {

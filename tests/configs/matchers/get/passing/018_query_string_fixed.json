@@ -1,5 +1,5 @@
 [
     {
-        "query_string": {"n": "no"}
+        "query_string_parameter_value": {"n": "no"}
     }
 ]

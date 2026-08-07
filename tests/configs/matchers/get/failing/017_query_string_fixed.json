@@ -1,5 +1,5 @@
 [
     {
-        "query_string": {"y": "n*"}
+        "query_string_parameter_value": {"y": "n*"}
     }
 ]

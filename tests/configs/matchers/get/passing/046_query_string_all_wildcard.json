@@ -1,0 +1,7 @@
+[
+    {
+        "all_query_string_parameters_in": [
+            "testId", "y", "n", "true", "false", "1", "0*", "array", "surprise"
+        ]
+    }
+]

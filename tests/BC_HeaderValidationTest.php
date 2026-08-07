@@ -136,7 +136,7 @@ class BC_HeaderValidationTest extends TestCase
             [['hello=world ; yo=lo'], 'cookie'],
             [["hello=world;  yo=lo"], 'cookie'],
             [["hello=world;\tyo=lo"], 'cookie'],
-            /// @todo att tests for chars not valid in either cookie name or value
+            /// @todo add tests for chars not valid in either cookie name or value
 
             [['S.n, 06 Nov 1994 08:49:37 GMT'], 'date'],
             [['S.nday, 06-Nov-94 08:49:37 GMT'], 'date'],

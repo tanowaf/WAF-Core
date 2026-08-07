@@ -23,7 +23,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     public function testSingletonHttpHeader(string $headers, string $expectedHeaderName, $expectedHeaderValue,
         string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest('GET', $headers, '', $httpVersion, $serverScheme);
+        $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $data = $this->getDecodedBody($response);
         $headers = $data['serverRequest']['headers'];
@@ -93,7 +93,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     public function testDuplicateHttpHeader(string $headers, string $expectedHeaderName, $expectedHeaderValue,
         string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest('GET', $headers, '', $httpVersion, $serverScheme);
+        $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $data = $this->getDecodedBody($response);
         $headers = $data['serverRequest']['headers'];
@@ -157,10 +157,12 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     public function testCookieHttpHeader(string $headers, $expectedCookiesValue,
         string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest('GET', $headers, '', $httpVersion, $serverScheme);
+        $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $data = $this->getDecodedBody($response);
-        $cookies = $data['_COOKIE'];
+        /// @todo is it useful to check fir differences between these two?
+        //$phpCookies = $data['_COOKIE'];
+        $cookies = $data['serverRequest']['cookieParams'];
         $this->assertSame($expectedCookiesValue, $cookies, $failureMessage);
     }
 
@@ -175,7 +177,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         $cases[] = ["Cookie: one =one",  ['one_' => 'one']];
         $cases[] = ["Cookie: o n e=one",  ['o_n_e' => 'one']];
         $cases[] = ["Cookie: o\tne=one",  ["o\tne" => 'one']];
-/// @todo... report this as php bug?
+/// @todo... report this as php bug? Also: implement our own cookie parsing!!!
         //$cases[] = ["Cookie: o\tn\te=one",  ['o\tn\te' => 'one']];
 /// @todo... add test cases for non-ascii 'token' chars in cookie name
 
@@ -218,7 +220,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     #[DataProvider('droppedHttpHeaderDataProvider')]
     public function testDroppedHttpHeader(string $headers, bool $allow404s = true, string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest('GET', $headers, '', $httpVersion, $serverScheme);
+        $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         // Different webservers react differently to this test - some drop the header, some reject the request.
         // Allow the test data to specify if 404s should be acceptable
@@ -290,7 +292,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     #[DataProvider('rejectedHttpHeaderDataProvider')]
     public function testRejectedHttpHeader(string $headers, string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest('GET', $headers, '', $httpVersion, $serverScheme);
+        $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
     }
@@ -387,7 +389,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     #[DataProvider('requestPrefixDataProvider')]
     public function testRequestPrefix(string $prefix, string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest($prefix . 'GET', '', '', $httpVersion, $serverScheme);
+        $response = $this->customRequest($prefix . 'GET', '', '', '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         //$this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 200 #', $response, $failureMessage);
         $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
@@ -409,7 +411,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     #[DataProvider('funkyHttpMethodsDataProvider')]
     public function testFunkyHttpMethodsPrefix(string $method, string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
-        $response = $this->customRequest($method, '', '', $httpVersion, $serverScheme);
+        $response = $this->customRequest($method, '', '', '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
     }
@@ -418,6 +420,42 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     {
         $cases = [
             ["WHAT"],
+        ];
+
+        return self::mergeCommonDataProviderOptions($cases);
+    }
+
+    #[DataProvider('queryStringParametersDataProvider')]
+    public function testQueryStringParameters(string $uriSuffix, array $expectedParameters, string $httpVersion = '1.0', string $serverScheme = 'http'): void
+    {
+        $response = $this->customRequest('GET', $uriSuffix, '', '', $httpVersion, $serverScheme);
+        $failureMessage = $this->getRespDetails($response);
+        $data = $this->getDecodedBody($response);
+        /// @todo is it useful to check fir differences between these two?
+        //$phpParameters = $data['_GET'];
+        $parameters = $data['serverRequest']['queryParams'];
+        $this->assertSame($expectedParameters, $parameters, $failureMessage);
+        //$this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
+    }
+
+    public static function queryStringParametersDataProvider(): array
+    {
+        $cases = [
+            ["?a=hello", ['a' => 'hello']],
+            ["?a=%20Hello+world%20", ['a' => ' Hello world ']],
+            ["?a=+hello%20World+", ['a' => ' hello World ']],
+            ["?a=", ['a' => '']],
+            ["?a=1", ['a' => '1']],
+            ["?a=-1", ['a' => '-1']],
+            ["?a=1.0", ['a' => '1.0']],
+            ["?a=true", ['a' => 'true']],
+            ["?a=false", ['a' => 'false']],
+            ["?a[]=", ['a' => ['']]],
+            ["?a[2]=&a[1]=", ['a' => [2 => '', 1 => '']]],
+
+            /// @todo... test: funky chars in param name
+
+            /// @todo... fix 045_query_string_all after we fix this
         ];
 
         return self::mergeCommonDataProviderOptions($cases);
@@ -449,13 +487,13 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         return $out;
     }
 
-    protected function customRequest(string $method = 'GET', string $headers = '', string $body = '',
+    protected function customRequest(string $method = 'GET', string $urlSuffix = '', string $headers = '', string $body = '',
         string $httpVersion = '1.0', string $serverScheme = 'http'): string
     {
         $baseUri = $this->getServerBaseUri();
         $targetAddress = $this->getServerAddress();
 
-        $payload = "$method " . $this->getServerPath() . " HTTP/$httpVersion\r\n";
+        $payload = "$method " . $this->getServerPath() . $urlSuffix . " HTTP/$httpVersion\r\n";
 
         $payload .= 'Host: ' . preg_replace('#^https?://#', '', $baseUri) . "\r\n";
 

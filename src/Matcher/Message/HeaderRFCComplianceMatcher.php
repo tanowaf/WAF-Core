@@ -12,9 +12,12 @@ use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 /// @todo... also validate if header is in correct msg type (req/resp)
 class HeaderRFCComplianceMatcher extends BaseMatcher
 {
+    /// @todo... this matcher does not need the full RegExpListMatcherTrait, just $this->regexpDelimiter and $this->wildcardStringToRegexp
+    ///          Otoh there is some constructor arg validation logic to share between HeaderNameMatcher, HeaderLengthMatcher and HeaderRFCComplianceMatcher
     use RegExpListMatcherTrait;
     use HeaderParserAwareTrait;
 
+    /** @var string[] */
     protected array $headerNames = [];
     protected bool $headerNameIsRegex = false;
 
@@ -45,7 +48,7 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
             foreach ($message->getHeaders() as $headerName => $headerValues) {
                 foreach ($this->headerNames as $headerNameRegex) {
                     if (preg_match($headerNameRegex, $headerName)) {
-                        if (!$this->headerParser->validateHeaderValue($headerName,  $message->getHeader($headerName))) {
+                        if (!$this->headerParser->validateHeaderValue($headerName, $headerValues)) {
                             return false;
                         }
                     }
@@ -57,7 +60,7 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
                 if (!$message->hasHeader($headerName)) {
                     continue;
                 }
-                if (!$this->headerParser->validateHeaderValue($headerName,  $message->getHeader($headerName))) {
+                if (!$this->headerParser->validateHeaderValue($headerName, $message->getHeader($headerName))) {
                     return false;
                 }
             }

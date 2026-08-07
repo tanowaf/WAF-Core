@@ -37,7 +37,7 @@ class Creator
     protected StreamFactoryInterface $streamFactory;
 
     /**
-     * NB: yawaf change: signature changed compared to the original!
+     * NB: waf-core change: signature changed compared to the original!
      */
     public function __construct(
         UriFactoryInterface $uriFactory,
@@ -64,7 +64,7 @@ class Creator
             $server['REQUEST_METHOD'] = 'GET';
         }
 
-        // yawaf change: never call 'getallheaders' - we allow callers to monkey-patch $_SERVER
+        // waf-core change: never call 'getallheaders' - we allow callers to monkey-patch $_SERVER
         $headers = Stdlib::getHeadersFromServer($server);
 
         $post = null;
@@ -85,8 +85,14 @@ class Creator
             /// @todo consistency check: if $_POST is not empty, and 'content-type' header is not one of the expected 2, tag the response
         }
 
+/// @todo... reconcile differences between $_GET and $server['QUERY_STRING'], as well as between $_COOKIE and $headers['cookie'],
+///          optionally save them as attributes in the request. Eg:
+///          1. php converts ' ' and '.' in $server['QUERY_STRING'] to _ => we should not do that!
+///          2. php does funny things when there are multiple spaces/tabs in cookie names
+///          (see commented-out tests in BA_ServerRequestCreatorTest)
+
         $request = $this->fromArrays($server, $headers, $_COOKIE, $_GET, $post, $_FILES, \fopen('php://input', 'r') ?: null);
-        // yawaf change: add attribute
+        // waf-core change: add attribute
         if (!$haveRequestMethod) {
             $request->getAttribute(Attributes::class)?->set(Attributes::REQUEST_METHOD_SYNTHETIC, true);
         }
@@ -103,7 +109,7 @@ class Creator
 
         $method = $server['REQUEST_METHOD'];
 
-        // yawaf change: expanded getUriFromEnvWithHTTP inline in createUriFromArray, so we can add an attribute in case uri scheme is missing
+        // waf-core change: expanded getUriFromEnvWithHTTP inline in createUriFromArray, so we can add an attribute in case uri scheme is missing
         //$uri = $this->getUriFromEnvWithHTTP($server);
         $uri = $this->createUriFromArray($server, $requestAttributes);
 
@@ -114,10 +120,7 @@ class Creator
             $protocol =\str_replace('HTTP/', '', $server['SERVER_PROTOCOL']);
         }
 
-        /// @todo analyze and reconcile differences between $_GET and $server['QUERY_STRING'], as well as between
-        ///       $_COOKIE and $headers['cookie'], save them as attributes in the request?
-
-        // yawaf change: Psr17Factory::createServerRequest misses the ability of ServerRequest::__construct to work off
+        // waf-core change: Psr17Factory::createServerRequest misses the ability of ServerRequest::__construct to work off
         // headers. That in turn requires more work immediately afterwards to patch in the headers, except for the
         // Host one. So we go straight for ServerRequest::__construct instead
         if ($this->serverRequestFactory instanceof ExtendedFactoryInterface) {
@@ -133,7 +136,7 @@ class Creator
                     $name = (string) $name;
                 }
 
-                // yawaf change: handle the case where the request already has an `host` header
+                // waf-core change: handle the case where the request already has an `host` header
                 // We prefer the 'host' header received from the server to the one rebuilt from the uri - even though
                 // in reality they are both built off the same thing!
                 // NB: this works best when assuming that there is a single HTTP_HOST in $_SERVER_. That is part of the http
@@ -162,7 +165,7 @@ class Creator
             $requestAttributes->set(Attributes::REMOTE_PORT, $server['REMOTE_PORT']);
         }
 
-        // yawaf change: add an attribute bag to the request
+        // waf-core change: add an attribute bag to the request
         $serverRequest = $serverRequest->withAttribute(Attributes::class, $requestAttributes);
 
         if (null === $body) {
@@ -180,7 +183,7 @@ class Creator
         return $serverRequest->withBody($body);
     }
 
-    // yawaf change: removed, since we inject 'REQUEST_METHOD' into $server if it is not there in the 1st place
+    // waf-core change: removed, since we inject 'REQUEST_METHOD' into $server if it is not there in the 1st place
     /*private function getMethodFromEnv(array $environment): string
     {
         if (false === isset($environment['REQUEST_METHOD'])) {
@@ -300,7 +303,7 @@ class Creator
     {
         $uri = $this->uriFactory->createUri('');
 
-        // yawaf change: do not trust X-FORWARDED-PROTO. We have to add 1st support for trusted proxies IPs
+        // waf-core change: do not trust X-FORWARDED-PROTO. We have to add 1st support for trusted proxies IPs
         /// @see https://github.com/Nyholm/psr7-server/issues/63
         //if (isset($server['HTTP_X_FORWARDED_PROTO'])) {
         //    $uri = $uri->withScheme($server['HTTP_X_FORWARDED_PROTO']);
@@ -312,7 +315,7 @@ class Creator
             } elseif (isset($server['HTTPS'])) {
                 $uri = $uri->withScheme('on' === $server['HTTPS'] ? 'https' : 'http');
             } else {
-                // yawaf change: inlined here from getUriFromEnvWithHTTP
+                // waf-core change: inlined here from getUriFromEnvWithHTTP
                 $uri = $uri->withScheme('http');
                 $requestAttributes->set(Attributes::URI_SCHEME_SYNTHETIC, true);
             }
@@ -320,10 +323,10 @@ class Creator
 
         if (false !== ($haveHostHeader = isset($server['HTTP_HOST']))) {
             if (1 === \preg_match('/^(.+)\:(\d+)$/', $server['HTTP_HOST'], $matches)) {
-                // yawaf change: fix issue #52 by casting to int
+                // waf-core change: fix issue #52 by casting to int
                 $uri = $uri->withHost($matches[1])->withPort((int)$matches[2]);
             } else {
-                // yawaf change: in case the Host header misses a port, we consider that it uses the default port for
+                // waf-core change: in case the Host header misses a port, we consider that it uses the default port for
                 // the current scheme instead of the one from $server['SERVER_PORT']
                 $uri = $uri->withHost($server['HTTP_HOST']);
             }
@@ -331,10 +334,10 @@ class Creator
             $requestAttributes->set(Attributes::MISSING_HOST_HEADER, true);
         }
 
-        // yawaf change: $server['SERVER_PORT'] can be set and empty when the server is listening on a unix socket
+        // waf-core change: $server['SERVER_PORT'] can be set and empty when the server is listening on a unix socket
         if (isset($server['SERVER_PORT']) && $server['SERVER_PORT'] !== '') {
             if (!$haveHostHeader) {
-                // yawaf change: fix issue #52 by casting to int
+                // waf-core change: fix issue #52 by casting to int
                 $uri = $uri->withPort((int)$server['SERVER_PORT']);
                 $requestAttributes->set(Attributes::URI_PORT_SYNTHETIC, true);
             }
@@ -349,7 +352,7 @@ class Creator
         }
 
         if (isset($server['REQUEST_URI'])) {
-            // yawaf change: fix issue #66. On Apache, when requests are received with an absolute uri as target,
+            // waf-core change: fix issue #66. On Apache, when requests are received with an absolute uri as target,
             // $_SERVER['REQUEST_URI'] will indeed be the absolute uri. Sadly other webservers do not share this behaviour...
 /// @todo... tag the request with the absolute uri, if $server['REQUEST_URI'] is in fact such.
 ///          Also, check carefully the HTTP spec to see what is says about precedence of the Host header vs the absolute url

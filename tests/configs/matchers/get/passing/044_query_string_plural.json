@@ -1,0 +1,5 @@
+[
+    {
+        "query_string_parameter_value/case_insensitive": {"true": ["TrUe", "yes", "Y", "1"], "n": "no"}
+    }
+]

@@ -14,6 +14,8 @@ use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
  */
 class HeaderLengthMatcher extends BaseMatcher
 {
+    /// @todo... this matcher does not need the full RegExpListMatcherTrait, just $this->regexpDelimiter and $this->wildcardStringToRegexp
+    ///          Otoh there is some constructor arg validation logic to share between HeaderNameMatcher, HeaderLengthMatcher and HeaderRFCComplianceMatcher///
     use RegExpListMatcherTrait;
 
     protected string $headerName;

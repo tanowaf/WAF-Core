@@ -1,0 +1,17 @@
+[
+    {
+        "all_http_headers_in/no_wildcards": [
+            "Accept",
+            "Accept-Encoding",
+            "Cookie",
+            "Connection",
+            "Host",
+            "Proxy-Connection",
+            "User-Agent",
+            "X-Test-1",
+            "X-Test-3",
+            "X-Test-8",
+            "X-Test-9"
+        ]
+    }
+]

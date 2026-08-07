@@ -27,33 +27,46 @@ class MatcherFactory extends SuffixedMatcherFactory implements MatcherFactoryInt
      * @param string $type
      * @param mixed $values
      * @return \TanoWAF\WAFCore\Matcher\MatcherInterface
-     * @throws \Exception
+     * @throws ConfigurationError|\Throwable
+     * @todo reduce the scope of possible exceptions thrown
      */
     public function fromConfiguration(string $type, mixed $values): MatcherInterface
     {
-        switch ($target = $this->getMatcherType($type)) {
-            case 'always':
-                /// @todo log a warning if $values is falsey
-                return new AlwaysMatcher();
-            case 'and':
-            case 'or':
-                if (!is_array($values) || count($values) <= 1) {
-                    throw new ConfigurationError("Invalid logical matching configuration: '$type' should have as value an array with at least 2 elements");
-                }
-                $matchers = [];
-                foreach ($values as $type => $subValues) {
-                    $matchers[] = $this->matcherFactory->fromConfiguration($type, $subValues);
-                }
-                return $target === 'and' ? new AndMatcher($matchers) : new OrMatcher($matchers);
-            case 'never':
-                /// @todo log a warning if $values is falsey
-                return new NeverMatcher();
-            case 'not':
-                if (!is_array($values) || count($values) !== 1) {
-                    throw new ConfigurationError("Invalid logical matching configuration: '$type' should have as value an array with a single element");
-                }
-                return new NegativeMatcher($this->matcherFactory->fromConfiguration(array_key_first($values), reset($values)));
+        try {
+            switch ($target = $this->getMatcherType($type)) {
+                case 'always':
+                    /// @todo log a warning if $values is falsey
+                    return new AlwaysMatcher();
+                case 'and':
+                case 'or':
+                    if (!is_array($values) || count($values) <= 1) {
+                        throw new ConfigurationError("Invalid logical matching configuration: '$type' should have as value an array with at least 2 elements");
+                    }
+                    $matchers = [];
+                    foreach ($values as $type => $subValues) {
+                        $matchers[] = $this->matcherFactory->fromConfiguration($type, $subValues);
+                    }
+                    return $target === 'and' ? new AndMatcher($matchers) : new OrMatcher($matchers);
+                case 'never':
+                    /// @todo log a warning if $values is falsey
+                    return new NeverMatcher();
+                case 'not':
+                    if (!is_array($values) || count($values) !== 1) {
+                        throw new ConfigurationError("Invalid logical matching configuration: '$type' should have as value an array with a single element");
+                    }
+                    return new NegativeMatcher($this->matcherFactory->fromConfiguration(array_key_first($values), reset($values)));
+            }
+        } catch (\Throwable $t) {
+            // convert the exceptions thrown by different types of validation failures into ConfigurationErrors
+            if ($t instanceof \TypeError) {
+                throw new ConfigurationError("Invalid request matching configuration, unexpected type used: " . $t->getMessage());
+            }
+            if ($t instanceof \InvalidArgumentException) {
+                throw new ConfigurationError("Invalid request matching configuration: " . $t->getMessage());
+            }
+            throw $t;
         }
+
         throw new ConfigurationError("Invalid logical matching configuration: '$type' => " . var_export($values, true));
     }
 }

@@ -44,6 +44,7 @@ class ChainFactory implements MatcherFactoryInterface
      * @param mixed $values
      * @return MatcherInterface
      * @throws \Exception
+     * @todo reduce the scope of possible exceptions thrown
      */
     public function fromConfiguration(string $type, mixed $values): MatcherInterface
     {

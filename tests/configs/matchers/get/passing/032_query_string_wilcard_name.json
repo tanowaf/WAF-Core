@@ -1,5 +1,5 @@
 [
     {
-        "wildcard_query_string": {"ar*ay": "one"}
+        "wildcard_query_string_parameter_value": {"ar*ay": "one"}
     }
 ]
