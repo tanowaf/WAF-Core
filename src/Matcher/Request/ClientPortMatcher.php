@@ -22,6 +22,7 @@ class ClientPortMatcher extends BaseMatcher
             $filter = (string)$filter;
         } else {
 /// @todo... validate that the passed in value is only made of 0-9 and *
+/// @todo... give a warning (or even fail?) if passed in '*' and expandWildcards is true
         }
 /// @todo... cast ints to strings when an array is passed in
         $this->setMatchingValues($filter);

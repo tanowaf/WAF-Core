@@ -22,6 +22,7 @@ class StatusCodeMatcher extends BaseMatcher
             $filter = (string)$filter;
         } else {
 /// @todo... check that the passed in values match either a int string between 100 and 599, or a wildcard pattern
+/// @todo... give a warning (or even fail?) if passed in '*' and expandWildcards is true
         }
 /// @todo... cast ints to strings when an array is passed in
         $this->setMatchingValues($filter);

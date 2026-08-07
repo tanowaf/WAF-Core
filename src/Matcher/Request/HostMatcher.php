@@ -20,6 +20,7 @@ class HostMatcher extends BaseMatcher
     {
         $this->caseInsensitive = true;
         $this->expandWildcards = $expandWildcards;
+/// @todo... give a warning (or even fail?) if passed in '*' and expandWildcards is true
         $this->setMatchingValues($filter);
     }
 

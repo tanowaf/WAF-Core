@@ -19,6 +19,7 @@ class ClientAddressMatcher extends BaseMatcher
     {
         $this->expandWildcards = $expandWildcards;
 /// @todo... validate that the passed in value(s) is an ipv4, ipv6 or has *
+/// @todo... give a warning (or even fail?) if passed in '*' and expandWildcards is true
         $this->setMatchingValues($filter);
     }
 
