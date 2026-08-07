@@ -16,9 +16,9 @@ class ProtocolVersionMatcher extends BaseMatcher
      */
     public function __construct(string|array $filter)
     {
-        $this->caseInsensitive = true;
+        //$this->caseInsensitive = true;
 /// @todo... give a warning (or even fail?) if passed in '*'
-        $this->setMatchingValues($filter);
+        $this->setMatchingValues($filter, true);
     }
 
     public function matchesRequest(ServerRequestInterface $request): bool

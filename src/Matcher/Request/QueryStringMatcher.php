@@ -21,7 +21,7 @@ class QueryStringMatcher extends BaseMatcher
     public function __construct(string $parameterName, string|array $filter, bool $caseInsensitive = false, bool $expandWildcards = true,
         bool $expandWildcardsInName = false)
     {
-        $this->caseInsensitive = $caseInsensitive;
+        //$this->caseInsensitive = $caseInsensitive;
         $this->expandWildcards = $expandWildcards;
         $this->parameterNameIsRegex = $expandWildcardsInName;
         if ($this->parameterNameIsRegex) {
@@ -30,7 +30,7 @@ class QueryStringMatcher extends BaseMatcher
             $this->parameterName = $parameterName;
         }
 
-        $this->setMatchingValues($filter);
+        $this->setMatchingValues($filter, $caseInsensitive);
     }
 
     public function matchesRequest(ServerRequestInterface $request): bool

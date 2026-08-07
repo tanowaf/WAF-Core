@@ -18,10 +18,10 @@ class PathMatcher extends BaseMatcher
      */
     public function __construct(string|array $filter, string $prefixRegexp = '', bool $caseInsensitive = false, bool $expandWildcards = true)
     {
-        $this->caseInsensitive = $caseInsensitive;
+        //$this->caseInsensitive = $caseInsensitive;
         $this->expandWildcards = $expandWildcards;
         $this->prefixRegexp = $prefixRegexp;
-        $this->setMatchingValues($filter);
+        $this->setMatchingValues($filter, $caseInsensitive);
     }
 
     public function matchesRequest(ServerRequestInterface $request): bool

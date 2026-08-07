@@ -1,0 +1,7 @@
+[
+    {
+        "http_header_value": {
+            "X-Test-99": "*"
+        }
+    }
+]

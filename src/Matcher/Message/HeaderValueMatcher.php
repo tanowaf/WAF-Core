@@ -25,7 +25,7 @@ class HeaderValueMatcher extends BaseMatcher
     public function __construct(string $headerName, string|array $filter, bool $caseInsensitive = false, bool $expandWildcards = true,
         bool $expandWildcardsInName = false/*, $matchInvalidHeaderValues = false*/)
     {
-        $this->caseInsensitive = $caseInsensitive;
+        //$this->caseInsensitive = $caseInsensitive;
         $this->expandWildcards = $expandWildcards;
         $this->headerNameIsRegex = $expandWildcardsInName;
 
@@ -35,7 +35,7 @@ class HeaderValueMatcher extends BaseMatcher
             $this->headerName = strtolower($headerName);
         }
 
-        $this->setMatchingValues($filter);
+        $this->setMatchingValues($filter, $caseInsensitive);
 
         $this->headerParser = new HeaderParser();
     }

@@ -14,8 +14,9 @@ trait RegExpListMatcherTrait
     protected string $regexpDelimiter = ':';
     protected string $regexp;
 
-    protected bool $caseInsensitive = false;
+    //protected bool $caseInsensitive = false;
     protected bool $expandWildcards = true;
+    private bool $matchesAnything = false;
 
     /**
      * @param string|string[] $values these can be either regexps, glob-expressions or plain strings, depending on the
@@ -23,7 +24,7 @@ trait RegExpListMatcherTrait
      * @throws \Exception
      * @todo optimize matching when $expandWildcards is false and $caseInsensitive is false and the value to match is a single string
      */
-    protected function setMatchingValues(string|array $values): void
+    protected function setMatchingValues(string|array $values, bool $caseInsensitive = false): void
     {
         if (is_array($values)) {
             if (!$values) {
@@ -34,20 +35,28 @@ trait RegExpListMatcherTrait
                 if (!is_string($value)) {
                     throw new \Exception('Only arrays of strings are allowed as argument to the matcher');
                 }
-                $this->allowedValues[] = $this->normalizeMatchingRegexp($value);
+                $regexpPart = $this->normalizeMatchingRegexp($value);
+                if ($regexpPart === '.*') {
+                    $this->matchesAnything = true;
+                }
+                $this->allowedValues[] = $regexpPart;
             }
             $this->regexp = $this->regexpDelimiter . '(' . implode('|', $this->allowedValues) . ')' . $this->regexpDelimiter;
         } else {
-            $this->regexp = $this->regexpDelimiter . $this->normalizeMatchingRegexp($values) . $this->regexpDelimiter;
+            $regexpPart = $this->normalizeMatchingRegexp($values);
+            if ($regexpPart === '.*') {
+                $this->matchesAnything = true;
+            }
+            $this->regexp = $this->regexpDelimiter . $regexpPart . $this->regexpDelimiter;
         }
-        if ($this->caseInsensitive) {
+        if ($caseInsensitive) {
             $this->regexp .= 'i';
         }
     }
 
     protected function matchesRegexp(string $value): bool
     {
-        return (bool)preg_match($this->regexp, $value);
+        return $this->matchesAnything === true || (bool)preg_match($this->regexp, $value);
     }
 
     /**
