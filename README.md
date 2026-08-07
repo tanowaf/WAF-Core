@@ -57,7 +57,7 @@ Not in scope (yet?):
 * A webserver to run it.
 
   If running Nginx, please use the very latest version available, ideally > 1.29.0, as it comes with improvements in parsing
-  of HTTP headers to better conform to RFC9110.
+  of HTTP headers to better conform to RFC9110 (see f.e. bug #187).
 
   If you want to have the proxy listening on a unix socket instead of an http port, choose an http server which can do that:
   as of June 2026 Nginx and FrankenPHP can, while Apache can't.
@@ -68,7 +68,7 @@ Not in scope (yet?):
 
 ## Installation
 
-Via Composer: `composer require tanowaf/yet-another-waf-core:dev-main`
+Via Composer: `composer require tanowaf/waf-core:dev-main`
 
 Then install either `symfony/http-client` or `guzzlehttp/guzzle`.
 
@@ -76,8 +76,7 @@ Then install either `symfony/http-client` or `guzzlehttp/guzzle`.
 
 More examples will come...
 
-For the moment, see projects https://github.com/tanowaf/yet-another-docker-socket-proxy and
-https://github.com/tanowaf/yet-another-waf as examples.
+For the moment, see project https://github.com/tanowaf/Yet-Another-Docker-Socket-Proxy as example.
 
 Or take a look at the Proxy used for the unit testing suite in `./tests/public`
 
@@ -134,9 +133,9 @@ The testsuite can be run using FrankenPHP or Apache as webserver with the follow
 Use of this software is subject to the terms in the [LICENSE](LICENSE) file
 
 
-[![License](https://poser.pugx.org/tanowaf/yet-another-waf-core/license)](https://packagist.org/packages/tanowaf/yet-another-waf-core)
-[![Latest Stable Version](https://poser.pugx.org/tanowaf/yet-another-waf-core/v/stable)](https://packagist.org/packages/tanowaf/yet-another-waf-core)
-[![Total Downloads](https://poser.pugx.org/tanowaf/yet-another-waf-core/downloads)](https://packagist.org/packages/tanowaf/yet-another-waf-core)
+[![License](https://poser.pugx.org/tanowaf/WAF-Core/license)](https://packagist.org/packages/tanowaf/WAF-Core)
+[![Latest Stable Version](https://poser.pugx.org/tanowaf/WAF-Core/v/stable)](https://packagist.org/packages/tanowaf/WAF-Core)
+[![Total Downloads](https://poser.pugx.org/tanowaf/WAF-Core/downloads)](https://packagist.org/packages/tanowaf/WAF-Core)
 
-[![Build Status](https://github.com/tanowaf/yet-another-waf-core/actions/workflows/ci.yaml/badge.svg)](https://github.com/tanowaf/yet-another-waf-core/actions/workflows/ci.yaml)
-[![Code Coverage](https://codecov.io/github/tanowaf/yet-another-waf-core/branch/main/graph/badge.svg)](https://app.codecov.io/github/tanowaf/yet-another-waf-core)
+[![Build Status](https://github.com/tanowaf/WAF-Core/actions/workflows/ci.yaml/badge.svg)](https://github.com/tanowaf/WAF-Core/actions/workflows/ci.yaml)
+[![Code Coverage](https://codecov.io/github/tanowaf/WAF-Core/branch/main/graph/badge.svg)](https://app.codecov.io/github/tanowaf/WAF-Core)
