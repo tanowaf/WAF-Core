@@ -244,7 +244,7 @@ runtests() {
     {
         ${DOCKER_CMD} exec $USE_TTY "${CONTAINER_NAME}" /root/setup/setup_app.sh "${CONTAINER_WORKSPACE_DIR}"
         ${DOCKER_CMD} exec -i $USE_TTY \
-            "${CONTAINER_NAME}" su "${CONTAINER_USER}" -c "$ENV_VAR_INJECTION ./vendor/bin/phpunit $TESTSUITE"
+            "${CONTAINER_NAME}" su "${CONTAINER_USER}" -c "$ENV_VAR_INJECTION ./vendor/bin/phpunit --log-junit ./tests/env/var/test-results.xml $TESTSUITE"
     } || {
         RETCODE="$?"
     }

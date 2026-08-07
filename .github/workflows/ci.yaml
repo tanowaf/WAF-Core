@@ -87,20 +87,30 @@ jobs:
             -   name: run tests and upload coverage info if needed
                 run: |
                     if [ -z "${{ matrix.code-coverage }}" ]; then
-                        SERVER_TYPE='${{ matrix.webserver }}' ./vendor/bin/phpunit tests
+                        SERVER_TYPE='${{ matrix.webserver }}' ./vendor/bin/phpunit --log-junit ./test-results.xml tests
                     else
                         ./tests/env/setup/setup_code_coverage.sh enable
-                        SERVER_TYPE='${{ matrix.webserver }}' ./vendor/bin/phpunit --coverage-clover=coverage.clover tests
+                        SERVER_TYPE='${{ matrix.webserver }}' ./vendor/bin/phpunit --log-junit ./test-results.xml --coverage-clover=coverage.clover tests
                         if [ ! -f coverage.clover ]; then
                             echo "WARNING: code coverage not generated. Is xdebug disabled?" >&2
                         fi
                     fi
 
-            -   name: Upload coverage reports to Codecov
+            -   name: Upload test results reports to Codecov
                 uses: codecov/codecov-action@v7
-                # @todo avoid running this for tests cancelled or where coverage.clover was not generated
-                if: ${{ matrix.code-coverage }}
+                if: ${{ !cancelled() }}
                 with:
+                    token: ${{ secrets.CODECOV_TOKEN }}
+                    report_type: test_results
+                    disable_search: true
+                    files: ./test-results.xml
+
+            -   name: Upload code coverage reports to Codecov
+                uses: codecov/codecov-action@v7
+                # @todo avoid running this for tests where coverage.clover was not generated
+                if: ${{ matrix.code-coverage && !cancelled() }}
+                with:
+                    # @todo use env_vars to tag the upload with os/php-version/webserver
                     token: ${{ secrets.CODECOV_TOKEN }}
                     disable_search: true
                     files: coverage.clover
