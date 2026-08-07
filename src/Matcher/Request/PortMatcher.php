@@ -12,7 +12,7 @@ class PortMatcher extends BaseMatcher
 
     /**
      * @param string|int|string[]|int[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string|int|array $filter, bool $expandWildcards = true)
     {

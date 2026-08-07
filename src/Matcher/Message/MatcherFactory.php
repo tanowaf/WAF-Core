@@ -39,6 +39,9 @@ abstract class MatcherFactory extends OptionAwareMatcherFactory
         $this->logger = $logger;
     }
 
+    /**
+     * @throws ConfigurationError
+     */
     public function fromConfiguration(string $type, mixed $values): MatcherInterface
     {
         $matcherType = $this->getMatcherType($type);

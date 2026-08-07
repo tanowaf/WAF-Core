@@ -14,7 +14,7 @@ class HostMatcher extends BaseMatcher
      * "The scheme and host are case-insensitive and normally provided in lowercase"
      * @see https://www.rfc-editor.org/info/rfc9110/#name-identifiers-in-http
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string|array $filter, bool $expandWildcards = true)
     {

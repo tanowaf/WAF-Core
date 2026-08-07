@@ -14,7 +14,7 @@ class MethodMatcher extends BaseMatcher
      * NB: the http method is in fact a case-sensitive value.
      * @see https://www.rfc-editor.org/info/rfc9110/#methods
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string|array $filter)
     {

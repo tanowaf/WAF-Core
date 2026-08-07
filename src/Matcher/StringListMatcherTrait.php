@@ -12,17 +12,17 @@ trait StringListMatcherTrait
 
     /**
      * @param string|string[] $values
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     protected function setMatchingStrings(string|array $values): void
     {
         if (is_array($values)) {
             if (!$values) {
-                throw new \Exception('At least one string is required as argument to the matcher');
+                throw new \InvalidArgumentException('At least one string is required as argument to the matcher');
             }
             foreach ($values as $value) {
                 if (!is_string($value)) {
-                    throw new \Exception('Only arrays of strings are allowed as argument to the matcher');
+                    throw new \InvalidArgumentException('Only arrays of strings are allowed as argument to the matcher');
                 }
                 $this->matchingStrings[$this->normalizeMatchingString($value)] = true;
             }

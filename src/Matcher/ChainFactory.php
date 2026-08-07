@@ -12,7 +12,7 @@ class ChainFactory implements MatcherFactoryInterface
 
     /**
      * @param MatcherFactoryInterface[] $factories
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(array $factories)
     {

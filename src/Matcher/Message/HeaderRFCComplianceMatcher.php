@@ -20,7 +20,7 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
 
     /**
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string|array $headerNames, bool $expandWildcardsInName = false)
     {

@@ -21,19 +21,19 @@ trait RegExpListMatcherTrait
     /**
      * @param string|string[] $values these can be either regexps, glob-expressions or plain strings, depending on the
      *                                conversion done by `normalizeMatchingRegexp`
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      * @todo optimize matching when $expandWildcards is false and $caseInsensitive is false and the value to match is a single string
      */
     protected function setMatchingValues(string|array $values, bool $caseInsensitive = false): void
     {
         if (is_array($values)) {
             if (!$values) {
-                throw new \Exception('At least one string is required as argument to the matcher');
+                throw new \InvalidArgumentException('At least one string is required as argument to the matcher');
             }
             $this->allowedValues = [];
             foreach ($values as $value) {
                 if (!is_string($value)) {
-                    throw new \Exception('Only arrays of strings are allowed as argument to the matcher');
+                    throw new \InvalidArgumentException('Only arrays of strings are allowed as argument to the matcher');
                 }
                 $regexpPart = $this->normalizeMatchingRegexp($value);
                 if ($regexpPart === '.*') {

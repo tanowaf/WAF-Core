@@ -13,7 +13,7 @@ class StatusCodeMatcher extends BaseMatcher
     /**
      * @see https://www.rfc-editor.org/info/rfc9110/#name-status-codes
      * @param int|string|string[]|int[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(int|string|array $filter, bool $expandWildcards = true)
     {

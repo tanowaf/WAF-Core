@@ -37,7 +37,7 @@ class OrMatcher implements RequestMatcherInterface, ResponseMatcherInterface
     public function matches(...$items): bool
     {
         if (!$this->matchers) {
-            throw new \Exception('Chain Matcher has not children matchers. Can not test for match');
+            throw new \Exception('Chain Matcher has no children matchers. Can not test for match');
         }
 
         foreach ($this->matchers as $matcher) {

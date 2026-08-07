@@ -7,7 +7,7 @@ class ContentTypeMatcher extends HeaderValueMatcher
 {
     /**
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      * @todo... different parts of the Content-Type header might need to be matched differently on case: mimetype is case-insensitive, but boundary is not
      */
     public function __construct(string|array $filter, bool $expandWildcards = true)

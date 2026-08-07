@@ -13,7 +13,7 @@ class BodyMatcher extends BaseMatcher
 
     /**
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string|array $filter, bool $caseInsensitive = false, bool $expandWildcards = true)
     {

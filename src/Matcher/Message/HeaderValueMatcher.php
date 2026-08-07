@@ -20,7 +20,7 @@ class HeaderValueMatcher extends BaseMatcher
     /**
      * NB: when passed a header name regex, returns true if at _least one_ header value matches
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string $headerName, string|array $filter, bool $caseInsensitive = false, bool $expandWildcards = true,
         bool $expandWildcardsInName = false/*, $matchInvalidHeaderValues = false*/)

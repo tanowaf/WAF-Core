@@ -28,7 +28,7 @@ abstract class OptionAwareMatcherFactory extends SuffixedMatcherFactory
      * @param int $optionsOffset to be used when there are a number of mandatory options before the optional ones,
      *                           eg. 'matcher_type/mandatory_opt_1/option_x/option_y' => set 2
      * @return bool[] an array with the same keys as $options
-     * @throws \Exception
+     * @throws ConfigurationError
      */
     protected function parseMatcherBooleanOptions(string $type, array $options, int $optionsOffset = 1): array
     {

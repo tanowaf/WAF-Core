@@ -16,7 +16,7 @@ class QueryStringMatcher extends BaseMatcher
     /**
      * @todo allow wildcards $parameterName, while allowing disabling separately wildcards for name and for value
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string $parameterName, string|array $filter, bool $caseInsensitive = false, bool $expandWildcards = true,
         bool $expandWildcardsInName = false)

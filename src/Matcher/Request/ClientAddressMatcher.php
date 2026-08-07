@@ -13,7 +13,7 @@ class ClientAddressMatcher extends BaseMatcher
 
     /**
      * @param string|string[] $filter
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string|array $filter, bool $expandWildcards = true)
     {

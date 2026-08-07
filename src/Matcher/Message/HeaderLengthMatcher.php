@@ -28,7 +28,7 @@ class HeaderLengthMatcher extends BaseMatcher
      * NB: for headers present multiple times, the length is calculated concatenating those with ', '
      * @param int $length in bytes
      * @param bool $matchGreaterOrEqualThan when false, matchLessOrEqual will be applied
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct(string $headerName, int $length, bool $matchGreaterOrEqualThan = true, bool $expandWildcardsInName = false)
     {
