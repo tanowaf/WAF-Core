@@ -86,10 +86,14 @@ class Creator
         }
 
 /// @todo... reconcile differences between $_GET and $server['QUERY_STRING'], as well as between $_COOKIE and $headers['cookie'],
-///          optionally save them as attributes in the request. Eg:
+///          optionally save them as attributes in the request.
+///          Eg:
 ///          1. php converts ' ' and '.' in $server['QUERY_STRING'] to _ => we should not do that!
-///          2. php does funny things when there are multiple spaces/tabs in cookie names
+///          2. other languages/frameworks do allow arrays of values via ?a=one&a=two instead of a[]=one&a[]=two !!!
+///          3. php does funny things when there are multiple spaces/tabs in cookie names
 ///          (see commented-out tests in BA_ServerRequestCreatorTest)
+///          About point 1: see fe. https://github.com/symfony/symfony/blob/8.1/src/Symfony/Component/HttpFoundation/HeaderUtils.php#L201C62-L201C75
+///          About point 2: see https://stackoverflow.com/questions/1746507/authoritative-position-of-duplicate-http-get-query-keys
 
         $request = $this->fromArrays($server, $headers, $_COOKIE, $_GET, $post, $_FILES, \fopen('php://input', 'r') ?: null);
         // waf-core change: add attribute

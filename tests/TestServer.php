@@ -173,8 +173,10 @@ class TestServer
         );
 
         // `getallheaders` is often stubbed, so we check for it with its apache-related name
-        if (function_exists('apache_response_headers')) {
-            $response['getallheaders'] = apache_response_headers();
+        if (function_exists('frankenphp_request_headers')) {
+            $response['getallheaders'] = frankenphp_request_headers();
+        } elseif (function_exists('apache_request_headers')) {
+            $response['getallheaders'] = apache_request_headers();
         }
 
         // The request's headers, and possibly also other values, might not be valid utf8, and as such will fail

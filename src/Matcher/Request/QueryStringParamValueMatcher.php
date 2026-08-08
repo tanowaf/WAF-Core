@@ -33,6 +33,8 @@ class QueryStringParamValueMatcher extends BaseMatcher
 
     public function matchesRequest(ServerRequestInterface $request): bool
     {
+/// @todo... start from getQuery, and tokenize the QS into pieces via a QueryStringParser which can be tweaked
+///          to work according to PHP rules or different rules ()
         $pieces = $request->getQueryParams();
         //$qs = $request->getUri()->getQuery();
         //parse_str($qs, $pieces);

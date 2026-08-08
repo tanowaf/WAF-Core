@@ -160,7 +160,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $data = $this->getDecodedBody($response);
-        /// @todo is it useful to check fir differences between these two?
+        /// @todo is it useful to check for differences between these two?
         //$phpCookies = $data['_COOKIE'];
         $cookies = $data['serverRequest']['cookieParams'];
         $this->assertSame($expectedCookiesValue, $cookies, $failureMessage);
@@ -431,7 +431,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         $response = $this->customRequest('GET', $uriSuffix, '', '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         $data = $this->getDecodedBody($response);
-        /// @todo is it useful to check fir differences between these two?
+        /// @todo is it useful to check for differences between these two?
         //$phpParameters = $data['_GET'];
         $parameters = $data['serverRequest']['queryParams'];
         $this->assertSame($expectedParameters, $parameters, $failureMessage);
@@ -442,20 +442,48 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     {
         $cases = [
             ["?a=hello", ['a' => 'hello']],
+            ["?a=!$'(),-./:;@_~", ['a' => "!$'(),-./:;@_~"]], // no + sign as that's used for escaping
             ["?a=%20Hello+world%20", ['a' => ' Hello world ']],
             ["?a=+hello%20World+", ['a' => ' hello World ']],
+            ["?a", ['a' => '']],
             ["?a=", ['a' => '']],
+            ["?a=000000", ['a' => '000000']],
             ["?a=1", ['a' => '1']],
             ["?a=-1", ['a' => '-1']],
             ["?a=1.0", ['a' => '1.0']],
+            ["?a=1...0", ['a' => '1...0']],
+            ["?a=1,0", ['a' => '1,0']],
             ["?a=true", ['a' => 'true']],
             ["?a=false", ['a' => 'false']],
+            ["?a=false&a=true", ['a' => 'true']],
+
+            /// @todo... test: more uXX chars encoding
+
+            /// @todo array-params are not part of the url spec. There are different ways of parsing them...
             ["?a[]=", ['a' => ['']]],
             ["?a[2]=&a[1]=", ['a' => [2 => '', 1 => '']]],
+            ["?a[2]=y&a[2]=n", ['a' => [2 => 'n']]],
 
-            /// @todo... test: funky chars in param name
+            /// @todo... test: urlencoded chars in param name
 
-            /// @todo... fix 045_query_string_all after we fix this
+            // @see https://url.spec.whatwg.org/#url-code-points
+            // "The URL code points are ASCII alphanumeric, U+0021 (!), U+0024 ($), U+0026 (&), U+0027 ('), U+0028 LEFT PARENTHESIS, U+0029 RIGHT PARENTHESIS, U+002A (*), U+002B (+), U+002C (,), U+002D (-), U+002E (.), U+002F (/), U+003A (:), U+003B (;), U+003D (=), U+003F (?), U+0040 (@), U+005F (_), U+007E (~), and code points in the range U+00A0 to U+10FFFD, inclusive, excluding surrogates and noncharacters"
+            //["?a_=y", ['a_' => 'y']],
+            ["?a!=y", ['a!' => 'y']],
+            ["?a$=y", ['a$' => 'y']],
+            ["?a'=y", ["a'" => 'y']],
+            ["?a(=y", ['a(' => 'y']],
+            ["?a)=y", ['a)' => 'y']],
+            ["?a+=y", ['a_' => 'y']], /// @todo: it should be 'a '. Fix 045_query_string_all after we fix this
+            ["?a,=y", ['a,' => 'y']],
+            ["?a-=y", ['a-' => 'y']],
+            ["?a.=y", ['a_' => 'y']], /// @todo: it should be 'a.'
+            ["?a/=y", ['a/' => 'y']],
+            ["?a:=y", ['a:' => 'y']],
+            ["?a;=y", ['a;' => 'y']],
+            ["?a@=y", ['a@' => 'y']],
+            ["?a_=y", ['a_' => 'y']],
+            ["?a~=y", ['a~' => 'y']],
         ];
 
         return self::mergeCommonDataProviderOptions($cases);
