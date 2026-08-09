@@ -441,6 +441,8 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     public static function queryStringParametersDataProvider(): array
     {
         $cases = [
+            // "non-controversial" cases
+
             ["?a=hello", ['a' => 'hello']],
             ["?a=!$'(),-./:;@_~", ['a' => "!$'(),-./:;@_~"]], // no + sign as that's used for escaping
             ["?a=%20Hello+world%20", ['a' => ' Hello world ']],
@@ -455,16 +457,8 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
             ["?a=1,0", ['a' => '1,0']],
             ["?a=true", ['a' => 'true']],
             ["?a=false", ['a' => 'false']],
-            ["?a=false&a=true", ['a' => 'true']],
-
-            /// @todo... test: more uXX chars encoding
-
-            /// @todo array-params are not part of the url spec. There are different ways of parsing them...
-            ["?a[]=", ['a' => ['']]],
-            ["?a[2]=&a[1]=", ['a' => [2 => '', 1 => '']]],
-            ["?a[2]=y&a[2]=n", ['a' => [2 => 'n']]],
-
-            /// @todo... test: urlencoded chars in param name
+            ["?a=%7e", ['a' => '~']],
+            ["?a=%7E", ['a' => '~']],
 
             // @see https://url.spec.whatwg.org/#url-code-points
             // "The URL code points are ASCII alphanumeric, U+0021 (!), U+0024 ($), U+0026 (&), U+0027 ('), U+0028 LEFT PARENTHESIS, U+0029 RIGHT PARENTHESIS, U+002A (*), U+002B (+), U+002C (,), U+002D (-), U+002E (.), U+002F (/), U+003A (:), U+003B (;), U+003D (=), U+003F (?), U+0040 (@), U+005F (_), U+007E (~), and code points in the range U+00A0 to U+10FFFD, inclusive, excluding surrogates and noncharacters"
@@ -474,16 +468,28 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
             ["?a'=y", ["a'" => 'y']],
             ["?a(=y", ['a(' => 'y']],
             ["?a)=y", ['a)' => 'y']],
-            ["?a+=y", ['a_' => 'y']], /// @todo: it should be 'a '. Fix 045_query_string_all after we fix this
             ["?a,=y", ['a,' => 'y']],
             ["?a-=y", ['a-' => 'y']],
-            ["?a.=y", ['a_' => 'y']], /// @todo: it should be 'a.'
             ["?a/=y", ['a/' => 'y']],
             ["?a:=y", ['a:' => 'y']],
             ["?a;=y", ['a;' => 'y']],
             ["?a@=y", ['a@' => 'y']],
             ["?a_=y", ['a_' => 'y']],
             ["?a~=y", ['a~' => 'y']],
+            ["?%20a%7e=y", ['a~' => 'y']],
+            ["?a%7E=y", ['a~' => 'y']],
+
+            // "slightly-controversial" cases
+
+            /// @todo repeated params, array-params are not part of the url spec. There are different ways of parsing them...
+            ["?a=false&a=true", ['a' => 'true']],
+            ["?a[]=", ['a' => ['']]],
+            ["?a[2]=&a[1]=", ['a' => [2 => '', 1 => '']]],
+            ["?a[2]=y&a[2]=n", ['a' => [2 => 'n']]],
+
+            //["?a+=y", ['a ' => 'y']], /// @todo... atm it results in 'a_'. Remember to fix 045_query_string_all after we fix this
+            //["?a.=y", ['a.' => 'y']], /// @todo... atm it results in 'a_'
+            //["?%20%20a%20a%20%20=y", ['  a a  ' => 'y']], /// @todo... atm it results in 'a_a__'
         ];
 
         return self::mergeCommonDataProviderOptions($cases);
