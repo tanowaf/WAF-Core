@@ -76,6 +76,8 @@ class ServerRequest implements ServerRequestInterface
         if ($this->hasHeader('cookie')) {
 /// @todo... we allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1, so
 ///         we might want to handle that differently in that case. Check how php handles that by default
+///         See also the discussion at https://github.com/httpwg/http-extensions/issues/2541 and https://github.com/cloudflare/pingora/issues/892
+///         (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
             $this->cookieParams = CookieParser::parseCookies(implode('; ', $this->getHeader('cookie')));
         }
 
