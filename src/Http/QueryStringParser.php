@@ -5,5 +5,13 @@ namespace TanoWAF\WAFCore\Http;
 
 class QueryStringParser
 {
-    /// @todo...
+    /**
+     * @return string[]
+     */
+    public static function parseQueryString(string $qs): array
+    {
+/// @todo... implement a different algorithm (also, make it switchable and this method non-static?)
+        \parse_str($qs, $qp);
+        return $qp;
+    }
 }

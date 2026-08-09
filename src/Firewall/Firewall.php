@@ -24,7 +24,8 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 
     /** @var Rule[] */
     protected array $rules;
-    protected null|Rule $currentRule = null;
+    /** @var Rule[] */
+    protected array $matchingRules;
 
     /**
      * @param Rule[] $rules
@@ -49,6 +50,9 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $request = $this->filterServerRequest($request);
+        if ($request instanceof ResponseInterface) {
+            return $request;
+        }
         $response = $handler->handle($request);
 /// @todo should we send the original request to filterResponse() ??? (possibly cloned, have to check immutability...)
         return $this->filterResponse($response, $request);
@@ -57,14 +61,32 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
     /**
      * @throws RequestDenied
      */
-    protected function filterServerRequest(ServerRequestInterface $request): ServerRequestInterface
+    protected function filterServerRequest(ServerRequestInterface $request): ServerRequestInterface|ResponseInterface
     {
-        $this->currentRule = null;
+        $this->matchingRules = [];
         foreach ($this->rules as $ruleName => $rule) {
             if ($rule->matchesRequest($request)) {
+/// @todo... be more specific in the log line: mention the matcher too
                 $this->debug("Firewall rule '$ruleName' matched request: " . $this->request2Log($request));
-                $this->currentRule = $rule;
-                return $rule->filterServerRequest($request);
+
+                if ($rule->getRequestAction() === RuleAction::Deny) {
+                    // no need to run the filter part of the rule
+                    throw new RequestDenied("Access denied by rule '$ruleName'");
+                }
+
+                $this->matchingRules[] = $rule;
+                $request = $rule->filterServerRequest($request);
+                if ($request instanceof ResponseInterface) {
+                    return $request;
+                }
+
+/// @todo... handle other (future) cases
+                switch ($rule->getRequestAction()) {
+                    case RuleAction::Allow:
+                        return $request;
+                    //case RuleAction::Deny:
+                    //    return $request;
+                }
             }
         }
 
@@ -77,8 +99,14 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
      */
     protected function filterResponse(ResponseInterface $response, ServerRequestInterface $request): ResponseInterface
     {
-        $response = $this->currentRule->filterResponse($response, $request);
-        $this->currentRule = null;
+        try {
+            for ($i = count($this->matchingRules) - 1; $i >= 0; $i--) {
+                $response = $this->matchingRules[$i]->filterResponse($response, $request);
+            }
+        } finally {
+            // in case someone has the bad idea of calling filterResponse twice in a row
+            $this->matchingRules = [];
+        }
         return $response;
     }
 

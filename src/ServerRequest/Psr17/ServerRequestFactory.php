@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\ServerRequest\Psr17;
 
-use Nyholm\Psr7\ServerRequest;
+use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
 
-class Factory implements ExtendedFactoryInterface
+class ServerRequestFactory implements ExtendedServerRequestFactoryInterface
 {
     public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequestInterface
     {

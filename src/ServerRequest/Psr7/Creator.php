@@ -11,8 +11,8 @@ use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
-use TanoWAF\WAFCore\ServerRequest\Psr17\ExtendedFactoryInterface;
-use TanoWAF\WAFCore\ServerRequest\Psr17\Factory as ServerRequestFactory;
+use TanoWAF\WAFCore\ServerRequest\Psr17\ExtendedServerRequestFactoryInterface;
+use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory as ServerRequestFactory;
 use TanoWAF\WAFCore\Stdlib;
 
 /**
@@ -23,6 +23,9 @@ use TanoWAF\WAFCore\Stdlib;
  * appropriate nor sufficient for when building a ServerRequest out of the data php receives from the web server...
  *
  * @todo add support for trusted proxies in front of us: allow whitelisting their IPs and the headers such as x-forwarded-...
+ * @todo we could implement ServerRequestCreatorInterface, but we do not want to depend on package nyholm/psr7-server...
+ *       In fact, we might instead drop fromArrays altogether, and just go for moving all the login into the SRF `createServerRequest`
+ *       method as replacement of `fromGlobals`
  *
  * @see https://github.com/Nyholm/psr7-server/issues/65, https://github.com/Nyholm/psr7-server/issues/62, https://github.com/Nyholm/psr7-server/pull/49
  */
@@ -64,7 +67,7 @@ class Creator
             $server['REQUEST_METHOD'] = 'GET';
         }
 
-        // waf-core change: never call 'getallheaders' - we allow callers to monkey-patch $_SERVER
+        // waf-core change: never call 'getallheaders' - as we allow callers to monkey-patch $_SERVER
         $headers = Stdlib::getHeadersFromServer($server);
 
         $post = null;
@@ -94,6 +97,8 @@ class Creator
 ///          (see commented-out tests in BA_ServerRequestCreatorTest)
 ///          About point 1: see fe. https://github.com/symfony/symfony/blob/8.1/src/Symfony/Component/HttpFoundation/HeaderUtils.php#L201C62-L201C75
 ///          About point 2: see https://stackoverflow.com/questions/1746507/authoritative-position-of-duplicate-http-get-query-keys
+///          Fixing points 1,2 could probably be achieved via a custom ServerRequest class...
+///          (see also the todo below about optimization)
 
         $request = $this->fromArrays($server, $headers, $_COOKIE, $_GET, $post, $_FILES, \fopen('php://input', 'r') ?: null);
         // waf-core change: add attribute
@@ -105,6 +110,7 @@ class Creator
 
     /**
      * {@inheritdoc}
+     * NB: unlike the original class, this implementation will in fact eschew usage of $cookie, $get
      * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
      */
     public function fromArrays(array $server, array $headers = [], array $cookie = [], array $get = [], ?array $post = null, array $files = [], $body = null): ServerRequestInterface
@@ -127,7 +133,7 @@ class Creator
         // waf-core change: Psr17Factory::createServerRequest misses the ability of ServerRequest::__construct to work off
         // headers. That in turn requires more work immediately afterwards to patch in the headers, except for the
         // Host one. So we go straight for ServerRequest::__construct instead
-        if ($this->serverRequestFactory instanceof ExtendedFactoryInterface) {
+        if ($this->serverRequestFactory instanceof ExtendedServerRequestFactoryInterface) {
             $serverRequest = $this->serverRequestFactory->createServerRequestEx($method, $uri, $server, $headers, $protocol);
         } else {
 
@@ -156,9 +162,13 @@ class Creator
 
         }
 
+        // waf-core change: atm both createServerRequest and createServerRequestEx do double-work with the Query Params, as
+        ///          they are first built by a call to `parse_str` in the ServerRequest constructor, then immediately overwritten
+        ///          with the `->withQueryParams($get)` call
+/// @todo... comment out the call to `withCookieParams` after implementing parseCookies
         $serverRequest = $serverRequest
             ->withCookieParams($cookie)
-            ->withQueryParams($get)
+            //->withQueryParams($get)
             ->withParsedBody($post)
             ->withUploadedFiles($this->normalizeFiles($files));
 

@@ -10,6 +10,6 @@ enum RuleAction: string
     case Deny = 'deny';
     /// @todo
     //case Rerun = 'rerun'; // restart the rule chain, either including or excluding the current rule
-    //case Continue = 'continue';
-    //case Score = 'score';
+    //case Continue = 'continue'; // nothing to see here, move along
+    //case Score = 'score'; // modify the Score of the Request
 }

@@ -15,6 +15,7 @@ use TanoWAF\WAFCore\Matcher\Request\RequestMatcherInterface;
 use TanoWAF\WAFCore\Matcher\Response\ResponseMatcherInterface;
 use TanoWAF\WAFCore\Stdlib;
 
+/// @todo... allow more RuleActions (this might need to move the logic handling those to the firewall...)
 class Rule implements RequestMatcherInterface, ServerRequestFilterInterface, ResponseFilterInterface
 {
     use LoggerAwareTrait;
@@ -74,6 +75,16 @@ class Rule implements RequestMatcherInterface, ServerRequestFilterInterface, Res
         $this->responseAction = $responseAction;
     }
 
+    public function getRequestAction(): RuleAction
+    {
+        return $this->requestAction;
+    }
+
+    public function getResponseAction(): RuleAction
+    {
+        return $this->responseAction;
+    }
+
     public function matches(...$items): bool
     {
         if (count($items) !== 1 || ! $items[0] instanceof ServerRequestInterface) {
@@ -88,6 +99,9 @@ class Rule implements RequestMatcherInterface, ServerRequestFilterInterface, Res
         return $this->requestMatcher->matchesRequest($request);
     }
 
+    /**
+     * @throws RequestDenied
+     */
     public function filterServerRequest(ServerRequestInterface $request): ServerRequestInterface|ResponseInterface
     {
         if ($this->requestAction === RuleAction::Deny) {
@@ -108,6 +122,9 @@ class Rule implements RequestMatcherInterface, ServerRequestFilterInterface, Res
         return (bool)$this->responseMatcher?->matchesResponse($response);
     }
 
+    /**
+     * @throws RequestDenied
+     */
     public function filterResponse(ResponseInterface $response, ServerRequestInterface $request): ResponseInterface
     {
         if ($this->matchesResponse($response)) {
