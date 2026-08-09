@@ -15,7 +15,11 @@ use TanoWAF\WAFCore\Http\CookieParser;
 use TanoWAF\WAFCore\Http\QueryStringParser;
 
 /**
- * A reimplementation of Nyholm\Psr7\ServerRequest, which sadly has private members and is thus not easy to extends...
+ * A reimplementation of Nyholm\Psr7\ServerRequest, which sadly has private members and is thus not easy to extend.
+ * See inline comments for the changes.
+ *
+ * @todo... move here (or in a proxy class?) the ability to normalize (, cache) and return both headers and qs params
+ *          (add a dedicated interface for that capability)
  */
 class ServerRequest implements ServerRequestInterface
 {

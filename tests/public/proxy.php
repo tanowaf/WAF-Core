@@ -20,7 +20,9 @@ use TanoWAF\WAFCore\Firewall\FirewallFactory;
 use TanoWAF\WAFCore\Logger\FileLogger;
 use TanoWAF\WAFCore\Middleware\Dispatcher;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
+use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
+use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use TanoWAF\WAFCore\Tests\TestProxy;
 use TanoWAF\WAFCore\UpstreamClient\MiddlewareAware as MiddlewareAwareClient;
 
@@ -193,8 +195,17 @@ class ProxyPage
 
             $upstreamConnector = new FixedUpstreamProxy($upstreamUri, $httpClient, null, $logger);
             $proxy = new TestProxy($middlewareChain, $upstreamConnector, $logger);
+            $psr17Factory = new Psr17Factory();
 
-            $serverRequest = $this->fromGlobals();
+            $creator = new ServerRequestCreator(
+                $psr17Factory, // UriFactory
+                new ServerRequestFactory(
+                    $psr17Factory, // UploadedFileFactory
+                    $psr17Factory  // StreamFactory,
+                )
+            );
+
+            $serverRequest = $this->fromGlobals($creator);
             $tracer?->filterServerRequest($serverRequest);
             $response = $proxy->handle($serverRequest);
             $tracer?->filterResponse($response, $serverRequest);
@@ -216,7 +227,7 @@ class ProxyPage
      * Clean up ("patch") the data we allow the Proxy to handle - remove test-managing headers and cookies.
      * NB: calling this results in manipulation of $_SERVER and co.
      */
-    protected function fromGlobals()
+    protected function fromGlobals(ServerRequestCreator $creator): ServerRequest
     {
         foreach ($_SERVER as $name => $value) {
             if (str_starts_with($name, 'HTTP_X_YAWAF_')) {
@@ -230,15 +241,7 @@ class ProxyPage
             }
         }
 
-        $psr17Factory = new Psr17Factory();
-        $creator = new ServerRequestCreator(
-            $psr17Factory, // UriFactory
-            $psr17Factory, // UploadedFileFactory
-            $psr17Factory  // StreamFactory
-        );
-        $serverRequest = $creator->fromGlobals();
-
-        return $serverRequest;
+        return $creator->fromGlobals();
     }
 
     protected function fileIsInTestsDir($fileName): bool
@@ -252,6 +255,6 @@ class ProxyPage
     protected function removeCookieFromEnv($cookieName)
     {
         unset($_COOKIE[$cookieName]);
-/// @todo... patch as well $_SERVER['HTTP_COOKIE'] for consistency
+/// @todo... patch as well $_SERVER['HTTP_COOKIE'], as that is what is going to be used instead of $_COOKIE
     }
 }

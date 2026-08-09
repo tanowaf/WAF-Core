@@ -31,4 +31,9 @@ class Attributes
     {
         return array_key_exists($key, $this->attributes) ? $this->attributes[$key] : $default;
     }
+
+    public function keys(): array
+    {
+        return array_keys($this->attributes);
+    }
 }

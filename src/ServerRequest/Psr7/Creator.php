@@ -5,29 +5,20 @@ namespace TanoWAF\WAFCore\ServerRequest\Psr7;
 
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\StreamInterface;
-use Psr\Http\Message\UploadedFileFactoryInterface;
-use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
-use TanoWAF\WAFCore\ServerRequest\Psr17\ExtendedServerRequestFactoryInterface;
-use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory as ServerRequestFactory;
-use TanoWAF\WAFCore\Stdlib;
 
 /**
  * A reimplementation of Nyholm\Psr7Server\ServerRequestCreator, attempting to suit better the forward-proxy use-case and
  * fixing a few known bugs (see https://github.com/Nyholm/psr7-server/issues).
  *
  * Note that this is de facto a ServerRequest Factory. Alas, the Psr17 ServerRequestFactoryInterface is not quite
- * appropriate nor sufficient for when building a ServerRequest out of the data php receives from the web server...
- *
- * @todo add support for trusted proxies in front of us: allow whitelisting their IPs and the headers such as x-forwarded-...
- * @todo we could implement ServerRequestCreatorInterface, but we do not want to depend on package nyholm/psr7-server...
- *       In fact, we might instead drop fromArrays altogether, and just go for moving all the login into the SRF `createServerRequest`
- *       method as replacement of `fromGlobals`
+ * appropriate nor sufficient for when building a ServerRequest out of the data php receives from (standard) web servers
+ * via the SAPI modules...
  *
  * @see https://github.com/Nyholm/psr7-server/issues/65, https://github.com/Nyholm/psr7-server/issues/62, https://github.com/Nyholm/psr7-server/pull/49
+ *
+ * @todo add support for trusted proxies in front of us: allow whitelisting their IPs and the headers such as x-forwarded-...
  */
 class Creator
 {
@@ -35,275 +26,50 @@ class Creator
 
     protected UriFactoryInterface $uriFactory;
 
-    protected UploadedFileFactoryInterface $uploadedFileFactory;
-
-    protected StreamFactoryInterface $streamFactory;
-
     /**
-     * NB: waf-core change: signature changed compared to the original!
+     * NB: waf-core changes:
+     * - signature changed compared to the original
+     * - the ServerRequestFactoryInterface passed in is expected to build the request fully from superglobals like $_POST
+     *   and $_FILES besides the passed-in `$server` (and possibly prefer its own parsing of `$uri` and `$server`
+     *   for building the equivalent of $_GET, $_COOKIE)
      */
     public function __construct(
         UriFactoryInterface $uriFactory,
-        UploadedFileFactoryInterface $uploadedFileFactory,
-        StreamFactoryInterface $streamFactory,
-        ServerRequestFactoryInterface|null $serverRequestFactory = null,
+        ServerRequestFactoryInterface $serverRequestFactory = null,
     ) {
         $this->uriFactory = $uriFactory;
-        $this->uploadedFileFactory = $uploadedFileFactory;
-        $this->streamFactory = $streamFactory;
-        if ($serverRequestFactory === null) {
-            $serverRequestFactory = new ServerRequestFactory();
-        }
         $this->serverRequestFactory = $serverRequestFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function fromGlobals(): ServerRequestInterface
     {
         $server = $_SERVER;
-        if (($haveRequestMethod = isset($server['REQUEST_METHOD'])) === false) {
-            $server['REQUEST_METHOD'] = 'GET';
-        }
 
-        // waf-core change: never call 'getallheaders' - as we allow callers to monkey-patch $_SERVER
-        $headers = Stdlib::getHeadersFromServer($server);
-
-        $post = null;
-        if ('POST' === $server['REQUEST_METHOD']) {
-            foreach ($headers as $headerName => $headerValue) {
-                if (true === \is_int($headerName) || 'content-type' !== \strtolower($headerName)) {
-                    continue;
-                }
-                if (\in_array(
-                    \strtolower(\trim(\explode(';', $headerValue, 2)[0])),
-                    ['application/x-www-form-urlencoded', 'multipart/form-data']
-                )) {
-                    $post = $_POST;
-
-                    break;
-                }
-            }
-            /// @todo consistency check: if $_POST is not empty, and 'content-type' header is not one of the expected 2, tag the response
-        }
-
-/// @todo... reconcile differences between $_GET and $server['QUERY_STRING'], as well as between $_COOKIE and $headers['cookie'],
-///          optionally save them as attributes in the request.
-///          Eg:
-///          1. php converts ' ' and '.' in $server['QUERY_STRING'] to _ => we should not do that!
-///          2. other languages/frameworks do allow arrays of values via ?a=one&a=two instead of a[]=one&a[]=two !!!
-///          3. php does funny things when there are multiple spaces/tabs in cookie names
-///          (see commented-out tests in BA_ServerRequestCreatorTest)
-///          About point 1: see fe. https://github.com/symfony/symfony/blob/8.1/src/Symfony/Component/HttpFoundation/HeaderUtils.php#L201C62-L201C75
-///          About point 2: see https://stackoverflow.com/questions/1746507/authoritative-position-of-duplicate-http-get-query-keys
-///          Fixing points 1,2 could probably be achieved via a custom ServerRequest class...
-///          (see also the todo below about optimization)
-
-        $request = $this->fromArrays($server, $headers, $_COOKIE, $_GET, $post, $_FILES, \fopen('php://input', 'r') ?: null);
-        // waf-core change: add attribute
-        if (!$haveRequestMethod) {
-            $request->getAttribute(Attributes::class)?->set(Attributes::REQUEST_METHOD_SYNTHETIC, true);
-        }
-        return $request;
-    }
-
-    /**
-     * {@inheritdoc}
-     * NB: unlike the original class, this implementation will in fact eschew usage of $cookie, $get
-     * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
-     */
-    public function fromArrays(array $server, array $headers = [], array $cookie = [], array $get = [], ?array $post = null, array $files = [], $body = null): ServerRequestInterface
-    {
         $requestAttributes = new Attributes();
 
-        $method = $server['REQUEST_METHOD'];
+        if (isset($server['REQUEST_METHOD']) === false) {
+            $method = 'GET';
+            $requestAttributes->set(Attributes::REQUEST_METHOD_SYNTHETIC, true);
+        } else {
+            $method = $server['REQUEST_METHOD'];
+        }
 
         // waf-core change: expanded getUriFromEnvWithHTTP inline in createUriFromArray, so we can add an attribute in case uri scheme is missing
         //$uri = $this->getUriFromEnvWithHTTP($server);
         $uri = $this->createUriFromArray($server, $requestAttributes);
 
-        if (false === isset($server['SERVER_PROTOCOL'])) {
-            $protocol = '1.1';
-            $requestAttributes->set(Attributes::SERVER_PROTOCOL_SYNTHETIC, true);
+        $request = $this->serverRequestFactory->createServerRequest($method, $uri, $server);
+
+        /** @var Attributes $ra */
+        if (($ra = $request->getAttribute(Attributes::class)) === null) {
+            $request = $request->withAttribute(Attributes::class, $requestAttributes);
         } else {
-            $protocol =\str_replace('HTTP/', '', $server['SERVER_PROTOCOL']);
-        }
-
-        // waf-core change: Psr17Factory::createServerRequest misses the ability of ServerRequest::__construct to work off
-        // headers. That in turn requires more work immediately afterwards to patch in the headers, except for the
-        // Host one. So we go straight for ServerRequest::__construct instead
-        if ($this->serverRequestFactory instanceof ExtendedServerRequestFactoryInterface) {
-            $serverRequest = $this->serverRequestFactory->createServerRequestEx($method, $uri, $server, $headers, $protocol);
-        } else {
-
-            $serverRequest = $this->serverRequestFactory->createServerRequest($method, $uri, $server);
-
-            foreach ($headers as $name => $value) {
-                // Because PHP automatically casts array keys set with numeric strings to integers, we have to make sure
-                // that numeric headers will not be sent along as integers, as withAddedHeader can only accept strings.
-                if (\is_int($name)) {
-                    $name = (string) $name;
-                }
-
-                // waf-core change: handle the case where the request already has an `host` header
-                // We prefer the 'host' header received from the server to the one rebuilt from the uri - even though
-                // in reality they are both built off the same thing!
-                // NB: this works best when assuming that there is a single HTTP_HOST in $_SERVER_. That is part of the http
-                // spec, so we trust the webserver to enforce it for us (note that some webservers might concatenate multiple
-                // host headers in a single, csv-formatted value)
-                if ($name === 'host' && $serverRequest->hasHeader('host')) {
-                    $serverRequest = $serverRequest->withoutHeader('host');
-                }
-                $serverRequest = $serverRequest->withAddedHeader($name, $value);
-            }
-
-            $serverRequest = $serverRequest->withProtocolVersion($protocol);
-
-        }
-
-        // waf-core change: atm both createServerRequest and createServerRequestEx do double-work with the Query Params, as
-        ///          they are first built by a call to `parse_str` in the ServerRequest constructor, then immediately overwritten
-        ///          with the `->withQueryParams($get)` call
-/// @todo... comment out the call to `withCookieParams` after implementing parseCookies
-        $serverRequest = $serverRequest
-            ->withCookieParams($cookie)
-            //->withQueryParams($get)
-            ->withParsedBody($post)
-            ->withUploadedFiles($this->normalizeFiles($files));
-
-        if (isset($server['REMOTE_ADDR'])) {
-            $requestAttributes->set(Attributes::REMOTE_ADDR, $server['REMOTE_ADDR']);
-        }
-        if (isset($server['REMOTE_PORT'])) {
-            $requestAttributes->set(Attributes::REMOTE_PORT, $server['REMOTE_PORT']);
-        }
-
-        // waf-core change: add an attribute bag to the request
-        $serverRequest = $serverRequest->withAttribute(Attributes::class, $requestAttributes);
-
-        if (null === $body) {
-            return $serverRequest;
-        }
-
-        if (\is_resource($body)) {
-            $body = $this->streamFactory->createStreamFromResource($body);
-        } elseif (\is_string($body)) {
-            $body = $this->streamFactory->createStream($body);
-        } elseif (!$body instanceof StreamInterface) {
-            throw new \InvalidArgumentException('The $body parameter to ServerRequest\Creator::fromArrays must be string, resource or StreamInterface');
-        }
-
-        return $serverRequest->withBody($body);
-    }
-
-    // waf-core change: removed, since we inject 'REQUEST_METHOD' into $server if it is not there in the 1st place
-    /*private function getMethodFromEnv(array $environment): string
-    {
-        if (false === isset($environment['REQUEST_METHOD'])) {
-            throw new \InvalidArgumentException('Cannot determine HTTP method');
-        }
-
-        return $environment['REQUEST_METHOD'];
-    }*/
-
-    /*private function getUriFromEnvWithHTTP(array $environment): UriInterface
-    {
-        $uri = $this->createUriFromArray($environment);
-        if (empty($uri->getScheme())) {
-            $uri = $uri->withScheme('http');
-        }
-
-        return $uri;
-    }*/
-
-    /**
-     * Return an UploadedFile instance array.
-     *
-     * @param array $files An array which respect $_FILES structure
-     *
-     * @return UploadedFileInterface[]
-     *
-     * @throws \InvalidArgumentException for unrecognized values
-     */
-    private function normalizeFiles(array $files): array
-    {
-        $normalized = [];
-
-        foreach ($files as $key => $value) {
-            if ($value instanceof UploadedFileInterface) {
-                $normalized[$key] = $value;
-            } elseif (\is_array($value) && isset($value['tmp_name'])) {
-                $normalized[$key] = $this->createUploadedFileFromSpec($value);
-            } elseif (\is_array($value)) {
-                $normalized[$key] = $this->normalizeFiles($value);
-            } else {
-                throw new \InvalidArgumentException('Invalid value in files specification');
+            foreach ($requestAttributes->keys() as $key) {
+                $ra->set($key, $requestAttributes->get($key));
             }
         }
 
-        return $normalized;
-    }
-
-    /**
-     * Create and return an UploadedFile instance from a $_FILES specification.
-     *
-     * If the specification represents an array of values, this method will
-     * delegate to normalizeNestedFileSpec() and return that return value.
-     *
-     * @param array $value $_FILES struct
-     */
-    private function createUploadedFileFromSpec(array $value): array|UploadedFileInterface
-    {
-        if (\is_array($value['tmp_name'])) {
-            return $this->normalizeNestedFileSpec($value);
-        }
-
-/// @todo... look into issue #59: we should probably call is_uploaded_file($value['tmp_name']) around here
-
-        if (UPLOAD_ERR_OK !== $value['error']) {
-            $stream = $this->streamFactory->createStream();
-        } else {
-            try {
-                $stream = $this->streamFactory->createStreamFromFile($value['tmp_name']);
-            } catch (\RuntimeException $e) {
-                $stream = $this->streamFactory->createStream();
-            }
-        }
-
-        return $this->uploadedFileFactory->createUploadedFile(
-            $stream,
-            (int) $value['size'],
-            (int) $value['error'],
-            $value['name'],
-            $value['type']
-        );
-    }
-
-    /**
-     * Normalize an array of file specifications.
-     *
-     * Loops through all nested files and returns a normalized array of
-     * UploadedFileInterface instances.
-     *
-     * @return UploadedFileInterface[]
-     */
-    private function normalizeNestedFileSpec(array $files = []): array
-    {
-        $normalizedFiles = [];
-
-        foreach (\array_keys($files['tmp_name']) as $key) {
-            $spec = [
-                'tmp_name' => $files['tmp_name'][$key],
-                'size' => $files['size'][$key],
-                'error' => $files['error'][$key],
-                'name' => $files['name'][$key],
-                'type' => $files['type'][$key],
-            ];
-            $normalizedFiles[$key] = $this->createUploadedFileFromSpec($spec);
-        }
-
-        return $normalizedFiles;
+        return $request;
     }
 
     /**
@@ -336,7 +102,7 @@ class Creator
         //}
 
         if (false !== ($haveHostHeader = isset($server['HTTP_HOST']))) {
-            if (1 === \preg_match('/^(.+)\:(\d+)$/', $server['HTTP_HOST'], $matches)) {
+            if (1 === \preg_match('/^(.+):(\d+)$/', $server['HTTP_HOST'], $matches)) {
                 // waf-core change: fix issue #52 by casting to int
                 $uri = $uri->withHost($matches[1])->withPort((int)$matches[2]);
             } else {

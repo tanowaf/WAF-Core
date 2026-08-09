@@ -8,6 +8,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
 use TanoWAF\WAFCore\Stdlib;
 use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
@@ -210,8 +211,10 @@ class TestServer
                 $psr17Factory = new Psr17Factory();
                 $creator = new ServerRequestCreator(
                     $psr17Factory, // UriFactory
-                    $psr17Factory, // UploadedFileFactory
-                    $psr17Factory  // StreamFactory
+                    new ServerRequestFactory(
+                        $psr17Factory, // UploadedFileFactory
+                        $psr17Factory  // StreamFactory,
+                    )
                 );
                 return $creator->fromGlobals();
             case 'guzzle':
