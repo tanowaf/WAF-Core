@@ -33,6 +33,10 @@ fi
 
 ./setup_composer.sh
 
+if [ "$WEBSERVER_TYPE" = roadrunner ] || [ "$WEBSERVER_TYPE" = all ]; then
+    ./setup_roadrunner.sh;
+fi
+
 apt-get -y autoremove && apt-get -y autoclean && apt-get -y clean
 
 echo "PHP_VERSION=${PHP_VERSION}" > /etc/build-info

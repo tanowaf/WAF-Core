@@ -121,6 +121,20 @@ if [ -f /etc/frankenphp/Caddyfile ]; then
     sed -e "s|^ *root .*|    root ${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/frankenphp/Caddyfile
 fi
 
+if [ -f /etc/roadrunner/rr.yaml ]; then
+    echo "[$(date)] Fixing RoadRunner configuration..."
+
+    # let roadrunner run using its own user and group, but make them share ids with the docker guy (yes, that's possible)
+    groupmod -o -g "$CONTAINER_USER_GID" roadrunner
+    usermod -o -u "$CONTAINER_USER_UID" -g "$CONTAINER_USER_GID" roadrunner
+    chown roadrunner:roadrunner /run/roadrunner
+    chown roadrunner:roadrunner /var/lib/roadrunner
+    chown roadrunner /var/log/roadrunner
+
+    # @todo...
+    #sed -e "s|^ *root .*|    root ${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/roadrunner/rr.yaml
+fi
+
 echo "[$(date)] Fixing FPM configuration..."
 
 if [ -f "/usr/local/php/${PHPVER}/etc/php-fpm.conf" ]; then

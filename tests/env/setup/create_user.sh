@@ -1,14 +1,14 @@
 #!/bin/sh
 
-# @todo make the GID & UID of the user variable (we picked 2000 as it is the one used by default by Travis)
+# @todo make the name of the group variable
 
 set -e
 
 echo "Creating user account..."
 
 USERNAME="${1:-docker}"
-USER_ID=2000
-USER_GID=2000
+USER_ID="${2:-2000}"
+USER_GID="${3:-2000}"
 
 # adduser is not preinstalled on noble
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -16,8 +16,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 # on ubuntu 24 noble at least, user ubuntu has id 1000, which clashes with our custom users later on
 if [ -d /home/ubuntu ]; then
-    userdel ubuntu
-    rm -rf ubuntu
+    userdel ubuntu || true
+    rm -rf /home/ubuntu
 fi
 
 addgroup --gid "${USER_GID}" "${USERNAME}"

@@ -1,38 +1,25 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          frankenphp
+# Provides:          roadrunner
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
 # Required-Stop:     $local_fs $remote_fs $network $syslog $named
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # X-Interactive:     true
-# Short-Description: Frankenphp web server
-# Description:       Starts frankenphp using start-stop-daemon
+# Short-Description: Roadrunner web server
+# Description:       Starts roadrunner using start-stop-daemon
 ### END INIT INFO
 
-# Init.d service script for frankenphp on ubuntu/debian
+# Init.d service script for roadrunner on ubuntu/debian
 #
-# @todo in order to bind to privileged ports, it requires a call to `setcap 'cap_net_bind_service=+ep' /usr/bin/frankenphp`
+# @todo in order to bind to privileged ports, it requires a call to `setcap 'cap_net_bind_service=+ep' /usr/bin/rr`
 #       Shall we add it in here? (or give a warning on FP start if this was not done?)
-#
-# Try to keep dirs/users aligned as much as possible to https://github.com/php/frankenphp/blob/main/package/debian/frankenphp.service,
-# https://github.com/php/frankenphp/blob/main/package/alpine/frankenphp.openrc
-#
-# Env vars which can be set in /etc/default/frankenphp:
-# DAEMON
-# DAEMON_OPTS
-# FRANKENPHP_CONFIG
-# FRANKENPHP_GROUP
-# FRANKENPHP_USER
-# LOGFILE
-# PIDFILE
-# ULIMIT
-# VERBOSE
-# WORKING_DIR
 
-DESC="Frankenphp httpd web server"
-NAME=frankenphp
-DAEMON=/usr/bin/$NAME
+
+DESC="Roadrunner httpd web server"
+NAME=roadrunner
+DAEMON=/usr/bin/rr
+# @todo add TERM? "You can send a SIGINT, SIGTERM, or SIGQUIT signal to the main RoadRunner process"
 STOP_SCHEDULE=INT/5/QUIT/5/KILL/5
 VERBOSE=no
 
@@ -45,29 +32,29 @@ test -x $DAEMON || exit 1
 
 . /lib/lsb/init-functions
 
-if [ -z "$FRANKENPHP_CONFIG" ]; then
-    FRANKENPHP_CONFIG=/etc/frankenphp/Caddyfile
+if [ -z "$ROADRUNNER_CONFIG" ]; then
+    ROADRUNNER_CONFIG=/etc/roadrunner/rr.yaml
 fi
-if [ -z "$FRANKENPHP_USER" ]; then
-    FRANKENPHP_USER="$NAME"
+if [ -z "$ROADRUNNER_USER" ]; then
+    ROADRUNNER_USER="$NAME"
 fi
-if [ -z "$FRANKENPHP_GROUP" ]; then
-    FRANKENPHP_GROUP="$FRANKENPHP_USER"
+if [ -z "$ROADRUNNER_GROUP" ]; then
+    ROADRUNNER_GROUP="$ROADRUNNER_USER"
 fi
 if [ -z "$WORKING_DIR" ]; then
-    WORKING_DIR="/var/lib/$FRANKENPHP_USER"
+    WORKING_DIR="/var/lib/$ROADRUNNER_USER"
 fi
 if [ -z "$PIDFILE" ]; then
-    PIDFILE="/run/$FRANKENPHP_USER/frankenphp.pid"
+    PIDFILE="/run/$ROADRUNNER_USER/roadrunner.pid"
 fi
 if [ -z "$LOGFILE" ]; then
-    LOGFILE="/var/log/$NAME/frankenphp.log"
+    LOGFILE="/var/log/$NAME/roadrunner.log"
 fi
 
-DAEMON_OPTS="--pidfile $PIDFILE --config $FRANKENPHP_CONFIG $DAEMON_OPTS"
+DAEMON_OPTS="--pid $PIDFILE --config $ROADRUNNER_CONFIG --WorkDir $WORKING_DIR $DAEMON_OPTS"
 
 if [ -n "$ULIMIT" ]; then
-    # Set ulimit if it is set in /etc/default/frankenphp
+    # Set ulimit if it is set in /etc/default/roadrunner
     ulimit $ULIMIT
 fi
 
@@ -75,10 +62,10 @@ setup_dirs() {
     if [ ! -d "$(dirname "$PIDFILE")" ]; then
         mkdir "$(dirname "$PIDFILE")"
     fi
-    if [ "$(dirname "$PIDFILE")" = "/run/$FRANKENPHP_USER/" ]; then
-        chown "$FRANKENPHP_USER:$FRANKENPHP_GROUP" "$(dirname "$PIDFILE")"
+    if [ "$(dirname "$PIDFILE")" = "/run/$ROADRUNNER_USER/" ]; then
+        chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
     else
-        chgrp "$FRANKENPHP_GROUP" "$(dirname "$PIDFILE")"
+        chgrp "$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
         chmod g+w "$(dirname "$PIDFILE")"
     fi
 
@@ -89,7 +76,7 @@ setup_dirs() {
     if [ ! -f "$LOGFILE" ]; then
         touch "$LOGFILE"
     fi
-    chown "$FRANKENPHP_USER:$FRANKENPHP_GROUP" "$LOGFILE"
+    chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$LOGFILE"
     chmod 640 "$LOGFILE"
 
     if [ ! -d "$(dirname "$WORKING_DIR")" ]; then
@@ -113,26 +100,31 @@ do_start() {
     start-stop-daemon --start --quiet --exec $DAEMON --test > /dev/null \
         || return 1
 
-    # @todo allow easy rotation of the log file by piping into multilog or similar, since frankenphp does not handle that via a signal
-    start-stop-daemon --start --quiet -c "$FRANKENPHP_USER":"$FRANKENPHP_GROUP" -d "$WORKING_DIR" -b -O "$LOGFILE" \
-        --exec $DAEMON -- run $DAEMON_OPTS 2>/dev/null \
+    # @todo check: do we need to allow easy rotation of the log file by piping into multilog or similar, or does roadrunner handle that via a signal?
+    # removed: -d "$WORKING_DIR"
+    echo start-stop-daemon --start --quiet -c "$ROADRUNNER_USER":"$ROADRUNNER_GROUP" -b -O "$LOGFILE" \
+        --exec $DAEMON -- serve $DAEMON_OPTS
+    start-stop-daemon --start --quiet -c "$ROADRUNNER_USER":"$ROADRUNNER_GROUP" -b -O "$LOGFILE" \
+        --exec $DAEMON -- serve $DAEMON_OPTS 2>/dev/null \
         || return 2
 }
 
 # Test the configuration
-test_config() {
-    $DAEMON validate --config "$FRANKENPHP_CONFIG" >/dev/null 2>&1
-}
+#test_config() {
+#    $DAEMON validate --config "$ROADRUNNER_CONFIG" >/dev/null 2>&1
+#}
 
 # Returns:
 #   0 if config was reloaded
 #   2 if config could not be reloaded (eg. daemon not started)
 do_reload() {
-    # This returns 1 if FP is not running or presumably other errors
-    $DAEMON reload --config "$FRANKENPHP_CONFIG" >/dev/null 2>&1 || return 2
+    ### @todo... send a signal SIGUSR2 to (restart the server and) reload the config
+    ### # This returns 1 if FP is not running or presumably other errors
+    ###$DAEMON reload --config "$ROADRUNNER_CONFIG" >/dev/null 2>&1 || return 2
+    .
 }
 
-# @todo in order to achieve this, we should pipe the caddy log into something like multilog...
+# @todo... check if we can send a signal to rotate the logs
 #rotate_logs() {
 #    # Rotate log files
 #    start-stop-daemon --stop --signal USR1 --quiet --pidfile $PIDFILE --name $NAME
@@ -234,16 +226,16 @@ case "$1" in
         esac
         ;;
 
-    configtest)
-        log_daemon_msg "Testing $DESC configuration"
-        test_config
-        log_end_msg $?
-        ;;
+    #configtest)
+    #    log_daemon_msg "Testing $DESC configuration"
+    #    test_config
+    #    log_end_msg $?
+    #    ;;
 
     # @todo add a `rotate` action
 
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|status|restart|reload|configtest}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|status|restart|reload}" >&2
         exit 3
         ;;
 esac
