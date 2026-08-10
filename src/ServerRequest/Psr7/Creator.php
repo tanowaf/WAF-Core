@@ -21,7 +21,7 @@ use Psr\Http\Message\UriInterface;
  */
 class Creator
 {
-    protected ServerRequestFactoryInterface|null $serverRequestFactory;
+    protected ServerRequestFactoryInterface $serverRequestFactory;
 
     protected UriFactoryInterface $uriFactory;
 
@@ -34,7 +34,7 @@ class Creator
      */
     public function __construct(
         UriFactoryInterface $uriFactory,
-        ServerRequestFactoryInterface $serverRequestFactory = null,
+        ServerRequestFactoryInterface $serverRequestFactory,
     ) {
         $this->uriFactory = $uriFactory;
         $this->serverRequestFactory = $serverRequestFactory;
