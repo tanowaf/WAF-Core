@@ -205,11 +205,13 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         $cases[] = ['Cookie: one=one; one=two', ['one' => ['one', 'two']]]; // $_COOKIE has: 'one' => 'one'
 
         // one more test case where different webservers behave differently :-(
-        // Apache glues together 2 Cookie lines using ', ' (and then allow that as cookie value), Nginx and FrankenPHP do not
-        if ($_ENV['SERVER_TYPE'] === 'apache') {
+        // Apache and FP glue together 2 `Cookie` header lines using ', ' (and then use that as cookie value), Nginx does
+        // that in a smarter way using ';' (though not necessarily more rfc-compliant)
+        /// @todo check: did this behaviour change in frankenphp 1.12.7 ??
+        if ($_ENV['SERVER_TYPE'] === 'apache' || $_ENV['SERVER_TYPE'] === 'frankenphp') {
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", ['lang1' => 'xx-YY', 'lang2' => 'en-US, lang3=fr-FR']];
         } else {
-            $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR",  ['lang1' => 'xx-YY', 'lang2' => 'en-US','lang3' => 'fr-FR']];
+            $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR",  ['lang1' => 'xx-YY', 'lang2' => 'en-US', 'lang3' => 'fr-FR']];
         }
 
         // NB: _COOKIE is most likely set up by php, there could be no need to repeat the test over http versions and protocols
