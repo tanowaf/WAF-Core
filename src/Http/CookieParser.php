@@ -9,7 +9,7 @@ class CookieParser implements CookieParserInterface
     /**
      * Parses the value of the Cookie header, in _loose_ accordance with rfc6265, turning it in a key => value list.
      * When a cookie is found which does not respect the spec, the issue is reported in $errorsFound.
-     * If you want to be sure that the received header is rfc-complaint, validate it 1st using HeaderSpec::COOKIE_VALUE_REGEXP
+     * If you want to be sure that the received header is rfc-compliant, validate it 1st using HeaderSpec::COOKIE_VALUE_REGEXP
      *
      * NB: this does _not_ produce the same values as found in $_COOKIE:
      * - no conversion of spaces and dots to underscores in cookie names
