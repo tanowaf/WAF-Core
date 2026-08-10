@@ -68,7 +68,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             /// @todo consistency check: if $_POST is not empty, and 'content-type' header is not one of the expected 2, tag the response
         }
 
-        $request = $this->fromArrays($method, $uri, $headers, \fopen('php://input', 'r') ?: null, $serverParams, $_GET, $post, $_COOKIE, $_FILES);
+        $request = $this->fromArrays($method, $uri, $headers, \fopen('php://input', 'r') ?: null, $serverParams, $post, $_FILES);
 
         return $request;
     }
@@ -79,8 +79,8 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
      *          at it which data is going to be considered truthful
      * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
      */
-    public function fromArrays(string $method, $uri, array $headers = [], $body = null, array $server = [],  array $get = [],
-        array|null $post = null, array $cookie = [], array $files = []): ServerRequest
+    public function fromArrays(string $method, $uri, array $headers = [], $body = null, array $server = [],
+        array|null $post = null, array $files = []): ServerRequest
     {
         $requestAttributes = new Attributes();
 
@@ -113,9 +113,8 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
 
         // waf-core change: avoid doing double-work with the Query Params, as they are first built by a call to `parse_str`
         // in the ServerRequest constructor, then immediately overwritten with the `->withQueryParams($get)` call
-/// @todo... comment out the call to `withCookieParams` after implementing parseCookies
         $serverRequest = $serverRequest
-            ->withCookieParams($cookie)
+            //->withCookieParams($cookie)
             //->withQueryParams($get)
             ->withParsedBody($post)
             ->withUploadedFiles($this->normalizeFiles($files));

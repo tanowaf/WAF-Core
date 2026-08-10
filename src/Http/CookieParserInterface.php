@@ -8,5 +8,5 @@ interface CookieParserInterface
     /**
      * @return string[]
      */
-    public function parseCookies(string $qs): array;
+    public function parseCookies(string $cookieString): array;
 }

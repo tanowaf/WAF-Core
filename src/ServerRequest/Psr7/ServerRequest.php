@@ -116,15 +116,29 @@ class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInter
         return $new;
     }
 
+    /**
+     * NB: this does _not_ produce the same values as found in $_COOKIE - see details in CookieParser::parseCookies.
+     * Notably, the values of the returned array can be arrays!
+     */
     public function getCookieParams(): array
     {
         if ($this->cookieParams === null) {
             if (is_array($this->cookieHeader) && $this->cookieHeader) {
-/// @todo... we allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1, so
-///         we might want to handle that differently in that case. Check how php handles that by default
-///         See also the discussion at https://github.com/httpwg/http-extensions/issues/2541 and https://github.com/cloudflare/pingora/issues/892
-///         (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
-                $this->cookieParams = $this->cookieParser->parseCookies(implode('; ', $this->getHeader('cookie')));
+                // we allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1,
+                // so we handle that differently in that case.
+                /// @todo Check how php handles that by default
+                /// @todo see also the discussion at https://github.com/httpwg/http-extensions/issues/2541 and https://github.com/cloudflare/pingora/issues/892
+                ///       (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
+                if (count($this->cookieHeader) > 1) {
+                    if ((float)$this->protocol >= 2) {
+                        $this->cookieParams = $this->cookieParser->parseCookies(implode('; ', $this->cookieHeader), $errorsFound);
+                    } else {
+/// @todo... throw / log an error
+                        $this->cookieParams = [];
+                    }
+                } else {
+                    $this->cookieParams = $this->cookieParser->parseCookies($this->cookieHeader[0], $errorsFound);
+                }
             } else {
                 $this->cookieParams = [];
             }

@@ -168,39 +168,41 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
 
     public static function cookieDataProvider(): array
     {
-        $cases[] = ["Cookie: valid=",  ['valid' => '']];
-        $cases[] = ["Cookie: invalid",  ['invalid' => '']];
-        $cases[] = ["Cookie: one= o n e ",  ['one' => ' o n e']];
+        $cases[] = ["Cookie: valid=", ['valid' => '']];
+        $cases[] = ["Cookie: invalid", ['invalid' => '']];
+        $cases[] = ["Cookie: one= o n e ", ['one' => 'o n e']]; // $_COOKIE has: 'one' => ' o n e'
 
         // these are quite weird...
-        $cases[] = ["Cookie: one =one",  ['one_' => 'one']];
-        $cases[] = ["Cookie: one =one",  ['one_' => 'one']];
-        $cases[] = ["Cookie: o n e=one",  ['o_n_e' => 'one']];
-        $cases[] = ["Cookie: o\tne=one",  ["o\tne" => 'one']];
-/// @todo... report this as php bug? Also: implement our own cookie parsing!!!
-        //$cases[] = ["Cookie: o\tn\te=one",  ['o\tn\te' => 'one']];
+        $cases[] = ["Cookie: one =one", ['one' => 'one']]; // $_COOKIE has: 'one_' => 'one'
+        $cases[] = ["Cookie: one.=one", ['one.' => 'one']]; // $_COOKIE has: 'one_' => 'one'
+        $cases[] = ["Cookie: o n e=one", ['o n e' => 'one']]; // $_COOKIE has: 'o_n_e' => 'one'
+        $cases[] = ["Cookie: o\tne=one", ["o\tne" => 'one']];
+        /// @todo... report this as php bug?
+        $cases[] = ["Cookie: o\tn\te=one",  ["o\tn\te" => 'one']];  // $_COOKIE has it different: ...
+
 /// @todo... add test cases for non-ascii 'token' chars in cookie name
 
-        $cases[] = ['Cookie: withquotes="withquotes"',  ['withquotes' => '"withquotes"']];
-        $cases[] = ['Cookie: one=one; two=two',  ['one' => 'one', 'two' => 'two']];
-        $cases[] = ['Cookie: one="one"; two=two',  ['one' => '"one"', 'two' => 'two']];
-        $cases[] = ['Cookie: one="one"; two=; three=3',  ['one' => '"one"', 'two' => '', 'three' => '3']];
-        $cases[] = ["Cookie: one=one; ;\t;; three=3",  ['one' => 'one', 'three' => '3']];
+        $cases[] = ['Cookie: withquotes="withquotes"', ['withquotes' => 'withquotes']]; // $_COOKIE has: 'withquotes' => '"withquotes"'
+        $cases[] = ['Cookie: one=one; two=two', ['one' => 'one', 'two' => 'two']];
+        $cases[] = ['Cookie: one="one"; two=two', ['one' => 'one', 'two' => 'two']]; // $_COOKIE has: 'one' => '"one"', 'two' => 'two'
+        $cases[] = ['Cookie: one="one"; two=; three=3', ['one' => 'one', 'two' => '', 'three' => '3']]; // $_COOKIE has: 'one' => '"one"', 'two' => '', 'three' => '3'
+        $cases[] = ["Cookie: one=one; ;\t;; three=3", ['one' => 'one', 'three' => '3']];
         // subsequent spaces are not trimmed from cookie values
-        $cases[] = ['Cookie: one=one   ; two=two',  ['one' => 'one   ', 'two' => 'two']];
+        $cases[] = ['Cookie: one=one   ; two=two', ['one' => 'one', 'two' => 'two']]; // $_COOKIE has: 'one' => 'one   ', 'two' => 'two'
         // in theory, a single space char should be found after the ';'...
-        $cases[] = ["Cookie: one=one; \t two=two",  ['one' => 'one', 'two' => 'two']];
+        $cases[] = ["Cookie: one=one; \t two=two", ['one' => 'one', 'two' => 'two']];
 
-        // the use of double quoted spans does not interfere with splitting around
-        $cases[] = ['Cookie: one="one;three=three"; two=two',  ['one' => '"one', 'three' => 'three"', 'two' => 'two']];
-        $cases[] = ['Cookie: one="one ; three=three"; two=two',  ['one' => '"one ', 'three' => 'three"', 'two' => 'two']];
+        // the use of double-quoted spans does not interfere with splitting around
+        $cases[] = ['Cookie: one="one;three=three"; two=two', ['one' => '"one', 'three' => 'three"', 'two' => 'two']];
+        $cases[] = ['Cookie: one="one ; three=three"; two=two', ['one' => '"one', 'three' => 'three"', 'two' => 'two']];  // $_COOKIE has: 'one' => '"one ', 'three' => 'three"', 'two' => 'two'
 
+        $cases[] = ["Cookie: invalid=has space", ['invalid' => 'has space']];
+        $cases[] = ['Cookie: invalid=has"dquote', ['invalid' => 'has"dquote']];
+        $cases[] = ['Cookie: invalid=has,comma', ['invalid' => 'has,comma']];
+        $cases[] = ['Cookie: invalid=has\\backslash', ['invalid' => 'has\\backslash']];
+        $cases[] = ['Cookie: invalid=has;semicolon', ['invalid' => 'has', 'semicolon' => '']];
 
-        $cases[] = ["Cookie: invalid=has space",  ['invalid' => 'has space']];
-        $cases[] = ['Cookie: invalid=has"dquote',  ['invalid' => 'has"dquote']];
-        $cases[] = ['Cookie: invalid=has,comma',  ['invalid' => 'has,comma']];
-        $cases[] = ['Cookie: invalid=has\\backslash',  ['invalid' => 'has\\backslash']];
-        $cases[] = ['Cookie: invalid=has;semicolon',  ['invalid' => 'has', 'semicolon' => '']];
+        $cases[] = ['Cookie: one=one; one=two', ['one' => ['one', 'two']]]; // $_COOKIE has: 'one' => 'one'
 
         // one more test case where different webservers behave differently :-(
         // Apache glues together 2 Cookie lines using ', ' (and then allow that as cookie value), Nginx and FrankenPHP do not
