@@ -59,3 +59,5 @@ else
 
     cp "$SCRIPT_DIR/../config/init.d/frankenphp" /etc/init.d/frankenphp && chmod 755 /etc/init.d/frankenphp
 fi
+
+echo "Done Installing and configuring FrankenPHP"

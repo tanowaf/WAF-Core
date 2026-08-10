@@ -194,6 +194,16 @@ if [ "$START_WEBSERVER" = frankenphp ] || [ "$START_WEBSERVER" = all ]; then
         fi
     fi
 fi
+if [ "$START_WEBSERVER" = roadrunner ] || [ "$START_WEBSERVER" = all ]; then
+    if [ -d /etc/roadrunner ]; then
+        service roadrunner start
+    else
+        if [ "$START_WEBSERVER" = roadrunner ]; then
+            echo "Can not start roadrunner: it was not installed in this container" >&2
+            exit 1
+        fi
+    fi
+fi
 
 echo "[$(date)] Bootstrap finished"
 

@@ -2,6 +2,12 @@
 
 # Has to be run as root
 
+set -e
+
+echo "Installing RoadRunner..."
+
+SCRIPT_DIR="$(dirname -- "$(readlink -f "$0")")"
+
 ROADRUNNER_USER=roadrunner
 ROADRUNNER_GROUP=roadrunner
 
@@ -26,6 +32,18 @@ if [ ! -d /run/roadrunner ]; then
 fi
 chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" /run/roadrunner
 
+if [ ! -d /tmp/rrsetup ]; then  mkdir /tmp/rrsetup; fi
+cd /tmp/rrsetup
+
+composer require spiral/roadrunner-cli
+./vendor/bin/rr get-binary --no-interaction --location /usr/bin
+
+if [ -z "${GITHUB_ACTIONS}" ]; then
+    setcap 'cap_net_bind_service=+ep' /usr/bin/rr
+
+    cp "$SCRIPT_DIR/../config/init.d/roadrunner" /etc/init.d/roadrunner && chmod 755 /etc/init.d/roadrunner
+fi
+
 # configure virtual hosts
 
 cp -f "$SCRIPT_DIR/../config/rr.yaml" /etc/roadrunner/rr.yaml
@@ -42,11 +60,7 @@ else
     cp "$SCRIPT_DIR/../config/init.d/roadrunner" /etc/init.d/roadrunner && chmod 755 /etc/init.d/roadrunner
 fi
 
-if [ ! -d /tmp/rrsetup ]; then  mkdir /tmp/rrsetup; fi
-cd /tmp/rrsetup
+rm -rf /tmp/rrsetup
+rm -rf /tmp/roadrunner*
 
-composer require spiral/roadrunner-cli
-./vendor/bin/rr get-binary --no-interaction --location /usr/bin
-
-#cd
-#rm -rf /tmp/rrsetup
+echo "Done Installing and configuring RoadRunner"
