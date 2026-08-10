@@ -1,14 +1,15 @@
 <?php
+declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Http;
 
-class CookieParser
+class CookieParser implements CookieParserInterface
 {
     /**
      * @param string $qs
      * @return string[]
      */
-    public static function parseCookies(string $qs): array
+    public function parseCookies(string $qs): array
     {
 /// @todo...
         return [];

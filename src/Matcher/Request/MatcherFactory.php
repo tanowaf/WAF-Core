@@ -6,7 +6,6 @@ namespace TanoWAF\WAFCore\Matcher\Request;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\ConfigurationError;
-use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Matcher\Logic\AndMatcher;
 use TanoWAF\WAFCore\Matcher\MatcherFactoryInterface;
 use TanoWAF\WAFCore\Matcher\MatcherInterface;
@@ -14,9 +13,9 @@ use TanoWAF\WAFCore\Matcher\Message\MatcherFactory as BaseMatcherFactory;
 
 class MatcherFactory extends BaseMatcherFactory implements MatcherFactoryInterface
 {
-    public function __construct(HeaderParserFactory $headerParserFactory, LoggerInterface|null $logger = null)
+    public function __construct(LoggerInterface|null $logger = null)
     {
-        parent::__construct($headerParserFactory, $logger);
+        parent::__construct($logger);
 
         $this->supportedMatcherTypes = array_merge($this->supportedMatcherTypes, [
             'all_query_string_parameters_in',

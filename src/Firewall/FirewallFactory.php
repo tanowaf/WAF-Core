@@ -70,10 +70,7 @@ class FirewallFactory
             }
         }
 
-        /// @todo... allow custom http header specification via configuration
-        $headerParserFactory = new HeaderParserFactory([], $this->logger);
-
-        $ruleFactory = new RuleFactory($headerParserFactory, $this->logger);
+        $ruleFactory = new RuleFactory($this->logger);
         $rules = [];
 
         /// @todo give warnings for config smells not caught by fromConfiguration

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\ServerRequest\Psr7;
 
 use Psr\Http\Message\ServerRequestFactoryInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 
@@ -41,7 +40,7 @@ class Creator
         $this->serverRequestFactory = $serverRequestFactory;
     }
 
-    public function fromGlobals(): ServerRequestInterface
+    public function fromGlobals(): ServerRequest
     {
         $server = $_SERVER;
 

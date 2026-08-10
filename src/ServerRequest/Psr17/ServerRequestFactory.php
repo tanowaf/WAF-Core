@@ -8,6 +8,9 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use TanoWAF\WAFCore\Http\CookieParserInterface;
+use TanoWAF\WAFCore\Http\HeaderParserInterface;
+use TanoWAF\WAFCore\Http\QueryStringParserInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Attributes;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,13 +28,21 @@ use TanoWAF\WAFCore\Stdlib;
 class ServerRequestFactory implements ServerRequestFactoryInterface
 {
     protected UploadedFileFactoryInterface $uploadedFileFactory;
-
     protected StreamFactoryInterface $streamFactory;
 
-    public function __construct(UploadedFileFactoryInterface $uploadedFileFactory, StreamFactoryInterface $streamFactory)
+    protected CookieParserInterface $cookieParser;
+    protected HeaderParserInterface $headerParser;
+    protected QueryStringParserInterface $queryStringParser;
+
+    public function __construct(UploadedFileFactoryInterface $uploadedFileFactory, StreamFactoryInterface $streamFactory,
+        CookieParserInterface $cookieParser, HeaderParserInterface $headerParser, QueryStringParserInterface $queryStringParser)
     {
         $this->uploadedFileFactory = $uploadedFileFactory;
         $this->streamFactory = $streamFactory;
+
+        $this->cookieParser = $cookieParser;
+        $this->headerParser = $headerParser;
+        $this->queryStringParser = $queryStringParser;
     }
 
     public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequest
@@ -95,6 +106,10 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
 ///          About point 2: see https://stackoverflow.com/questions/1746507/authoritative-position-of-duplicate-http-get-query-keys
 
         $serverRequest = new ServerRequest($method, $uri, $headers, null, $protocol, $server);
+
+        $serverRequest->setCookieParser($this->cookieParser);
+        $serverRequest->setHeaderParser($this->headerParser);
+        $serverRequest->setQueryStringParser($this->queryStringParser);
 
         // waf-core change: avoid doing double-work with the Query Params, as they are first built by a call to `parse_str`
         // in the ServerRequest constructor, then immediately overwritten with the `->withQueryParams($get)` call

@@ -14,7 +14,7 @@ use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
 use TanoWAF\WAFCore\Stdlib;
 
 /// @todo do we need to implement plugins/subclasses to add support for headers used in well-known protocols such as eg. webdav?
-class HeaderParser
+class HeaderParser implements HeaderParserInterface
 {
     use LoggerAwareTrait;
     use PrivateLoggerTrait;

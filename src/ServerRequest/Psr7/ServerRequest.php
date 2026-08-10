@@ -7,36 +7,49 @@ use Nyholm\Psr7\MessageTrait;
 use Nyholm\Psr7\RequestTrait;
 use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\Uri;
+use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
-use TanoWAF\WAFCore\Http\CookieParser;
-use TanoWAF\WAFCore\Http\QueryStringParser;
+use TanoWAF\WAFCore\Http\CookieParserAwareTrait;
+use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
+use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
+use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
 
 /**
  * A reimplementation of Nyholm\Psr7\ServerRequest, which sadly has private members and is thus not easy to extend.
  * See inline comments for the changes.
  *
- * @todo... move here (or in a proxy class?) the ability to normalize (, cache) and return both headers and qs params
- *          (add a dedicated interface for that capability)
+ * @todo... make withCookieParams always throw (the ServerRequestInterface docs state that these methods
+ *          are forbidden from modifying the underlying headers and uri...)
+ * @todo... verify if we should reimplement withRequestTarget so that it always throws, as that would allow having a
+ *          request-target that is not in sync with $this->uri
  */
-class ServerRequest implements ServerRequestInterface
+class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInterface
 {
     use MessageTrait;
     use RequestTrait;
 
+    use CookieParserAwareTrait;
+    use HeaderParserAwareTrait;
+    use QueryStringParserAwareTrait;
+
     /** @var array */
     private array $attributes = [];
 
-    /** @var array */
-    private array $cookieParams = [];
+    /** @var string[]|null */
+    private array|null $cookieParams;
+    /** @var string[]|null */
+    private array|null $cookieHeader;
 
     /** @var array|object|null */
     private $parsedBody;
 
-    /** @var array */
-    private array $queryParams = [];
+    /** @var string[]|null */
+    private array|null $queryParams;
+    private string|null $queryString;
 
     /** @var array */
     private array $serverParams;
@@ -64,22 +77,17 @@ class ServerRequest implements ServerRequestInterface
         $this->uri = $uri;
         $this->setHeaders($headers);
         $this->protocol = $version;
-        // waf-core change: use a more flexible query string params parser
+
+        // waf-core change: use a more flexible query string params parser, but avoid parsing the QS into params until requested
         //\parse_str($uri->getQuery(), $this->queryParams);
-        $this->queryParams = QueryStringParser::parseQueryString($uri->getQuery());
+        $this->updateQueryStringFromUri();
 
         if (!$this->hasHeader('Host')) {
             $this->updateHostFromUri();
         }
 
         // waf-core change: work out the cookies on our own, so there is no need to inject them later from $_COOKIE
-        if ($this->hasHeader('cookie')) {
-/// @todo... we allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1, so
-///         we might want to handle that differently in that case. Check how php handles that by default
-///         See also the discussion at https://github.com/httpwg/http-extensions/issues/2541 and https://github.com/cloudflare/pingora/issues/892
-///         (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
-            $this->cookieParams = CookieParser::parseCookies(implode('; ', $this->getHeader('cookie')));
-        }
+        $this->updateCookieFromHeaders();
 
         // If we got no body, defer initialization of the stream until ServerRequest::getBody()
         if ('' !== $body && null !== $body) {
@@ -110,11 +118,25 @@ class ServerRequest implements ServerRequestInterface
 
     public function getCookieParams(): array
     {
+        if ($this->cookieParams === null) {
+            if (is_array($this->cookieHeader) && $this->cookieHeader) {
+/// @todo... we allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1, so
+///         we might want to handle that differently in that case. Check how php handles that by default
+///         See also the discussion at https://github.com/httpwg/http-extensions/issues/2541 and https://github.com/cloudflare/pingora/issues/892
+///         (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
+                $this->cookieParams = $this->cookieParser->parseCookies(implode('; ', $this->getHeader('cookie')));
+            } else {
+                $this->cookieParams = [];
+            }
+        }
+
         return $this->cookieParams;
     }
 
     /**
      * @return static
+     *
+     * @todo... always throw
      */
     public function withCookieParams(array $cookies): ServerRequestInterface
     {
@@ -126,18 +148,31 @@ class ServerRequest implements ServerRequestInterface
 
     public function getQueryParams(): array
     {
+        if ($this->queryParams === null) {
+            if ($this->queryString === null || $this->queryString === '') {
+                $this->queryParams = [];
+            } else {
+                $this->queryParams = $this->queryStringParser->parseQueryString($this->queryString);
+            }
+        }
         return $this->queryParams;
     }
 
     /**
+     * The docs for ServerRequestInterface clearly state that this method can not modify the headers, so we just throw,
+     * in order to maintain consistency of this instance's data
+     *
      * @return static
+     * @throws \Exception
+     * @todo find a better exception
      */
     public function withQueryParams(array $query): ServerRequestInterface
     {
-        $new = clone $this;
-        $new->queryParams = $query;
+        throw new \Exception('Method withQueryParams is not supported');
 
-        return $new;
+        //$new = clone $this;
+        //$new->queryParams = $query;
+        //return $new;
     }
 
     /**
@@ -187,14 +222,10 @@ class ServerRequest implements ServerRequestInterface
     /**
      * @return static
      */
-    public function withAttribute($attribute, $value): ServerRequestInterface
+    public function withAttribute(string $name, $value): ServerRequestInterface
     {
-        if (!\is_string($attribute)) {
-            throw new \InvalidArgumentException('Attribute name must be a string');
-        }
-
         $new = clone $this;
-        $new->attributes[$attribute] = $value;
+        $new->attributes[$name] = $value;
 
         return $new;
     }
@@ -202,19 +233,159 @@ class ServerRequest implements ServerRequestInterface
     /**
      * @return static
      */
-    public function withoutAttribute($attribute): ServerRequestInterface
+    public function withoutAttribute(string $name): ServerRequestInterface
     {
-        if (!\is_string($attribute)) {
-            throw new \InvalidArgumentException('Attribute name must be a string');
-        }
-
-        if (false === \array_key_exists($attribute, $this->attributes)) {
+        if (false === \array_key_exists($name, $this->attributes)) {
             return $this;
         }
 
         $new = clone $this;
-        unset($new->attributes[$attribute]);
+        unset($new->attributes[$name]);
 
         return $new;
+    }
+
+    /**
+     * @return static
+     */
+    public function withUri(UriInterface $uri, $preserveHost = false, $preserveQueryStingParams = false): RequestInterface
+    {
+        if ($uri === $this->uri) {
+            return $this;
+        }
+
+        $new = clone $this;
+        $new->uri = $uri;
+
+        if (!$preserveHost || !$this->hasHeader('Host')) {
+            $new->updateHostFromUri();
+        }
+
+        // waf-core change
+        if (!$preserveQueryStingParams) {
+            $new->updateQueryStringFromUri();
+        }
+
+        return $new;
+    }
+
+    /**
+     * @return static
+     */
+    public function withHeader(string $name, $value, $preserveCookieParams = false): MessageInterface
+    {
+        $value = $this->validateAndTrimHeader($name, $value);
+        $normalized = \strtr($name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+
+        $new = clone $this;
+        if (isset($new->headerNames[$normalized])) {
+            unset($new->headers[$new->headerNames[$normalized]]);
+        }
+        $new->headerNames[$normalized] = $name;
+        $new->headers[$name] = $value;
+
+        // waf-core change
+        if (!$preserveCookieParams && $normalized === 'cookie') {
+            $new->updateCookieFromHeaders();
+        }
+
+        return $new;
+    }
+
+    /**
+     * @return static
+     */
+    public function withAddedHeader(string $name, $value, $preserveCookieParams = false): MessageInterface
+    {
+        if ('' === $name) {
+            throw new \InvalidArgumentException('Header name must be an RFC 7230 compatible string');
+        }
+
+        $new = clone $this;
+        // waf-core change: add extra arg
+        $new->setHeaders([$name => $value], $preserveCookieParams);
+
+        return $new;
+    }
+
+    /**
+     * @return static
+     */
+    public function withoutHeader(string $name, $preserveCookieParams = false): MessageInterface
+    {
+        $normalized = \strtr($name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+        if (!isset($this->headerNames[$normalized])) {
+            /// @todo we do not call updateCookieFromHeaders to preserve immutability. But are there any chances that
+            //        somehow $this->cookieHeader and $this->cookieParams had managed to be set?
+            return $this;
+        }
+
+        $header = $this->headerNames[$normalized];
+        $new = clone $this;
+        unset($new->headers[$header], $new->headerNames[$normalized]);
+
+        // waf-core change
+        if (!$preserveCookieParams && $normalized === 'cookie') {
+            $new->updateCookieFromHeaders();
+        }
+
+        return $new;
+    }
+
+    private function setHeaders(array $headers, $preserveCookieParams = false): void
+    {
+        foreach ($headers as $header => $value) {
+            if (\is_int($header)) {
+                // If a header name was set to a numeric string, PHP will cast the key to an int.
+                // We must cast it back to a string in order to comply with validation.
+                $header = (string) $header;
+            }
+            $value = $this->validateAndTrimHeader($header, $value);
+            $normalized = \strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+            if (isset($this->headerNames[$normalized])) {
+                $header = $this->headerNames[$normalized];
+                $this->headers[$header] = \array_merge($this->headers[$header], $value);
+            } else {
+                $this->headerNames[$normalized] = $header;
+                $this->headers[$header] = $value;
+            }
+
+            // waf-core change
+            if (!$preserveCookieParams && $normalized === 'cookie') {
+                $this->updateCookieFromHeaders();
+            }
+        }
+    }
+
+    protected function updateQueryStringFromUri(): void
+    {
+        $this->queryString = $this->uri->getQuery();
+        $this->queryParams = null;
+    }
+
+    protected function updateCookieFromHeaders(): void
+    {
+        if ($this->hasHeader('cookie')) {
+            $this->cookieHeader = $this->getHeader('cookie');
+            $this->cookieParams = null;
+        } else {
+            $this->cookieHeader = null;
+            $this->cookieParams = [];
+        }
+    }
+
+    public function validateHeaderValue(string $headerName): bool
+    {
+/// @todo... add a caching layer
+        return $this->headerParser->validateHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function normalizedHeaderValue(string $headerName, array|null &$errorsFound = []): array
+    {
+/// @todo... add a caching layer
+        return $this->headerParser->normalizeHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
     }
 }

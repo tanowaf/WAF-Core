@@ -8,6 +8,9 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use TanoWAF\WAFCore\Http\CookieParserFactory;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
 use TanoWAF\WAFCore\Stdlib;
@@ -209,11 +212,17 @@ class TestServer
         switch ($library) {
             case 'yawaf':
                 $psr17Factory = new Psr17Factory();
+                $cookieParserFactory = new CookieParserFactory();
+                $headerParserFactory = new HeaderParserFactory();
+                $queryStringParserFactory = new QueryStringParserFactory();
                 $creator = new ServerRequestCreator(
                     $psr17Factory, // UriFactory
                     new ServerRequestFactory(
                         $psr17Factory, // UploadedFileFactory
-                        $psr17Factory  // StreamFactory,
+                        $psr17Factory,  // StreamFactory,
+                        $cookieParserFactory->fromConfiguration([]),
+                        $headerParserFactory->fromConfiguration([]),
+                        $queryStringParserFactory->fromConfiguration([])
                     )
                 );
                 return $creator->fromGlobals();

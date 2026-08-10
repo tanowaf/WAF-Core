@@ -11,7 +11,6 @@ use TanoWAF\WAFCore\Matcher\Logic\AndMatcher;
 use TanoWAF\WAFCore\Matcher\MatcherInterface;
 use TanoWAF\WAFCore\Matcher\OptionAwareMatcherFactory;
 use TanoWAF\WAFCore\Matcher\Response\StatusCodeMatcher;
-use TanoWAF\WAFCore\Http\HeaderParserFactory;
 
 /**
  * Used to share code for setting up those matchers that ar identical between request and response
@@ -33,11 +32,8 @@ abstract class MatcherFactory extends OptionAwareMatcherFactory
         'wildcard_http_header_value',
     ];
 
-    protected HeaderParserFactory $headerParserFactory;
-
-    public function __construct(HeaderParserFactory $headerParserFactory, LoggerInterface|null $logger = null)
+    public function __construct(LoggerInterface|null $logger = null)
     {
-        $this->headerParserFactory = $headerParserFactory;
         $this->logger = $logger;
     }
 
@@ -67,7 +63,7 @@ abstract class MatcherFactory extends OptionAwareMatcherFactory
                     if (!is_array($values) || !$values) {
                         throw new ConfigurationError("Invalid message matching configuration: '$type' should be followed with an object with 1 or more elements");
                     }
-                    $parser = $this->headerParserFactory->createParser();
+                    //$parser = $this->headerParserFactory->createParser();
                     $matchers = [];
                     foreach ($values as $hn => $hv) {
                         if (!is_string($hn) || !(is_string($hv) || is_array($hv))) {
@@ -76,7 +72,7 @@ abstract class MatcherFactory extends OptionAwareMatcherFactory
                         $this->validateHeaderName($hn);
                         $opts = $this->parseMatcherBooleanOptions($type, ['case_insensitive' => false, 'no_wildcards' => true]);
                         $matcher = new HeaderValueMatcher($hn, $hv, $opts['case_insensitive'], $opts['no_wildcards'], str_starts_with($matcherType, 'wildcard_'));
-                        $matcher->setHeaderParser($parser);
+                        //$matcher->setHeaderParser($parser);
                         $matchers[] = $matcher;
                     }
                     if (count($matchers) > 1) {
@@ -108,7 +104,7 @@ abstract class MatcherFactory extends OptionAwareMatcherFactory
                 case 'wildcard_http_header_rfc_compliant':
 /// @todo... make sure that HeaderRFCComplianceMatcher validates $values is a string|string[] with at least one element
                     $matcher = new HeaderRFCComplianceMatcher($values, str_starts_with($matcherType, 'wildcard_'));
-                    $matcher->setHeaderParser($this->headerParserFactory->createParser());
+                    //$matcher->setHeaderParser($this->headerParserFactory->createParser());
                     break;
                 case 'status_code':
                     $opts = $this->parseMatcherBooleanOptions($type, ['no_wildcards' => true]);

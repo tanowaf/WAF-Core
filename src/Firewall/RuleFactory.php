@@ -7,7 +7,6 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\ConfigurationError;
-use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
 use TanoWAF\WAFCore\Matcher\ChainFactory;
 use TanoWAF\WAFCore\Matcher\Logic\AndMatcher;
@@ -25,11 +24,9 @@ class RuleFactory
 
     protected MatcherFactoryInterface|null $requestMatcherFactory = null;
     protected MatcherFactoryInterface|null $responseMatcherFactory = null;
-    protected HeaderParserFactory $headerParserFactory;
 
-    public function __construct(HeaderParserFactory $headerParserFactory, LoggerInterface|null $logger = null)
+    public function __construct(LoggerInterface|null $logger = null)
     {
-        $this->headerParserFactory = $headerParserFactory;
         $this->logger = $logger;
     }
 
@@ -178,7 +175,7 @@ class RuleFactory
     {
         if ($this->requestMatcherFactory === null) {
             $logicMatcherFactory = new LogicMatcherFactory($this->logger);
-            $this->requestMatcherFactory = new ChainFactory([new RequestMatcherFactory($this->headerParserFactory, $this->logger), $logicMatcherFactory]);
+            $this->requestMatcherFactory = new ChainFactory([new RequestMatcherFactory($this->logger), $logicMatcherFactory]);
             // inception! ;-)
             $logicMatcherFactory->setMatcherFactory($this->requestMatcherFactory);
         }
@@ -194,7 +191,7 @@ class RuleFactory
     {
         if ($this->responseMatcherFactory === null) {
             $logicMatcherFactory = new LogicMatcherFactory($this->logger);
-            $this->responseMatcherFactory = new ChainFactory([new ResponseMatcherFactory($this->headerParserFactory, $this->logger), $logicMatcherFactory]);
+            $this->responseMatcherFactory = new ChainFactory([new ResponseMatcherFactory($this->logger), $logicMatcherFactory]);
             // inception! ;-)
             $logicMatcherFactory->setMatcherFactory($this->responseMatcherFactory);
         }

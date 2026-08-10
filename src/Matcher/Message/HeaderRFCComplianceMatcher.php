@@ -5,8 +5,7 @@ namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use TanoWAF\WAFCore\Http\HeaderParser;
-use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
+use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 /// @todo... also validate if header is in correct msg type (req/resp)
@@ -15,7 +14,6 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
     /// @todo... this matcher does not need the full RegExpListMatcherTrait, just $this->regexpDelimiter and $this->wildcardStringToRegexp
     ///          Otoh there is some constructor arg validation logic to share between HeaderNameMatcher, HeaderLengthMatcher and HeaderRFCComplianceMatcher
     use RegExpListMatcherTrait;
-    use HeaderParserAwareTrait;
 
     /** @var string[] */
     protected array $headerNames = [];
@@ -39,16 +37,19 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
                 $this->headerNames[] = strtolower($headerName);
             }
         }
-        $this->headerParser = new HeaderParser();
     }
 
     public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
+        if (!$message instanceof HeaderParsingCapableInterface) {
+            throw new \Exception("HeaderValueMatcher needs a headerParsingCapableInterface message to operate on, gotten a " . get_class($message));
+        }
+
         if ($this->headerNameIsRegex) {
             foreach ($message->getHeaders() as $headerName => $headerValues) {
                 foreach ($this->headerNames as $headerNameRegex) {
                     if (preg_match($headerNameRegex, $headerName)) {
-                        if (!$this->headerParser->validateHeaderValue($headerName, $headerValues)) {
+                        if (!$message->validateHeaderValue($headerName)) {
                             return false;
                         }
                     }
@@ -60,7 +61,7 @@ class HeaderRFCComplianceMatcher extends BaseMatcher
                 if (!$message->hasHeader($headerName)) {
                     continue;
                 }
-                if (!$this->headerParser->validateHeaderValue($headerName, $message->getHeader($headerName))) {
+                if (!$message->validateHeaderValue($headerName)) {
                     return false;
                 }
             }

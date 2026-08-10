@@ -33,13 +33,10 @@ class QueryStringParamValueMatcher extends BaseMatcher
 
     public function matchesRequest(ServerRequestInterface $request): bool
     {
-/// @todo... start from getQuery, and tokenize the QS into pieces via a QueryStringParser which can be tweaked
-///          to work according to PHP rules or different rules ()
-        $pieces = $request->getQueryParams();
-        //$qs = $request->getUri()->getQuery();
-        //parse_str($qs, $pieces);
+        $queryParams = $request->getQueryParams();
+
         if ($this->parameterNameIsRegex) {
-            foreach ($pieces as $name => $value) {
+            foreach ($queryParams as $name => $value) {
                 if (preg_match($this->parameterName, (string)$name)) {
                     if (is_array($value)) {
                         foreach ($value as $val) {
@@ -55,10 +52,10 @@ class QueryStringParamValueMatcher extends BaseMatcher
             }
             return false;
         } else {
-            if (!array_key_exists($this->parameterName, $pieces)) {
+            if (!array_key_exists($this->parameterName, $queryParams)) {
                 return false;
             }
-            $value = $pieces[$this->parameterName];
+            $value = $queryParams[$this->parameterName];
             if (is_array($value)) {
                 foreach ($value as $val) {
                     if ($this->matchesRegexp($val)) {

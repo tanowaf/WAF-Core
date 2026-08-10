@@ -17,6 +17,9 @@ use TanoWAF\WAFCore\Filter\Bidirectional\Tracer;
 use TanoWAF\WAFCore\Filter\Bidirectional\ForceAcceptEncoding;
 use TanoWAF\WAFCore\Filter\Bidirectional\RemoveAcceptEncoding;
 use TanoWAF\WAFCore\Firewall\FirewallFactory;
+use TanoWAF\WAFCore\Http\CookieParserFactory;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Logger\FileLogger;
 use TanoWAF\WAFCore\Middleware\Dispatcher;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
@@ -197,11 +200,21 @@ class ProxyPage
             $proxy = new TestProxy($middlewareChain, $upstreamConnector, $logger);
             $psr17Factory = new Psr17Factory();
 
+            $cookieParserFactory = new CookieParserFactory();
+            $headerParserFactory = new HeaderParserFactory();
+            $queryStringParserFactory = new QueryStringParserFactory();
+
+            $headerParser = $headerParserFactory->fromConfiguration([]);
+            $firewall->setHeaderParser($headerParser);
+
             $creator = new ServerRequestCreator(
                 $psr17Factory, // UriFactory
                 new ServerRequestFactory(
                     $psr17Factory, // UploadedFileFactory
-                    $psr17Factory  // StreamFactory,
+                    $psr17Factory,  // StreamFactory,
+                    $cookieParserFactory->fromConfiguration([]),
+                    $headerParser,
+                    $queryStringParserFactory->fromConfiguration([])
                 )
             );
 

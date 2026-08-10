@@ -3,14 +3,16 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Http;
 
-class QueryStringParser
+/**
+ * @todo... allow config to specify the style/algorithm of QS parsing to use
+ */
+class QueryStringParser implements QueryStringParserInterface
 {
     /**
      * @return string[]
      */
-    public static function parseQueryString(string $qs): array
+    public function parseQueryString(string $qs): array
     {
-/// @todo... implement a different algorithm (also, make it switchable and this method non-static?)
         \parse_str($qs, $qp);
         return $qp;
     }

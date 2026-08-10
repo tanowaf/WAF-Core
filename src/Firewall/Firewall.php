@@ -11,7 +11,10 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
+use TanoWAF\WAFCore\Http\HeaderParsingCapableResponseInterface;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Response\Psr7\Response;
 use TanoWAF\WAFCore\Stdlib;
 
 /**
@@ -21,6 +24,7 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     use PrivateLoggerTrait;
+    use HeaderParserAwareTrait;
 
     /** @var Rule[] */
     protected array $rules;
@@ -53,7 +57,9 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
         if ($request instanceof ResponseInterface) {
             return $request;
         }
-        $response = $handler->handle($request);
+
+        $response = $this->forwardRequest($request, $handler);
+
 /// @todo should we send the original request to filterResponse() ??? (possibly cloned, have to check immutability...)
         return $this->filterResponse($response, $request);
     }
@@ -92,6 +98,14 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 
         $this->debug("No firewall rule matched request: " . $this->request2Log($request));
         throw new RequestDenied();
+    }
+
+    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): HeaderParsingCapableResponseInterface
+    {
+        $response = Response::fromResponse($handler->handle($request));
+        $response->setHeaderParser($this->headerParser);
+
+        return $response;
     }
 
     /**

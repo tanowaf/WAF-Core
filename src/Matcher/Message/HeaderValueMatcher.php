@@ -5,14 +5,12 @@ namespace TanoWAF\WAFCore\Matcher\Message;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use TanoWAF\WAFCore\Http\HeaderParser;
-use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
+use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 class HeaderValueMatcher extends BaseMatcher
 {
     use RegExpListMatcherTrait;
-    use HeaderParserAwareTrait;
 
     protected string $headerName;
     protected bool $headerNameIsRegex = false;
@@ -35,17 +33,19 @@ class HeaderValueMatcher extends BaseMatcher
         }
 
         $this->setMatchingValues($filter, $caseInsensitive);
-
-        $this->headerParser = new HeaderParser();
     }
 
     public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
+        if (!$message instanceof HeaderParsingCapableInterface) {
+            throw new \Exception("HeaderValueMatcher needs a headerParsingCapableInterface message to operate on, gotten a " . get_class($message));
+        }
+
         if ($this->headerNameIsRegex) {
             foreach ($message->getHeaders() as $headerName => $headerValues) {
                 if (preg_match($this->headerName, $headerName)) {
-/// @todo... log a debug message if parsing finds errors and/or allow a 'strict' matching mode
-                    $parsedValues = $this->headerParser->normalizeHeaderValue(strtolower($headerName), $headerValues, $errors);
+/// @todo... log a debug message if parsing finds errors (here or...?)
+                    $parsedValues = $message->normalizedHeaderValue(strtolower($headerName), $errors);
                     foreach ($parsedValues as $headerValue) {
                         if ($this->matchesRegexp($headerValue)) {
                             return true;
@@ -59,8 +59,8 @@ class HeaderValueMatcher extends BaseMatcher
                 return false;
             }
             $headerValues = $message->getHeader($this->headerName);
-/// @todo... log a debug message if parsing finds errors and/or allow a 'strict' matching mode
-            $parsedValues = $this->headerParser->normalizeHeaderValue($this->headerName, $headerValues, $errors);
+/// @todo... log a debug message if parsing finds errors (here or...?)
+            $parsedValues = $message->normalizedHeaderValue($this->headerName, $errors);
             foreach ($parsedValues as $headerValue) {
                 if ($this->matchesRegexp($headerValue)) {
                     return true;

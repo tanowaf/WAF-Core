@@ -5,42 +5,28 @@ namespace TanoWAF\WAFCore\Http;
 
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use TanoWAF\WAFCore\Exception\ConfigurationError;
 
 class HeaderParserFactory
 {
     use LoggerAwareTrait;
 
-    protected HeaderParser|null $headerParser = null;
-    /** @var HeaderSpec[] */
-    protected array $customHeadersSpec;
-
-    public function __construct(array $configuration, LoggerInterface|null $logger = null)
+    public function __construct(LoggerInterface|null $logger = null)
     {
-        $this->customHeadersSpec = $configuration;
         $this->logger = $logger;
     }
 
     /**
-     * NB: the returned HeaderParser is a singleton: each HeaderParserFactory instance will only create one
+     * @throws ConfigurationError
      */
-    public function createParser(): HeaderParser
+    public function fromConfiguration(array $configuration): HeaderParser
     {
-        if ($this->headerParser === null) {
-            $this->headerParser = new HeaderParser($this->customHeadersSpec, $this->logger);
-        }
-
-        return $this->headerParser;
-    }
-
-    /**
-     * @return HeaderSpec[]
-     */
-    protected function fromConfiguration(array $configuration): array
-    {
-/// @todo... allow adding custom headers spec via a json configuration
+/// @todo... allow adding custom headers spec via configuration
         if ($configuration) {
-            throw new \Exception("Configuration for custom headers is not yet supported");
+            throw new ConfigurationError("Configuration for custom headers is not yet supported");
         }
-        return [];
+        $customHeadersSpec = [];
+
+        return new HeaderParser($customHeadersSpec, $this->logger);
     }
 }

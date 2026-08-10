@@ -4,8 +4,6 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\Matcher\Request;
 
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use TanoWAF\WAFCore\Matcher\Message\BaseMatcher;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 /**
@@ -45,10 +43,8 @@ class QueryStringParamNameMatcher extends BaseMatcher
         }
     }
 
-    public function matchesMessage(RequestInterface|ResponseInterface $message): bool
+    public function matchesRequest(RequestInterface $message): bool
     {
-/// @todo... start from getQuery, and tokenize the QS into pieces via a QueryStringParser which can be tweaked
-///          to work according to PHP rules (eg. replace '.' and ' ' in param names with _) or different rules (eg. to build arrays)
         $queryParams = $message->getQueryParams();
 
         /// @todo optimize: would it be faster to do `$queryParams = array_keys($queryParams)` then use php array functions?
