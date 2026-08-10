@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace TanoWAF\WAFCore\Filter\Bidirectional;
+namespace TanoWAF\WAFCore\Http;
 
 /**
  * Implement compression the same way as the unix `compress` utility.

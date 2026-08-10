@@ -12,6 +12,9 @@ class RequestHeaderRemover extends MiddlewareFilter implements ClientBidirection
     protected array $overrideHeaders = [];
     protected array $overriddenHeaders = [];
 
+    /**
+     * @param string[] $headers
+     */
     public function __construct(array $headers)
     {
         $this->overrideHeaders = $headers;

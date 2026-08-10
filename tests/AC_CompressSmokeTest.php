@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use TanoWAF\WAFCore\Filter\Bidirectional\UnixCompressor;
+use TanoWAF\WAFCore\Http\UnixCompressor;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
