@@ -8,5 +8,5 @@ interface QueryStringParserInterface
     /**
      * @return string[]
      */
-    public function parseQueryString(string $qs): array;
+    public function parseQueryString(string $queryString, array|null &$errorsFound = []): array;
 }

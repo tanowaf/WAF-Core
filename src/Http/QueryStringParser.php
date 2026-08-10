@@ -9,11 +9,16 @@ namespace TanoWAF\WAFCore\Http;
 class QueryStringParser implements QueryStringParserInterface
 {
     /**
+     * Parses the value of the Query String, turning it in a key => value list.
+     * NB: there is no RFC describing the process to use for this. Different programming languages / sdks exhibit
+     * surprisingly different behaviour, esp. regarding arrays and duplicates.
+     *
      * @return string[]
      */
-    public function parseQueryString(string $qs): array
+    public function parseQueryString(string $queryString, array|null &$errorsFound = []): array
     {
-        \parse_str($qs, $qp);
+        $errorsFound = [];
+        \parse_str($queryString, $qp);
         return $qp;
     }
 }
