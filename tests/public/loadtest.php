@@ -14,10 +14,10 @@ use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
-use TanoWAF\WAFCore\Tests\LoadTestProxy;
+use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
-$emitter = new SapiEmitter();
+$responseEmitter = new SapiEmitter();
 try {
 
     $firewallFactory = new FirewallFactory();
@@ -29,13 +29,13 @@ try {
     // the upstream uri is not used in this case, since the MockUpstreamClient will happily ignore it
     $upstreamConnector = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
 
-    $proxy = new LoadTestProxy($firewall, $upstreamConnector);
+    $waf = new LoadTestWAF($firewall, $upstreamConnector);
 
     $psr17Factory = new Psr17Factory();
     $cookieParserFactory = new CookieParserFactory();
     $headerParserFactory = new HeaderParserFactory();
     $queryStringParserFactory = new QueryStringParserFactory();
-    $creator = new ServerRequestCreator(
+    $requestCreator = new ServerRequestCreator(
         $psr17Factory, // UriFactory
         new ServerRequestFactory(
             $psr17Factory, // UploadedFileFactory
@@ -50,10 +50,10 @@ try {
     /// @todo... add support for the RoadRunner loop too
     if (array_key_exists('FRANKENPHP_WORKER', $_SERVER) && (int)$_SERVER['FRANKENPHP_WORKER'] !== 0) {
 
-        $handler = function() use($creator, $proxy, $emitter) {
-            $serverRequest = $creator->fromGlobals();
-            $response = $proxy->handle($serverRequest);
-            $emitter->emit($response);
+        $handler = function() use($requestCreator, $waf, $responseEmitter) {
+            $serverRequest = $requestCreator->fromGlobals();
+            $response = $waf->handle($serverRequest);
+            $responseEmitter->emit($response);
         };
 
         $maxRequests = (isset($_SERVER['MAX_REQUESTS_PER_WORKER']) && $_SERVER['MAX_REQUESTS_PER_WORKER'] > 0) ? (int)$_SERVER['MAX_REQUESTS_PER_WORKER'] : PHP_INT_MAX;
@@ -73,13 +73,13 @@ try {
 
     } else {
 
-        $serverRequest = $creator->fromGlobals();
-        $response = $proxy->handle($serverRequest);
-        $emitter->emit($response);
+        $serverRequest = $requestCreator->fromGlobals();
+        $response = $waf->handle($serverRequest);
+        $responseEmitter->emit($response);
 
     }
 
 } catch (\Throwable $e) {
-    $emitter->emit(LoadTestProxy::getErrorResponse());
+    $responseEmitter->emit(LoadTestWAF::getErrorResponse());
     exit();
 }

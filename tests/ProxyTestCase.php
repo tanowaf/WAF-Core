@@ -164,8 +164,8 @@ abstract class ProxyTestCase extends ServerTestCase
     protected function assertResponseIsProxyDenial(ResponseInterface $response, string $message = ''): void
     {
         // Note that in case of php errors, the status code will be 200 when display_errors in php.ini is on, and 500 when it is off
-        $this->assertResponseHasStatusCode(TestProxy::ACCESS_DENIED_STATUS_CODE, $response, $message);
-        $this->assertResponseHasGivenArrayBody(TestProxy::ACCESS_DENIED_RESPONSE, $response, $message);
+        $this->assertResponseHasStatusCode(TestWAF::ACCESS_DENIED_STATUS_CODE, $response, $message);
+        $this->assertResponseHasGivenArrayBody(TestWAF::ACCESS_DENIED_RESPONSE, $response, $message);
         $this->assertResponseHeaderContains('Via', 'WAFCore', $response, $message);
     }
 

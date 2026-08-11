@@ -33,7 +33,7 @@ server {
     index index.php;
 
     # try to avoid mixing up access to the proxy and the server
-    location /proxy.php {
+    location /waf.php {
         return 418 "I'm an upstream server";
     }
 
@@ -80,12 +80,12 @@ server {
 
     root $tests_root_dir;
 
-    index proxy.php;
+    index waf.php;
 
     location / {
             # First attempt to serve request as file, then
             # as directory, then fall back to displaying a 404.
-            try_files proxy.php =404;
+            try_files waf.php =404;
     }
 
     # pass PHP scripts to FastCGI server
@@ -99,7 +99,7 @@ server {
            # With php-cgi (or other tcp sockets):
            #fastcgi_pass 127.0.0.1:9000;
 
-           fastcgi_param SCRIPT_FILENAME $tests_root_dir/proxy.php;
+           fastcgi_param SCRIPT_FILENAME $tests_root_dir/waf.php;
     }
 
     # deny access to .htaccess files, if Apache's document root
@@ -135,7 +135,7 @@ server {
     index index.php;
 
     # try to avoid mixing up access to the proxy and the server
-    location ^~ /proxy.php {
+    location ^~ /waf.php {
         return 418 "I'm an upstream server";
     }
 
@@ -185,7 +185,7 @@ server {
 
     root $tests_root_dir;
 
-    index proxy.php;
+    index waf.php;
 
     location / {
             # First attempt to serve request as file, then
@@ -204,7 +204,7 @@ server {
            # With php-cgi (or other tcp sockets):
            #fastcgi_pass 127.0.0.1:9000;
 
-           fastcgi_param SCRIPT_FILENAME $tests_root_dir/proxy.php;
+           fastcgi_param SCRIPT_FILENAME $tests_root_dir/waf.php;
     }
 
     # deny access to .htaccess files, if Apache's document root
@@ -234,7 +234,7 @@ server {
     index index.php;
 
     # try to avoid mixing up access to the proxy and the server
-    location ^~ /proxy.php {
+    location ^~ /waf.php {
         return 418 "I'm an upstream server";
     }
 
@@ -278,12 +278,12 @@ server {
 
     root $tests_root_dir;
 
-    index proxy.php;
+    index waf.php;
 
     location / {
             # First attempt to serve request as file, then
             # as directory, then fall back to displaying a 404.
-            try_files proxy.php =404;
+            try_files waf.php =404;
     }
 
     # pass PHP scripts to FastCGI server
@@ -297,7 +297,7 @@ server {
            # With php-cgi (or other tcp sockets):
            #fastcgi_pass 127.0.0.1:9000;
 
-           fastcgi_param SCRIPT_FILENAME $tests_root_dir/proxy.php;
+           fastcgi_param SCRIPT_FILENAME $tests_root_dir/waf.php;
     }
 
     # deny access to .htaccess files, if Apache's document root

@@ -27,19 +27,20 @@ use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
-use TanoWAF\WAFCore\Tests\TestProxy;
+use TanoWAF\WAFCore\Tests\TestWAF;
 use TanoWAF\WAFCore\UpstreamClient\MiddlewareAware as MiddlewareAwareClient;
 
-$proxy = new ProxyPage();
-$logger = $proxy->preflight();
-$proxy->proxyRequest($logger);
-$proxy->postflight();
+$waf = new WAFPage();
+$waf->preflight();
+$waf->proxyRequest();
+$waf->postflight();
 
-class ProxyPage
+class WAFPage
 {
+    protected LoggerInterface|null $logger;
     protected string|null $phpunitSeleniumTestId;
 
-    public function preflight(): LoggerInterface|null
+    public function preflight(): void
     {
         // In case this file is made available on an open-access server, avoid it being useable by anyone who can not
         // also write a specific file to disk.
@@ -103,7 +104,8 @@ class ProxyPage
                 $logger->debug("Proxy listening on a unix socket");
             }
         }
-        return $logger;
+
+        $this->logger = $logger;
     }
 
     public function postflight(): void
@@ -114,9 +116,9 @@ class ProxyPage
         }
     }
 
-    public function proxyRequest($logger): void
+    public function proxyRequest(): void
     {
-        $emitter = new SapiEmitter();
+        $responseEmitter = new SapiEmitter();
 
         $tracer = null;
         try {
@@ -129,10 +131,10 @@ class ProxyPage
             ini_set('zlib.output_compression', 0);
 
             if (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']) !== '') {
-                $logger->debug("Using '{$_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']}' client type to connect to upstream");
-                $httpClient = TestProxy::createUpstreamClient($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']);
+                $this->logger->debug("Using '{$_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']}' client type to connect to upstream");
+                $httpClient = TestWAF::createUpstreamClient($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']);
             } else {
-                $httpClient = TestProxy::createUpstreamClient();
+                $httpClient = TestWAF::createUpstreamClient();
             }
 
             $middlewareChain = new Dispatcher([]);
@@ -148,10 +150,10 @@ class ProxyPage
                 // So instead of adding it to the middleware chain, we run it here.
                 $tracer = new Tracer($traceFileName);
                 //$middlewareChain->appendMiddleware($tracer);
-                $httpClient = new MiddlewareAwareClient(new Tracer($traceFileName, '>> ', '<< '), $httpClient, $logger);
+                $httpClient = new MiddlewareAwareClient(new Tracer($traceFileName, '>> ', '<< '), $httpClient, $this->logger);
             }
 
-            $firewallFactory = new FirewallFactory($logger);
+            $firewallFactory = new FirewallFactory($this->logger);
             $config = array_key_exists('HTTP_X_WAFCORE_CONFIG', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG']) : '';
             $configFile = array_key_exists('HTTP_X_WAFCORE_CONFIG_FILE', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG_FILE']) : '';
             if ($configFile !== '') {
@@ -164,7 +166,7 @@ class ProxyPage
                 $firewall = $firewallFactory->fromConfigFile(__DIR__ . '/../configs/' . $configFile);
             } else {
                 if ($config !== '') {
-                    $logger->info('Loading firewall configuration from string received as header X-WAFCORE-CONFIG');
+                    $this->logger->info('Loading firewall configuration from string received as header X-WAFCORE-CONFIG');
                 }
                 $firewall = $firewallFactory->fromConfigString($config);
             }
@@ -174,10 +176,10 @@ class ProxyPage
             // Body matchers and to ease troubleshooting by visual inspection of payloads
             if (array_key_exists('HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']) !== '') {
                 if ($_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING'] === 'none') {
-                    $logger->debug("Removing existing accept-encoding headers to connect to upstream");
+                    $this->logger->debug("Removing existing accept-encoding headers to connect to upstream");
                     $middlewareChain->appendMiddleware(new RemoveAcceptEncoding());
                 } else {
-                    $logger->debug("Forcing '{$_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']}' accept-encoding header to connect to upstream");
+                    $this->logger->debug("Forcing '{$_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']}' accept-encoding header to connect to upstream");
                     $middlewareChain->appendMiddleware(new ForceAcceptEncoding($_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']));
                 }
             }
@@ -186,19 +188,19 @@ class ProxyPage
             /// @todo allow the caller to request for a non-existent, controlled unix socket. Also, no need to allow
             ///       _any_ port, just a known non-existent one...
             if (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_SCHEME', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_SCHEME']) !== '') {
-                $upstreamUri = TestProxy::getUpstreamUri(
+                $upstreamUri = TestWAF::getUpstreamUri(
                     $_SERVER['HTTP_X_WAFCORE_UPSTREAM_SCHEME'],
                     (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_PORT_OVERRIDE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_PORT_OVERRIDE']) !== '') ?
                         (int)$_SERVER['HTTP_X_WAFCORE_UPSTREAM_PORT_OVERRIDE'] : null
                 );
             } else {
-                $upstreamUri = TestProxy::getUpstreamUri();
+                $upstreamUri = TestWAF::getUpstreamUri();
             }
 
             /// @todo... allow more options to be set, either to the httpClient or in the middlewareChain
 
-            $upstreamConnector = new FixedUpstreamProxy($upstreamUri, $httpClient, null, $logger);
-            $proxy = new TestProxy($middlewareChain, $upstreamConnector, $logger);
+            $upstreamConnector = new FixedUpstreamProxy($upstreamUri, $httpClient, null, $this->logger);
+            $waf = new TestWAF($middlewareChain, $upstreamConnector, $this->logger);
             $psr17Factory = new Psr17Factory();
 
             $cookieParserFactory = new CookieParserFactory();
@@ -208,40 +210,40 @@ class ProxyPage
             $headerParser = $headerParserFactory->fromConfiguration([]);
             $firewall->setHeaderParser($headerParser);
 
-            $creator = new ServerRequestCreator(
+            $requestCreator = new ServerRequestCreator(
                 $psr17Factory, // UriFactory
                 new ServerRequestFactory(
                     $psr17Factory, // UploadedFileFactory
-                    $psr17Factory, // StreamFactory,
+                    $psr17Factory, // StreamFactory
                     $cookieParserFactory->fromConfiguration([]),
                     $headerParser,
                     $queryStringParserFactory->fromConfiguration([])
                 )
             );
 
-            $serverRequest = $this->fromGlobals($creator);
+            $serverRequest = $this->fromGlobals($requestCreator);
             $tracer?->filterServerRequest($serverRequest);
-            $response = $proxy->handle($serverRequest);
+            $response = $waf->handle($serverRequest);
             $tracer?->filterResponse($response, $serverRequest);
-            $emitter->emit($response);
+            $responseEmitter->emit($response);
 
         } catch (\Throwable $e) {
-            $logger?->critical($e->getMessage() . ', in File: ' . $e->getFile() . ' Line: ' . $e->getLine());
-            $response = TestProxy::getErrorResponse($e);
+            $this->logger?->critical($e->getMessage() . ', in File: ' . $e->getFile() . ' Line: ' . $e->getLine());
+            $response = TestWAF::getErrorResponse($e);
             // in case there was an error, we assume that the frontline tracer did not have a chance to log the response
             if ($tracer) {
                 file_put_contents($traceFileName, $tracer->serializeResponse($response), FILE_APPEND);
             }
-            $emitter->emit($response);
+            $responseEmitter->emit($response);
             exit();
         }
     }
 
     /**
-     * Clean up ("patch") the data we allow the Proxy to handle - remove test-managing headers and cookies.
+     * Clean up ("patch") the data we allow the WAF to handle - remove test-managing headers and cookies.
      * NB: calling this results in manipulation of $_SERVER and co.
      */
-    protected function fromGlobals(ServerRequestCreator $creator): ServerRequest
+    protected function fromGlobals(ServerRequestCreator $requestCreator): ServerRequest
     {
         foreach ($_SERVER as $name => $value) {
             if (str_starts_with($name, 'HTTP_X_WAFCORE_')) {
@@ -255,7 +257,7 @@ class ProxyPage
             }
         }
 
-        return $creator->fromGlobals();
+        return $requestCreator->fromGlobals();
     }
 
     protected function fileIsInTestsDir($fileName): bool

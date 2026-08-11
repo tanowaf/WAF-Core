@@ -27,10 +27,10 @@ class CA_MatchingTest extends ProxyTestCase
 
         try {
             $failureMessage = $this->getTestDetails($response);
-            $this->assertResponseHasStatusCode(TestProxy::ERROR_STATUS_CODE, $response, $failureMessage);
-            $this->assertArrayIsEqualToArrayIgnoringListOfKeys(TestProxy::ERROR_RESPONSE, $this->responseBodyToArray($response), ['message', 'file', 'line'], $failureMessage);
+            $this->assertResponseHasStatusCode(TestWAF::ERROR_STATUS_CODE, $response, $failureMessage);
+            $this->assertArrayIsEqualToArrayIgnoringListOfKeys(TestWAF::ERROR_RESPONSE, $this->responseBodyToArray($response), ['message', 'file', 'line'], $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ERROR_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ERROR_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -146,7 +146,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -213,7 +213,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -272,7 +272,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -307,7 +307,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -326,7 +326,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -404,7 +404,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -448,9 +448,9 @@ class CA_MatchingTest extends ProxyTestCase
 
         try {
             // NB: the SF HTTP Client strips the body from responses to HEAD requests, even if the proxy sends it
-            $this->assertResponseHasStatusCode(TestProxy::ACCESS_DENIED_STATUS_CODE, $response, $this->getTestDetails($response));
+            $this->assertResponseHasStatusCode(TestWAF::ACCESS_DENIED_STATUS_CODE, $response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -498,7 +498,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
 /// @todo... check that resp. body is empty... Should it be? Check the http spec!
     }
@@ -559,7 +559,7 @@ class CA_MatchingTest extends ProxyTestCase
         try {
             $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
 /// @todo... check that resp. body is empty... Should it be? Check the http spec!
     }

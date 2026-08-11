@@ -100,7 +100,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         );
         try {
             $failureMessage = $this->getTestDetails($response);
-            $this->assertResponseHasStatusCode(TestProxy::ACCESS_DENIED_STATUS_CODE, $response, $failureMessage);
+            $this->assertResponseHasStatusCode(TestWAF::ACCESS_DENIED_STATUS_CODE, $response, $failureMessage);
             $responseHeaders = $response->getHeaders(false);
             if (isset($responseHeaders['content-encoding']) && $responseHeaders['content-encoding'][0] != 'identity' &&
                 // this condition takes into account the Symfony HTTP Client adding on its own an `accept-encoding: gzip`
@@ -115,9 +115,9 @@ class CC_HTTPCompressionTest extends ProxyTestCase
                 $result = $this->responseBodyToArray($response);
             }
             $this->assertIsArray($result, $failureMessage);
-            $this->assertSame(TestProxy::ACCESS_DENIED_RESPONSE, $result, $failureMessage);
+            $this->assertSame(TestWAF::ACCESS_DENIED_RESPONSE, $result, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
@@ -203,10 +203,10 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         );
         try {
             $failureMessage = $this->getTestDetails($response);
-            $this->assertResponseHasStatusCode(TestProxy::ACCESS_DENIED_STATUS_CODE, $response, $failureMessage);
-            $this->assertResponseHasGivenArrayBody(TestProxy::ACCESS_DENIED_RESPONSE, $response, $failureMessage);
+            $this->assertResponseHasStatusCode(TestWAF::ACCESS_DENIED_STATUS_CODE, $response, $failureMessage);
+            $this->assertResponseHasGivenArrayBody(TestWAF::ACCESS_DENIED_RESPONSE, $response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestProxy::ACCESS_DENIED_RESPONSE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_RESPONSE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 

@@ -8,7 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\Server\MiddlewareAware;
 
-class LoadTestProxy extends MiddlewareAware
+class LoadTestWAF extends MiddlewareAware
 {
     protected function deniedResponse(ServerRequestInterface $request, \Throwable|null $e = null): ResponseInterface
     {

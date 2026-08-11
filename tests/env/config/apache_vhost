@@ -71,7 +71,7 @@ Listen 8444
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}]
 
-    RewriteRule .* /proxy.php [END]
+    RewriteRule .* /waf.php [END]
   </Directory>
 
 </VirtualHost>
@@ -150,7 +150,7 @@ Listen 8444
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}]
 
-    RewriteRule .* /proxy.php [END]
+    RewriteRule .* /waf.php [END]
   </Directory>
 
   SSLEngine on

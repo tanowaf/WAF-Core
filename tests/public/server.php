@@ -11,7 +11,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 use Symfony\Component\Dotenv\Dotenv;
 use TanoWAF\WAFCore\Tests\TestServer;
 
-// NB: atm this, unlike proxy.php, will not load env vars from server-specific config files .env.nginx and co...
+// NB: atm this, unlike waf.php, will not load env vars from server-specific config files .env.nginx and co...
 $dotenv = new Dotenv();
 $dotenv->loadEnv(__DIR__.'/../.env');
 

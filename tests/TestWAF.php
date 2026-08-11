@@ -13,7 +13,7 @@ use TanoWAF\WAFCore\UpstreamClient\SymfonyHttpClientAdapter;
 use TanoWAF\WAFCore\UpstreamClient\UpstreamClientFactory;
 use TanoWAF\WAFCore\UpstreamClient\UpstreamClientInterface;
 
-class TestProxy extends MiddlewareAware
+class TestWAF extends MiddlewareAware
 {
     /// @todo instead of hardcoding these, we should get their value from the same env vars which are used to drive the
     ///       client-side of the tests
