@@ -14,7 +14,7 @@ Example use-cases:
 - caching (not implemented, but should be implementable with existing components from other packages)
 
 Similar software:
-- OWASP Coraza (written in Go, can be run as Caddy/Nginx/HAProxy module; uses less-readable configuration)
+- OWASP Coraza (written in Go, can be run as Caddy/Nginx/HAProxy module; uses more-standard but less-readable configuration)
 
 ## Work In Progress
 
@@ -31,7 +31,9 @@ Main missing features:
 - Matching request/response bodies using jsonpath/css/xpath expressions
 - Filtering (modification of requests/responses)
 - "restart the processing chain" as possible action for matching rules
+- "increase/decrease a matching score" as possible action for matching rules
 - HTTPS support
+- HTTP2, HTTP3 support
 - Documentation
 
 See the [Roadmap](Roadmap.md) for a detailed list of features not yet implemented.
@@ -44,7 +46,7 @@ Not in scope (yet?):
 - filtering request/response bodies other than Json
 - feature parity with Varnish or performance parity with HAProxy
 - using async requests to connect to upstream servers
-- implementing rate-limiting, caching with own code (we should allow usage of PSR compliant external code for that)
+- implementing rate-limiting, caching (with own code - we should allow usage of PSR compliant external code for that)
 - rules/filters targeted at protecting the client from rogue servers' responses
 
 ## Requirements:
@@ -78,7 +80,8 @@ More examples will come...
 
 For the moment, see project https://github.com/tanowaf/Yet-Another-Docker-Socket-Proxy as example.
 
-Or take a look at the Proxy used for the unit testing suite in `./tests/public`
+Or take a look at the proxies used for the unit testing suite and for load testing in [./tests/public/proxy.php](./tests/public/proxy.php),
+[./tests/public/loadtest.php](./tests/public/loadtest.php)
 
 ## Design principles
 
@@ -126,7 +129,20 @@ The testsuite can be run using FrankenPHP or Apache as webserver with the follow
 
 ## FAQ
 
-...
+* Why write this in PHP instead of Go or Rust?
+
+  Because I would have had to learn those languages at the same time as learning all the fine details of parsing HTTP
+
+* How fast is this? Can it scale?
+
+  Preliminary load testing shows that, when running the WAF with FrankenPHP in worker mode, a delay of 0.6 ms per request
+  is introduced, when using the smallest possible filtering ruleset.
+
+* Why not reusing Symfony HTTP Foundation / another existing library?
+
+  None of the existing PHP libraries that I am aware of are designed to be used for building proxies or firewalls.
+  In fact, the PHP engine itself is very opinionated in the request data it makes available to php scripts. This has led
+  to having to develop custom parser code for things such as HTTP Headers, Cookies and the URL Query String.
 
 ## License
 
