@@ -100,11 +100,13 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
         throw new RequestDenied();
     }
 
-    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): HeaderParsingCapableResponseInterface
+    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): HeaderParsingCapableResponseInterface|ResponseInterface
     {
-        $response = Response::fromResponse($handler->handle($request));
-        $response->setHeaderParser($this->headerParser);
-
+        $response = $handler->handle($request);
+        if ($this->headerParser !== null) {
+            $response = Response::fromResponse($response);
+            $response->setHeaderParser($this->headerParser);
+        }
         return $response;
     }
 

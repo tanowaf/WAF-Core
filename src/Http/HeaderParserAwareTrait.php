@@ -5,10 +5,11 @@ namespace TanoWAF\WAFCore\Http;
 
 trait HeaderParserAwareTrait
 {
-    protected HeaderParserInterface $headerParser;
+    protected HeaderParserInterface|null $headerParser = null;
 
-    public function setHeaderParser(HeaderParserInterface $headerParser): void
+    public function setHeaderParser(HeaderParserInterface $headerParser): static
     {
         $this->headerParser = $headerParser;
+        return $this;
     }
 }

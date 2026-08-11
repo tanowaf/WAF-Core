@@ -95,6 +95,7 @@ class Response implements HeaderParsingCapableResponseInterface
     public function validateHeaderValue(string $headerName): bool
     {
 /// @todo... add a caching layer
+        /// @todo is it worth checking if $this->headerParser is null and throw a clearer error?
         return $this->headerParser->validateHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
     }
 
@@ -104,6 +105,7 @@ class Response implements HeaderParsingCapableResponseInterface
     public function normalizedHeaderValue(string $headerName, array|null &$errorsFound = []): array
     {
 /// @todo... add a caching layer
+        /// @todo is it worth checking if $this->headerParser is null and throw a clearer error?
         return $this->headerParser->normalizeHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
     }
 }

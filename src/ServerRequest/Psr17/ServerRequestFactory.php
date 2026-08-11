@@ -107,9 +107,9 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
 
         $serverRequest = new ServerRequest($method, $uri, $headers, null, $protocol, $server);
 
-        $serverRequest->setCookieParser($this->cookieParser);
-        $serverRequest->setHeaderParser($this->headerParser);
-        $serverRequest->setQueryStringParser($this->queryStringParser);
+        $serverRequest->setCookieParser($this->cookieParser)
+            ->setHeaderParser($this->headerParser)
+            ->setQueryStringParser($this->queryStringParser);
 
         // waf-core change: avoid doing double-work with the Query Params, as they are first built by a call to `parse_str`
         // in the ServerRequest constructor, then immediately overwritten with the `->withQueryParams($get)` call

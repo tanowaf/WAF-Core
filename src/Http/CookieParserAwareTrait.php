@@ -5,10 +5,11 @@ namespace TanoWAF\WAFCore\Http;
 
 trait CookieParserAwareTrait
 {
-    protected CookieParserInterface $cookieParser;
+    protected CookieParserInterface|null $cookieParser = null;
 
-    public function setCookieParser(CookieParserInterface $cookieParser): void
+    public function setCookieParser(CookieParserInterface $cookieParser): static
     {
         $this->cookieParser = $cookieParser;
+        return $this;
     }
 }

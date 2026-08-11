@@ -219,7 +219,7 @@ class TestServer
                     $psr17Factory, // UriFactory
                     new ServerRequestFactory(
                         $psr17Factory, // UploadedFileFactory
-                        $psr17Factory,  // StreamFactory,
+                        $psr17Factory, // StreamFactory
                         $cookieParserFactory->fromConfiguration([]),
                         $headerParserFactory->fromConfiguration([]),
                         $queryStringParserFactory->fromConfiguration([])

@@ -131,12 +131,14 @@ class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInter
                 ///       (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
                 if (count($this->cookieHeader) > 1) {
                     if ((float)$this->protocol >= 2) {
+                        /// @todo is it worth checking if $this->cookieParser is null and throw a clearer error?
                         $this->cookieParams = $this->cookieParser->parseCookies(implode('; ', $this->cookieHeader), $errorsFound);
                     } else {
 /// @todo... throw / log an error
                         $this->cookieParams = [];
                     }
                 } else {
+                    /// @todo is it worth checking if $this->cookieParser is null and throw a clearer error?
                     $this->cookieParams = $this->cookieParser->parseCookies($this->cookieHeader[0], $errorsFound);
                 }
             } else {
@@ -166,6 +168,7 @@ class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInter
             if ($this->queryString === null || $this->queryString === '') {
                 $this->queryParams = [];
             } else {
+                /// @todo is it worth checking if $this->queryStringParser is null and throw a clearer error?
                 $this->queryParams = $this->queryStringParser->parseQueryString($this->queryString);
             }
         }
@@ -391,6 +394,7 @@ class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInter
     public function validateHeaderValue(string $headerName): bool
     {
 /// @todo... add a caching layer
+        /// @todo is it worth checking if $this->headerParser is null and throw a clearer error?
         return $this->headerParser->validateHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
     }
 
@@ -400,6 +404,7 @@ class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInter
     public function normalizedHeaderValue(string $headerName, array|null &$errorsFound = []): array
     {
 /// @todo... add a caching layer
+        /// @todo is it worth checking if $this->headerParser is null and throw a clearer error?
         return $this->headerParser->normalizeHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
     }
 }

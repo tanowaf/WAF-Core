@@ -5,10 +5,11 @@ namespace TanoWAF\WAFCore\Http;
 
 trait QueryStringParserAwareTrait
 {
-    protected QueryStringParserInterface $queryStringParser;
+    protected QueryStringParserInterface|null $queryStringParser = null;
 
-    public function setQueryStringParser(QueryStringParserInterface $queryStringParser): void
+    public function setQueryStringParser(QueryStringParserInterface $queryStringParser): static
     {
         $this->queryStringParser = $queryStringParser;
+        return $this;
     }
 }
