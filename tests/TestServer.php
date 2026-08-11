@@ -72,7 +72,7 @@ class TestServer
                 break;
             case 'info':
             default:
-                $this->displayInfoResponse($actionArgs[0] ?? 'yawaf');
+                $this->displayInfoResponse($actionArgs[0] ?? 'wafcore');
         }
     }
 
@@ -133,7 +133,7 @@ class TestServer
     /**
      * Displays the response to a Trace method
      */
-    protected function displayTraceResponse(string $serverRequestLibrary = 'yawaf')
+    protected function displayTraceResponse(string $serverRequestLibrary = 'wafcore')
     {
         header('Content-Type: message/http');
         echo $this->serializeRequest($this->buildServerRequest($serverRequestLibrary));
@@ -142,7 +142,7 @@ class TestServer
     /**
      * Echoes a json payload with as much info as possible about the request received, to help testing
      */
-    protected function displayInfoResponse(string $serverRequestLibrary = 'yawaf'): void
+    protected function displayInfoResponse(string $serverRequestLibrary = 'wafcore'): void
     {
         $serverRequest = $this->buildServerRequest($serverRequestLibrary);
         $requestHeaders = Stdlib::getHeadersFromServer($_SERVER);
@@ -207,10 +207,10 @@ class TestServer
     /**
      * @todo any other well known libraries we could use to build the ServerRequestInterface?
      */
-    protected function buildServerRequest(string $library = 'yawaf'): ServerRequestInterface
+    protected function buildServerRequest(string $library = 'wafcore'): ServerRequestInterface
     {
         switch ($library) {
-            case 'yawaf':
+            case 'wafcore':
                 $psr17Factory = new Psr17Factory();
                 $cookieParserFactory = new CookieParserFactory();
                 $headerParserFactory = new HeaderParserFactory();

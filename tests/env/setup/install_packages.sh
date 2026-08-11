@@ -42,6 +42,6 @@ fi
 # It can query a unix socket too, via option `--unix-socket`
 # Alternatives would be netcat, socat
 apt-get install -y \
-    curl git ncompress sudo unzip
+    curl git ncompress sudo unzip wrk
 
 echo "Done installing base software packages"

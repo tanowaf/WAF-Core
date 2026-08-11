@@ -7,20 +7,24 @@ use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
 /**
- * Sends log messages to Apache, as notes. Those can be logged by adding `%{YaWAFLogMessage}n` the `LogFormat` directive
+ * Sends log messages to Apache, as notes. Those can be logged by adding `%{WAFCoreLogMessage}n` the `LogFormat` directive
  */
 class ApacheLogger extends AbstractLogger
 {
-    const DefaultNoteName = 'YaWAFLogMessage';
+    const DefaultNoteName = 'WAFCoreLogMessage';
 
     use ConditionalLoggerTrait;
 
     protected string $noteName;
 
-    public function __construct(string $level = LogLevel::WARNING, string $noteName = self::DefaultNoteName)
+    public function __construct(string $level = LogLevel::WARNING, string|null $noteName = null)
     {
         $this->setLevel($level);
-        $this->noteName = $noteName;
+        if ($noteName == '') {
+            $this->noteName = self::DefaultNoteName;
+        } else {
+            $this->noteName = $noteName;
+        }
     }
 
     /**

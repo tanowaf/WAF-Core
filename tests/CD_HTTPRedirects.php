@@ -23,7 +23,7 @@ class CD_HTTPRedirects extends ProxyTestCase
         $rule = [['always' => true]];
         $response = $this->request(
             [
-                'headers' => ['X-YAWAF-Config' => json_encode($rule), 'X-YAWAF-Force-Accept-Encoding' => 'identity'],
+                'headers' => ['X-WAFCORE-Config' => json_encode($rule), 'X-WAFCORE-Force-Accept-Encoding' => 'identity'],
                 'max_redirects' => 0
             ],
             'GET',

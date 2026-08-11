@@ -69,10 +69,10 @@ class Stdlib
                 }
             }
 
-            // yawaf change: `if ($value)` changed to `$value !== ''` (fix issue #67)
+            // wafcore change: `if ($value)` changed to `$value !== ''` (fix issue #67)
 
             if ($value !== '' && \str_starts_with($key, 'HTTP_')) {
-                // yawaf change: make the generated headers use Snake-Case
+                // wafcore change: make the generated headers use Snake-Case
                 //$name = \strtr(\strtolower(\substr($key, 5)), '_', '-');
                 $name = str_replace(' ', '-', \ucwords(\strtolower(\str_replace('_', ' ', \substr($key, 5)))));
                 $headers[$name] = $value;

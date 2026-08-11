@@ -6,7 +6,7 @@
 $coverageFile = realpath(__DIR__ . '/../PhpunitSelenium/phpunit_coverage.php');
 
 // has to be the same value as used in proxy.php
-$GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'] = sys_get_temp_dir() . '/yawaf_coverage';
+$GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'] = sys_get_temp_dir() . '/wafcore_coverage';
 
 if (!is_dir($GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'])) {
     mkdir($GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY']);

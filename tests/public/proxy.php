@@ -5,6 +5,7 @@ declare(strict_types=1);
 // ***
 // *** _Do not use for anything else!_ ***
 // ***
+// *** For a simpler take, look at loadtest.php
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -58,7 +59,7 @@ class ProxyPage
         // Out-of-band information: let the client manipulate the page operations
         if (isset($_COOKIE['PHPUNIT_SELENIUM_TEST_ID']) && extension_loaded('xdebug')) {
             // NB: this has to be kept in sync with phpunit_coverage.php
-            $GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'] = sys_get_temp_dir() . '/yawaf_coverage';
+            $GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'] = sys_get_temp_dir() . '/wafcore_coverage';
             if (!is_dir($GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'])) {
                 mkdir($GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY']);
                 chmod($GLOBALS['PHPUNIT_COVERAGE_DATA_DIRECTORY'], 0777);
@@ -76,15 +77,15 @@ class ProxyPage
         // @todo make sure to allow usage of a proxy running on webserver X and upstream running on webserver Y
         $dotenv = new Dotenv();
         $_ENV['SERVER_TYPE'] = 'nginx';
-        if (isset($_SERVER['HTTP_X_YAWAF_SERVER_TYPE']) && in_array($_SERVER['HTTP_X_YAWAF_SERVER_TYPE'], ['apache', 'frankenphp'])) {
-            $_ENV['SERVER_TYPE'] = $_SERVER['HTTP_X_YAWAF_SERVER_TYPE'];
+        if (isset($_SERVER['HTTP_X_WAFCORE_SERVER_TYPE']) && in_array($_SERVER['HTTP_X_WAFCORE_SERVER_TYPE'], ['apache', 'frankenphp'])) {
+            $_ENV['SERVER_TYPE'] = $_SERVER['HTTP_X_WAFCORE_SERVER_TYPE'];
         }
         $dotenv->loadEnv(__DIR__.'/../.env', 'SERVER_TYPE');
 
         // set up a logger whose output can be inspected by the caller
         $logger = null;
-        if (array_key_exists('HTTP_X_YAWAF_LOG_FILE', $_SERVER) && trim($_SERVER['HTTP_X_YAWAF_LOG_FILE']) !== '') {
-            $logFileName = sys_get_temp_dir() . '/' . basename($_SERVER['HTTP_X_YAWAF_LOG_FILE']);
+        if (array_key_exists('HTTP_X_WAFCORE_LOG_FILE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_LOG_FILE']) !== '') {
+            $logFileName = sys_get_temp_dir() . '/' . basename($_SERVER['HTTP_X_WAFCORE_LOG_FILE']);
             /// @todo should we allow the logs + traces to be stored in a custom dir, making it easy to map it to the host filesystem?
             if (file_exists($logFileName)) {
                 file_put_contents($logFileName, '');
@@ -127,17 +128,17 @@ class ProxyPage
             // avoid php interfering with the proxy sending out compressed responses
             ini_set('zlib.output_compression', 0);
 
-            if (array_key_exists('HTTP_X_YAWAF_UPSTREAM_CLIENT_TYPE', $_SERVER) && trim($_SERVER['HTTP_X_YAWAF_UPSTREAM_CLIENT_TYPE']) !== '') {
-                $logger->debug("Using '{$_SERVER['HTTP_X_YAWAF_UPSTREAM_CLIENT_TYPE']}' client type to connect to upstream");
-                $httpClient = TestProxy::createUpstreamClient($_SERVER['HTTP_X_YAWAF_UPSTREAM_CLIENT_TYPE']);
+            if (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']) !== '') {
+                $logger->debug("Using '{$_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']}' client type to connect to upstream");
+                $httpClient = TestProxy::createUpstreamClient($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']);
             } else {
                 $httpClient = TestProxy::createUpstreamClient();
             }
 
             $middlewareChain = new Dispatcher([]);
 
-            if (array_key_exists('HTTP_X_YAWAF_TRACE_FILE', $_SERVER) && trim($_SERVER['HTTP_X_YAWAF_TRACE_FILE']) !== '') {
-                $traceFileName = sys_get_temp_dir() . '/' . basename($_SERVER['HTTP_X_YAWAF_TRACE_FILE']);
+            if (array_key_exists('HTTP_X_WAFCORE_TRACE_FILE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_TRACE_FILE']) !== '') {
+                $traceFileName = sys_get_temp_dir() . '/' . basename($_SERVER['HTTP_X_WAFCORE_TRACE_FILE']);
                 if (file_exists($traceFileName)) {
                     file_put_contents($traceFileName, '');
                 }
@@ -151,19 +152,19 @@ class ProxyPage
             }
 
             $firewallFactory = new FirewallFactory($logger);
-            $config = array_key_exists('HTTP_X_YAWAF_CONFIG', $_SERVER) ? trim($_SERVER['HTTP_X_YAWAF_CONFIG']) : '';
-            $configFile = array_key_exists('HTTP_X_YAWAF_CONFIG_FILE', $_SERVER) ? trim($_SERVER['HTTP_X_YAWAF_CONFIG_FILE']) : '';
+            $config = array_key_exists('HTTP_X_WAFCORE_CONFIG', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG']) : '';
+            $configFile = array_key_exists('HTTP_X_WAFCORE_CONFIG_FILE', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG_FILE']) : '';
             if ($configFile !== '') {
                 if ($config !== '') {
-                    throw new \Exception("Can not use at the same time headers X-YAWAF-CONFIG and X-YAWAF-CONFIG-FILE");
+                    throw new \Exception("Can not use at the same time headers X-WAFCORE-CONFIG and X-WAFCORE-CONFIG-FILE");
                 }
                 if (!$this->fileIsInTestsDir('configs/' . $configFile)) {
-                    throw new \Exception("Can not use config file defined in header YAWAF_CONFIG_FILE: outside tests root");
+                    throw new \Exception("Can not use config file defined in header WAFCORE-CONFIG-FILE: outside tests root");
                 }
                 $firewall = $firewallFactory->fromConfigFile(__DIR__ . '/../configs/' . $configFile);
             } else {
                 if ($config !== '') {
-                    $logger->info('Loading firewall configuration from string received as query string arg YAWAF_CONFIG');
+                    $logger->info('Loading firewall configuration from string received as header X-WAFCORE-CONFIG');
                 }
                 $firewall = $firewallFactory->fromConfigString($config);
             }
@@ -171,24 +172,24 @@ class ProxyPage
 
             // This can disable/change requesting for compressed responses - currently done both to avoid issues with
             // Body matchers and to ease troubleshooting by visual inspection of payloads
-            if (array_key_exists('HTTP_X_YAWAF_FORCE_ACCEPT_ENCODING', $_SERVER) && trim($_SERVER['HTTP_X_YAWAF_FORCE_ACCEPT_ENCODING']) !== '') {
-                if ($_SERVER['HTTP_X_YAWAF_FORCE_ACCEPT_ENCODING'] === 'none') {
+            if (array_key_exists('HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']) !== '') {
+                if ($_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING'] === 'none') {
                     $logger->debug("Removing existing accept-encoding headers to connect to upstream");
                     $middlewareChain->appendMiddleware(new RemoveAcceptEncoding());
                 } else {
-                    $logger->debug("Forcing '{$_SERVER['HTTP_X_YAWAF_FORCE_ACCEPT_ENCODING']}' accept-encoding header to connect to upstream");
-                    $middlewareChain->appendMiddleware(new ForceAcceptEncoding($_SERVER['HTTP_X_YAWAF_FORCE_ACCEPT_ENCODING']));
+                    $logger->debug("Forcing '{$_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']}' accept-encoding header to connect to upstream");
+                    $middlewareChain->appendMiddleware(new ForceAcceptEncoding($_SERVER['HTTP_X_WAFCORE_FORCE_ACCEPT_ENCODING']));
                 }
             }
 
             // allow the scheme+port to be set via a custom http header, to test http:// vs https:// vs tcp:// vs unix:/
             /// @todo allow the caller to request for a non-existent, controlled unix socket. Also, no need to allow
             ///       _any_ port, just a known non-existent one...
-            if (array_key_exists('HTTP_X_YAWAF_UPSTREAM_SCHEME', $_SERVER) && trim($_SERVER['HTTP_X_YAWAF_UPSTREAM_SCHEME']) !== '') {
+            if (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_SCHEME', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_SCHEME']) !== '') {
                 $upstreamUri = TestProxy::getUpstreamUri(
-                    $_SERVER['HTTP_X_YAWAF_UPSTREAM_SCHEME'],
-                    (array_key_exists('HTTP_X_YAWAF_UPSTREAM_PORT_OVERRIDE', $_SERVER) && trim($_SERVER['HTTP_X_YAWAF_UPSTREAM_PORT_OVERRIDE']) !== '') ?
-                        (int)$_SERVER['HTTP_X_YAWAF_UPSTREAM_PORT_OVERRIDE'] : null
+                    $_SERVER['HTTP_X_WAFCORE_UPSTREAM_SCHEME'],
+                    (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_PORT_OVERRIDE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_PORT_OVERRIDE']) !== '') ?
+                        (int)$_SERVER['HTTP_X_WAFCORE_UPSTREAM_PORT_OVERRIDE'] : null
                 );
             } else {
                 $upstreamUri = TestProxy::getUpstreamUri();
@@ -211,7 +212,7 @@ class ProxyPage
                 $psr17Factory, // UriFactory
                 new ServerRequestFactory(
                     $psr17Factory, // UploadedFileFactory
-                    $psr17Factory,  // StreamFactory,
+                    $psr17Factory, // StreamFactory,
                     $cookieParserFactory->fromConfiguration([]),
                     $headerParser,
                     $queryStringParserFactory->fromConfiguration([])
@@ -243,7 +244,7 @@ class ProxyPage
     protected function fromGlobals(ServerRequestCreator $creator): ServerRequest
     {
         foreach ($_SERVER as $name => $value) {
-            if (str_starts_with($name, 'HTTP_X_YAWAF_')) {
+            if (str_starts_with($name, 'HTTP_X_WAFCORE_')) {
                 unset($_SERVER[$name]);
             }
         }

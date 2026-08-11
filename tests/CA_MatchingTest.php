@@ -19,7 +19,7 @@ class CA_MatchingTest extends ProxyTestCase
        string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => $configAsString]],
+            ['headers' => ['X-WAFCORE-Config' => $configAsString]],
             'GET',
             '',
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -114,7 +114,7 @@ class CA_MatchingTest extends ProxyTestCase
         }
 
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName, 'X-YAWAF-Force-Accept-Encoding' => 'identity'] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName, 'X-WAFCORE-Force-Accept-Encoding' => 'identity'] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -138,7 +138,7 @@ class CA_MatchingTest extends ProxyTestCase
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName, 'X-YAWAF-Force-Accept-Encoding' => 'identity'] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName, 'X-WAFCORE-Force-Accept-Encoding' => 'identity'] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -165,8 +165,8 @@ class CA_MatchingTest extends ProxyTestCase
         $response = $this->request(
             [
                 'headers' => [
-                    'X-YAWAF-Config-File' => $configFileName,
-                    'X-YAWAF-Force-Accept-Encoding' => 'identity',
+                    'X-WAFCORE-Config-File' => $configFileName,
+                    'X-WAFCORE-Force-Accept-Encoding' => 'identity',
                     'Content-Type' => 'application/json'
                 ] + $this->getCommonRequestHeaders(),
                 'body' => json_encode(['test' => 'localhost'])
@@ -200,8 +200,8 @@ class CA_MatchingTest extends ProxyTestCase
         $response = $this->request(
             [
                 'headers' => [
-                    'X-YAWAF-Config-File' => $configFileName,
-                    'X-YAWAF-Force-Accept-Encoding' => 'identity',
+                    'X-WAFCORE-Config-File' => $configFileName,
+                    'X-WAFCORE-Force-Accept-Encoding' => 'identity',
                     'Content-Type' => 'application/json'
                 ] + $this->getCommonRequestHeaders(),
                 'body' => json_encode(['test' => 'localhost'])
@@ -235,7 +235,7 @@ class CA_MatchingTest extends ProxyTestCase
 
         $rule = [['port' => ($_ENV['HTTPSERVER_PORT'] != '' ? $_ENV['HTTPSERVER_PORT'] : 80)]];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -263,7 +263,7 @@ class CA_MatchingTest extends ProxyTestCase
 
         $rule = [['port' => ($_ENV['HTTPSERVER_PORT'] != '' ? ($_ENV['HTTPSERVER_PORT'] + 1) : 79)]];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -282,7 +282,7 @@ class CA_MatchingTest extends ProxyTestCase
     {
         $rule = [['url_path/no_wildcards' => $_ENV['HTTPSERVER_PATH']]];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -298,7 +298,7 @@ class CA_MatchingTest extends ProxyTestCase
 
         $rule = [['url_path/no_wildcards' => $_ENV['HTTPSERVER_PATH'] . '/yolo']];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -317,7 +317,7 @@ class CA_MatchingTest extends ProxyTestCase
     {
         $rule = [['url_path/no_wildcards' => $_ENV['HTTPSERVER_PATH'] . '/yolo']];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -362,7 +362,7 @@ class CA_MatchingTest extends ProxyTestCase
         $rule = [['client_port' => self::$clientPort]];
         $response = $this->request(
             [
-                'headers' => ['X-YAWAF-Config' => json_encode($rule), 'Connection' => 'close'] + $this->getCommonRequestHeaders(),
+                'headers' => ['X-WAFCORE-Config' => json_encode($rule), 'Connection' => 'close'] + $this->getCommonRequestHeaders(),
                 'bindto' => '127.0.0.1:' . self::$clientPort
             ],
             'GET',
@@ -394,7 +394,7 @@ class CA_MatchingTest extends ProxyTestCase
         $rule = [['client_port' => $_ENV['HTTPSERVER_PORT']]];
         $response = $this->request(
             [
-                'headers' => ['X-YAWAF-Config' => json_encode($rule)] + $this->getCommonRequestHeaders(),
+                'headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders(),
             ],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
@@ -413,7 +413,7 @@ class CA_MatchingTest extends ProxyTestCase
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'HEAD',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -440,7 +440,7 @@ class CA_MatchingTest extends ProxyTestCase
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'HEAD',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -464,7 +464,7 @@ class CA_MatchingTest extends ProxyTestCase
          string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'OPTIONS',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -489,7 +489,7 @@ class CA_MatchingTest extends ProxyTestCase
          string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'OPTIONS',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -518,7 +518,7 @@ class CA_MatchingTest extends ProxyTestCase
         }
 
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'TRACE',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -550,7 +550,7 @@ class CA_MatchingTest extends ProxyTestCase
         }
 
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
+            ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'TRACE',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]

@@ -37,10 +37,10 @@ abstract class ProxyTestCase extends ServerTestCase
             $clientOptions['bindto'] = $_ENV['PROXY_SOCKET'];
         }
         if (@$testOptions['upstream_client_type'] !== null) {
-            $clientOptions['headers'] = ['X-YAWAF-Upstream-Client-Type' => $testOptions['upstream_client_type']] + ($clientOptions['headers'] ?? []);
+            $clientOptions['headers'] = ['X-WAFCORE-Upstream-Client-Type' => $testOptions['upstream_client_type']] + ($clientOptions['headers'] ?? []);
         }
         if (@$testOptions['server_scheme'] !== null) {
-            $clientOptions['headers'] = ['X-YAWAF-Upstream-Scheme' => $testOptions['server_scheme']] + ($clientOptions['headers'] ?? []);
+            $clientOptions['headers'] = ['X-WAFCORE-Upstream-Scheme' => $testOptions['server_scheme']] + ($clientOptions['headers'] ?? []);
             unset($testOptions['server_scheme']);
         }
 
@@ -55,9 +55,9 @@ abstract class ProxyTestCase extends ServerTestCase
     protected function getTestClient(array $clientOptions = [], array $testOptions = []): HttpClientInterface
     {
         $clientOptions['headers'] = [
-            'X-YAWAF-Server-Type' => $_ENV['SERVER_TYPE'],
-            'X-YAWAF-Log-File' => $this->testId . '.log',
-            'X-YAWAF-Trace-File' => $this->testId . '.trace',
+            'X-WAFCORE-Server-Type' => $_ENV['SERVER_TYPE'],
+            'X-WAFCORE-Log-File' => $this->testId . '.log',
+            'X-WAFCORE-Trace-File' => $this->testId . '.trace',
         ] + ($clientOptions['headers'] ?? []);
 
         return parent::getTestClient($clientOptions, $testOptions);
@@ -154,9 +154,9 @@ abstract class ProxyTestCase extends ServerTestCase
     {
         $body = parent::assertResponseHasKnownArrayBody($response, $message);
 
-        $this->assertResponseHeaderContains('Via', 'YaWAF', $response, $message);
-        $this->assertStringContainsString('YaWAF', $body['getHeadersFromServer']['Via']);
-        $this->assertStringContainsString('YaWAF', $body['getHeadersFromServer']['User-Agent']);
+        $this->assertResponseHeaderContains('Via', 'WAFCore', $response, $message);
+        $this->assertStringContainsString('WAFCore', $body['getHeadersFromServer']['Via']);
+        $this->assertStringContainsString('WAFCore', $body['getHeadersFromServer']['User-Agent']);
 
         return $body;
     }
@@ -166,7 +166,7 @@ abstract class ProxyTestCase extends ServerTestCase
         // Note that in case of php errors, the status code will be 200 when display_errors in php.ini is on, and 500 when it is off
         $this->assertResponseHasStatusCode(TestProxy::ACCESS_DENIED_STATUS_CODE, $response, $message);
         $this->assertResponseHasGivenArrayBody(TestProxy::ACCESS_DENIED_RESPONSE, $response, $message);
-        $this->assertResponseHeaderContains('Via', 'YaWAF', $response, $message);
+        $this->assertResponseHeaderContains('Via', 'WAFCore', $response, $message);
     }
 
     /**

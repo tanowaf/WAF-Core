@@ -26,8 +26,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         $response = $this->request(
             [
                 'headers' => [
-                    'X-YAWAF-Config-File' => $configFileName,
-                    'X-YAWAF-Force-Accept-Encoding' => $proxyAcceptEncoding
+                    'X-WAFCORE-Config-File' => $configFileName,
+                    'X-WAFCORE-Force-Accept-Encoding' => $proxyAcceptEncoding
                 ] + $acceptedCompressionHeaders
             ],
             'GET',
@@ -90,8 +90,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         $response = $this->request(
             [
                 'headers' => [
-                    'X-YAWAF-Config-File' => $configFileName,
-                    'X-YAWAF-Force-Accept-Encoding' => $proxyAcceptEncoding
+                    'X-WAFCORE-Config-File' => $configFileName,
+                    'X-WAFCORE-Force-Accept-Encoding' => $proxyAcceptEncoding
                 ] + $acceptedCompressionHeaders
             ],
             'GET',
@@ -146,8 +146,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         $response = $this->request(
             [
                 'headers' => [
-                    'X-YAWAF-Config-File' => $configFileName,
-                    'X-YAWAF-Force-Accept-Encoding' => 'identity',
+                    'X-WAFCORE-Config-File' => $configFileName,
+                    'X-WAFCORE-Force-Accept-Encoding' => 'identity',
                     'Content-Type' => 'application/json'
                 ] + $requestCompressionHeaders,
                 'body' => $this->getRequestBody($requestEncoding)
@@ -191,8 +191,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         $response = $this->request(
             [
                 'headers' => [
-                    'X-YAWAF-Config-File' => $configFileName,
-                    'X-YAWAF-Force-Accept-Encoding' => 'identity',
+                    'X-WAFCORE-Config-File' => $configFileName,
+                    'X-WAFCORE-Force-Accept-Encoding' => 'identity',
                     'content-type' => 'application/json'
                 ] + $requestCompressionHeaders,
                 'body' => $this->getRequestBody($requestEncoding)

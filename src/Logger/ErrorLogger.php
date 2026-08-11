@@ -22,11 +22,13 @@ class ErrorLogger
         Loglevel::DEBUG     => false,
     ];
 
+    protected string $logLinePrefix = 'WAFCore ';
+
     public function log($level, string|\Stringable $message, array $context = []): void
     {
         if (@static::$map[$level]) {
 /// @todo... add context data
-            $message = 'YaWAF ' . ucfirst($level) . ': ' . $message;
+            $message = $this->logLinePrefix . ucfirst($level) . ': ' . $message;
             error_log($message);
         }
     }

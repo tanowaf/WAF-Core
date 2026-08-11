@@ -37,6 +37,9 @@
 }
 
 # Upstream server
+# allow running unprivileged: instead of 82, go for 1082
+# @todo test if setcap works now that we set it up, and move back to port 82.
+#       Remember to change .env.frankenphp, Dockerfile and container.sh too
 :1082 {
     root /var/www/tests/public
 
@@ -51,6 +54,9 @@
     respond /proxy.php 418
 
     php_server
+
+    # for worker mode (eg. for load tests), use
+    #php_server { worker var/www/tests/public/index.php }
 }
 
 # Proxy
@@ -67,9 +73,6 @@
 }
 
 # Upstream server
-# allow running unprivileged: instead of 82, go for 1082
-# @todo test if setcap works now that we set it up, and move back to port 82.
-#       Remember to change .env.frankenphp, Dockerfile and container.sh too
 :1082 {
     bind unix//run/frankenphp/caddy.server.sock|0222
 

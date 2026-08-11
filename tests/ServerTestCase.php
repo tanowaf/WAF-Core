@@ -112,10 +112,10 @@ abstract class ServerTestCase extends TestCase
             $clientOptions['bindto'] = 'unix:' . $_ENV['PROXY_SOCKET'];
         }
         if (@$testOptions['upstream_client_type'] !== null) {
-            $clientOptions['headers'] = ['X-YAWAF-Upstream-Client-Type' => $testOptions['upstream_client_type']] + ($clientOptions['headers'] ?? []);
+            $clientOptions['headers'] = ['X-WAFCORE-Upstream-Client-Type' => $testOptions['upstream_client_type']] + ($clientOptions['headers'] ?? []);
         }
         if (@$testOptions['server_scheme'] !== null) {
-            $clientOptions['headers'] = ['X-YAWAF-Upstream-Scheme' => $testOptions['server_scheme']] + ($clientOptions['headers'] ?? []);
+            $clientOptions['headers'] = ['X-WAFCORE-Upstream-Scheme' => $testOptions['server_scheme']] + ($clientOptions['headers'] ?? []);
         }
 
         return $this->getTestClient($clientOptions, $testOptions);

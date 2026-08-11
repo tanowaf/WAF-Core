@@ -27,7 +27,7 @@ class CB_HTTPErrorsTest extends ProxyTestCase
 
         $rule = [['always' => true]];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule), 'X-YAWAF-Force-Accept-Encoding' => 'identity']],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule), 'X-WAFCORE-Force-Accept-Encoding' => 'identity']],
             'GET',
             static::getServerPath() . '?action=slowloris&action_args[]=5',
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -49,7 +49,7 @@ class CB_HTTPErrorsTest extends ProxyTestCase
     {
         $rule = [['always' => true]];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule), 'X-YAWAF-Force-Accept-Encoding' => 'identity']],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule), 'X-WAFCORE-Force-Accept-Encoding' => 'identity']],
             'GET',
             '/no_such_page',
             ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
@@ -75,7 +75,7 @@ class CB_HTTPErrorsTest extends ProxyTestCase
 
         $rule = [['always' => true]];
         $response = $this->request(
-            ['headers' => ['X-YAWAF-Config' => json_encode($rule), 'X-YAWAF-Force-Accept-Encoding' => 'identity', 'X-YAWAF-Upstream-Port-Override' => intval(@$_ENV['HTTPSERVER_PORT']) + 3000]],
+            ['headers' => ['X-WAFCORE-Config' => json_encode($rule), 'X-WAFCORE-Force-Accept-Encoding' => 'identity', 'X-WAFCORE-Upstream-Port-Override' => intval(@$_ENV['HTTPSERVER_PORT']) + 3000]],
             'GET',
             static::buildUrl([
                     'scheme' => 'http', 'host' => $_ENV['HTTPSERVER_HOST'], 'port' => intval(@$_ENV['HTTPSERVER_PORT']) + 3000
