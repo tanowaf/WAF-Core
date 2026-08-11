@@ -11,10 +11,14 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Http\CookieParserAwareTrait;
 use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
-use TanoWAF\WAFCore\Http\HeaderParsingCapableResponseInterface;
+use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Response\Psr7\HeaderParsingCapableResponseInterface;
 use TanoWAF\WAFCore\Response\Psr7\Response;
+use TanoWAF\WAFCore\ServerRequest\Psr7\HeaderParsingCapableServerRequestInterface;
+use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use TanoWAF\WAFCore\Stdlib;
 
 /**
@@ -24,7 +28,9 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     use PrivateLoggerTrait;
+    use CookieParserAwareTrait;
     use HeaderParserAwareTrait;
+    use QueryStringParserAwareTrait;
 
     /** @var Rule[] */
     protected array $rules;
@@ -53,6 +59,25 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+/// @todo... the ServerRequest that we want should be capable of parsing headers, cookies and the query string params,
+///          in case a matcher or filter needs to access them. The HeaderParsingCapableServerRequestInterface
+///          does not guarantee that - rename and expand it? (note that atm we are kind of abusing the
+///          ServerRequestInterface methods `getCookieParams` and `getQueryParams` - no other class but
+///          our own ServerRequest will use the cookieParser and queryStringParser to build the values
+///          returned by those methods)
+        if (! $request instanceof HeaderParsingCapableServerRequestInterface) {
+            $request = ServerRequest::fromRequest($request);
+            if ($this->cookieParser !== null) {
+                $request->setCookieParser($this->cookieParser);
+            }
+            if ($this->headerParser !== null) {
+                $request->setHeaderParser($this->headerParser);
+            }
+            if ($this->queryStringParser !== null) {
+                $request->setQueryStringParser($this->queryStringParser);
+            }
+        }
+
         $request = $this->filterServerRequest($request);
         if ($request instanceof ResponseInterface) {
             return $request;
@@ -103,10 +128,20 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
     protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): HeaderParsingCapableResponseInterface|ResponseInterface
     {
         $response = $handler->handle($request);
-        if ($this->headerParser !== null) {
+
+/// @todo... the Response that we want should be capable of parsing all headers as well as set-cookie specifically,
+///          in case a matcher or filter needs to access them. The HeaderParsingCapableResponseInterface
+///          does not guarantee that - rename and expand it? (see similar comment above)
+        if (! $response instanceof HeaderParsingCapableResponseInterface) {
             $response = Response::fromResponse($response);
-            $response->setHeaderParser($this->headerParser);
+            if ($this->cookieParser !== null) {
+                $response->setCookieParser($this->cookieParser);
+            }
+            if ($this->headerParser !== null) {
+                $response->setHeaderParser($this->headerParser);
+            }
         }
+
         return $response;
     }
 

@@ -15,7 +15,6 @@ use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
 use TanoWAF\WAFCore\Http\CookieParserAwareTrait;
 use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
-use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
 
 /**
@@ -27,7 +26,7 @@ use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
  * @todo... verify if we should reimplement withRequestTarget so that it always throws, as that would allow having a
  *          request-target that is not in sync with $this->uri
  */
-class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInterface
+class ServerRequest implements HeaderParsingCapableServerRequestInterface
 {
     use MessageTrait;
     use RequestTrait;
@@ -93,6 +92,30 @@ class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInter
         if ('' !== $body && null !== $body) {
             $this->stream = Stream::create($body);
         }
+    }
+
+    /**
+     * "transforms" an instance of ServerRequestInterface into a ServerRequest.
+     * @return ServerRequest NB: if the $request passed in is a ServerRequest, the original instance itself is returned
+     */
+    public static function fromRequest(ServerRequestInterface $request): static
+    {
+        /// @todo should we do this?
+        //if ($request instanceof ServerRequest) {
+        //    return $request;
+        //}
+
+        $serverRequest = new static($request->getMethod(), $request->getUri(), $request->getHeaders(), $request->getBody(), $request->getProtocolVersion());
+
+        //$serverRequest->setCookieParser($this->cookieParser)
+        //    ->setHeaderParser($this->headerParser)
+        //    ->setQueryStringParser($this->queryStringParser);
+
+        $serverRequest = $serverRequest
+            ->withParsedBody($request->getParsedBody())
+            ->withUploadedFiles($request->getUploadedFiles());
+
+        return $serverRequest;
     }
 
     public function getServerParams(): array

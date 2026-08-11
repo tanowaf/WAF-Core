@@ -7,16 +7,18 @@ use Nyholm\Psr7\MessageTrait;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use TanoWAF\WAFCore\Http\CookieParserAwareTrait;
 use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
-use TanoWAF\WAFCore\Http\HeaderParsingCapableResponseInterface;
 
 /**
  * Original code taken from Nyholm\Psr7\Response, which unfortunately has all properties provate...
  */
 class Response implements HeaderParsingCapableResponseInterface
 {
-    use HeaderParserAwareTrait;
     use MessageTrait;
+
+    use CookieParserAwareTrait;
+    use HeaderParserAwareTrait;
 
     /** @var array Map of standard HTTP status code/reason phrases */
     private const PHRASES = [
@@ -35,6 +37,11 @@ class Response implements HeaderParsingCapableResponseInterface
 
     public static function fromResponse(ResponseInterface $response): static
     {
+        /// @todo should we do this?
+        //if ($request instanceof Response) {
+        //    return $request;
+        //}
+
         return new static($response->getStatusCode(), $response->getHeaders(), $response->getBody(), $response->getProtocolVersion(), $response->getReasonPhrase());
     }
 

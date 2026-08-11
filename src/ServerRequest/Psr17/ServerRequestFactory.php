@@ -74,7 +74,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
     }
 
     /**
-     * NB: unlike the original class, this implementation will in fact eschew usage of $cookie, $get
+     * NB: unlike the original class, this implementation will in fact eschew usage of $_COOKIE, $_GET
      * @todo... the signature this method is silly, as it gets plenty of redundant data, and one can not tell by looking
      *          at it which data is going to be considered truthful
      * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
@@ -112,7 +112,8 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             ->setQueryStringParser($this->queryStringParser);
 
         // waf-core change: avoid doing double-work with the Query Params, as they are first built by a call to `parse_str`
-        // in the ServerRequest constructor, then immediately overwritten with the `->withQueryParams($get)` call
+        // in the ServerRequest constructor, then immediately overwritten with the `->withQueryParams($get)` call.
+        // Same for the Cookie Params
         $serverRequest = $serverRequest
             //->withCookieParams($cookie)
             //->withQueryParams($get)
