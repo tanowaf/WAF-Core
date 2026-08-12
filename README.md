@@ -80,7 +80,7 @@ More examples will come...
 
 For the moment, see project https://github.com/tanowaf/Yet-Another-Docker-Socket-Proxy as example.
 
-Or take a look at the proxies used for the unit testing suite and for load testing in [./tests/public/proxy.php](./tests/public/proxy.php),
+Or take a look at the proxies used for the unit testing suite and for load testing in [./tests/public/waf.php](./tests/public/waf.php),
 [./tests/public/loadtest.php](./tests/public/loadtest.php)
 
 ## Design principles

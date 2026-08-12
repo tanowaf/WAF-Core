@@ -42,7 +42,7 @@ class HTTPHeadersReferenceCoDec
         $this->outputFile = $outputFile;
     }
 
-    public function markdownToJson()
+    public function markdownToJson(): void
     {
         $lines = $this->readInput();
         $data = $this->parseMDInput($lines);

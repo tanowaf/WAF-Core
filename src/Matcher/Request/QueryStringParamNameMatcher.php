@@ -20,15 +20,15 @@ class QueryStringParamNameMatcher extends BaseMatcher
     /** @var string[] */
     protected array $parameterNames = [];
     protected bool $parameterNameIsRegex = false;
-    protected bool $matchAllHeaders = false;
+    protected bool $matchAllQSParams = false;
 
     /**
      * Using wildcards does not make a lot of sense for positive matching, but it does when fe. prepending this with a negation matcher...
      * @throws \InvalidArgumentException
      */
-    public function __construct(string|array $parameterNames, bool $expandWildcardsInName = true, bool $matchAllHeaders = false)
+    public function __construct(string|array $parameterNames, bool $expandWildcardsInName = true, bool $matchAllQSParams = false)
     {
-        $this->matchAllHeaders = $matchAllHeaders;
+        $this->matchAllQSParams = $matchAllQSParams;
         $this->parameterNameIsRegex = $expandWildcardsInName;
 
         if (is_string($parameterNames)) {
@@ -49,7 +49,7 @@ class QueryStringParamNameMatcher extends BaseMatcher
 
         /// @todo optimize: would it be faster to do `$queryParams = array_keys($queryParams)` then use php array functions?
 
-        if ($this->matchAllHeaders) {
+        if ($this->matchAllQSParams) {
             if ($this->parameterNameIsRegex) {
                 foreach ($queryParams as $parameterName => $value) {
                     $found = false;
@@ -91,15 +91,16 @@ class QueryStringParamNameMatcher extends BaseMatcher
                 }
                 return true;
             } else {
+                /// @todo optimize - use array functions?
                 foreach ($this->parameterNames as $parameterName) {
-                    $found = false;
-                    foreach ($queryParams as $parameterName => $value) {
-                        if (in_array($parameterName, $this->parameterNames)) {
-                            $found = true;
-                            break;
-                        }
-                    }
-                    if (!$found) {
+                    //$found = false;
+                    //foreach ($queryParams as $qsParameterName => $value) {
+                    //    if (in_array($parameterName, $this->parameterNames)) {
+                    //        $found = true;
+                    //        break;
+                    //    }
+                    //}
+                    if (! array_key_exists($parameterName, $queryParams)) {
                         return false;
                     }
                 }

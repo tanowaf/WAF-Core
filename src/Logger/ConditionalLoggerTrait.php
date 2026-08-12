@@ -29,7 +29,7 @@ trait ConditionalLoggerTrait
      * Sets minimum logging level at which this handler will be triggered.
      *
      * @param int|string $level Level or level name
-     * @return $this
+     * @return static
      */
     public function setLevel(int|string $level): self
     {

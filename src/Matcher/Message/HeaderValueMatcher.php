@@ -58,7 +58,7 @@ class HeaderValueMatcher extends BaseMatcher
             if (!$message->hasHeader($this->headerName)) {
                 return false;
             }
-            $headerValues = $message->getHeader($this->headerName);
+            //$headerValues = $message->getHeader($this->headerName);
 /// @todo... log a debug message if parsing finds errors (here or...?)
             $parsedValues = $message->normalizedHeaderValue($this->headerName, $errors);
             foreach ($parsedValues as $headerValue) {

@@ -133,7 +133,7 @@ class TestServer
     /**
      * Displays the response to a Trace method
      */
-    protected function displayTraceResponse(string $serverRequestLibrary = 'wafcore')
+    protected function displayTraceResponse(string $serverRequestLibrary = 'wafcore'): void
     {
         header('Content-Type: message/http');
         echo $this->serializeRequest($this->buildServerRequest($serverRequestLibrary));

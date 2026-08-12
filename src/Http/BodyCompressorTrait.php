@@ -61,7 +61,7 @@ trait BodyCompressorTrait
      * Compresses a string with the first possible encoding from a given list. Does not modify the message headers.
      * Does not check if the message was already compressed.
      * @param string[] $contentEncodings
-     * @param string $actualEncoding Encoding used. Will be set to an empty string when 'identity' is passed in
+     * @param string|null $actualEncoding Encoding used. Will be set to an empty string when 'identity' is passed in
      * @todo allow streams for $body
      */
     protected function compressPayload(string $body, array $contentEncodings, string|null &$actualEncoding): string|false

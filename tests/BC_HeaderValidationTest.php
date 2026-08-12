@@ -28,7 +28,7 @@ class BC_HeaderValidationTest extends TestCase
         $this->assertTrue($ok, implode(', ', $errors));
     }
 
-    public static function compliantHeadersDataProvider()
+    public static function compliantHeadersDataProvider(): array
     {
         return [
             [['hello,world'], 'generic'],
@@ -124,7 +124,7 @@ class BC_HeaderValidationTest extends TestCase
         $this->assertFalse($hp->validateHeaderValue('Custom', $values));
     }
 
-    public static function nonCompliantHeadersDataProvider()
+    public static function nonCompliantHeadersDataProvider(): array
     {
         return [
             [['hello =world'], 'cookie'],

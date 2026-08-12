@@ -6,7 +6,6 @@ namespace TanoWAF\WAFCore\Firewall;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\ConfigurationError;
-use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
 
 class FirewallFactory
@@ -36,7 +35,6 @@ class FirewallFactory
 
     /**
      * @param string $configuration
-     * @return static
      * @throws \Exception
      */
     public function fromConfigString(string $configuration): Firewall

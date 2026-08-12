@@ -199,23 +199,26 @@ class WAFPage
 
             /// @todo... allow more options to be set, either to the httpClient or in the middlewareChain
 
-            $upstreamConnector = new FixedUpstreamProxy($upstreamUri, $httpClient, null, $this->logger);
-            $waf = new TestWAF($middlewareChain, $upstreamConnector, $this->logger);
+            $upstreamProxy = new FixedUpstreamProxy($upstreamUri, $httpClient, null, $this->logger);
+            $waf = new TestWAF($middlewareChain, $upstreamProxy, $this->logger);
             $psr17Factory = new Psr17Factory();
 
             $cookieParserFactory = new CookieParserFactory();
             $headerParserFactory = new HeaderParserFactory();
             $queryStringParserFactory = new QueryStringParserFactory();
 
+            $cookieParser = $cookieParserFactory->fromConfiguration([]);
             $headerParser = $headerParserFactory->fromConfiguration([]);
-            $firewall->setHeaderParser($headerParser);
+
+            $firewall->setCookieParser($cookieParser)
+                ->setHeaderParser($headerParser);
 
             $requestCreator = new ServerRequestCreator(
                 $psr17Factory, // UriFactory
                 new ServerRequestFactory(
                     $psr17Factory, // UploadedFileFactory
                     $psr17Factory, // StreamFactory
-                    $cookieParserFactory->fromConfiguration([]),
+                    $cookieParser,
                     $headerParser,
                     $queryStringParserFactory->fromConfiguration([])
                 )

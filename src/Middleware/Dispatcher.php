@@ -20,7 +20,6 @@ class Dispatcher implements MiddlewareInterface, RequestHandlerInterface
 
     /**
      * @param MiddlewareInterface[] $middlewares
-     * @param RequestHandlerInterface $requestHandler
      */
     public function __construct(array $middlewares)
     {
@@ -29,12 +28,12 @@ class Dispatcher implements MiddlewareInterface, RequestHandlerInterface
         }
     }
 
-    public function prependMiddleware(MiddlewareInterface $filter)
+    public function prependMiddleware(MiddlewareInterface $filter): void
     {
         array_unshift($this->middlewares, $filter);
     }
 
-    public function appendMiddleware(MiddlewareInterface $filter)
+    public function appendMiddleware(MiddlewareInterface $filter): void
     {
         $this->middlewares[] = $filter;
     }

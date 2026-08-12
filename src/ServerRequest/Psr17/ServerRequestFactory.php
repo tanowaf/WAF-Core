@@ -13,7 +13,6 @@ use TanoWAF\WAFCore\Http\HeaderParserInterface;
 use TanoWAF\WAFCore\Http\QueryStringParserInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Attributes;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
-use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\Stdlib;
 
 /**
@@ -79,7 +78,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
      *          at it which data is going to be considered truthful
      * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
      */
-    public function fromArrays(string $method, $uri, array $headers = [], $body = null, array $server = [],
+    protected function fromArrays(string $method, $uri, array $headers = [], $body = null, array $server = [],
         array|null $post = null, array $files = []): ServerRequest
     {
         $requestAttributes = new Attributes();

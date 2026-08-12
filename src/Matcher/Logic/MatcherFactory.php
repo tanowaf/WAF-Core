@@ -26,7 +26,7 @@ class MatcherFactory extends SuffixedMatcherFactory implements MatcherFactoryInt
     /**
      * @param string $type
      * @param mixed $values
-     * @return \TanoWAF\WAFCore\Matcher\MatcherInterface
+     * @return MatcherInterface
      * @throws ConfigurationError|\Throwable
      * @todo reduce the scope of possible exceptions thrown
      */

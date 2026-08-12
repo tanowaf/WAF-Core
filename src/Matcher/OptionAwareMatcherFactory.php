@@ -47,7 +47,7 @@ abstract class OptionAwareMatcherFactory extends SuffixedMatcherFactory
         return $out;
     }
 
-    protected function getMatcherOptionByPosition(string $type, int $position, string $defaultValue = '')
+    protected function getMatcherOptionByPosition(string $type, int $position, string $defaultValue = ''): string
     {
         $typeWithOptions = parent::getMatcherType($type);
         $data = explode($this->optionSeparatorChar, $typeWithOptions);

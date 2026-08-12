@@ -168,7 +168,7 @@ class RuleFactory
 
     /**
      * @param array $config
-     * @return \TanoWAF\WAFCore\Matcher\MatcherFactoryInterface
+     * @return MatcherFactoryInterface
      * @throws \Exception
      */
     protected function getRequestMatcherFactory(array $config): MatcherFactoryInterface
@@ -184,7 +184,7 @@ class RuleFactory
 
     /**
      * @param array $config
-     * @return \TanoWAF\WAFCore\Matcher\MatcherFactoryInterface
+     * @return MatcherFactoryInterface
      * @throws \Exception
      */
     protected function getResponseMatcherFactory(array $config): MatcherFactoryInterface

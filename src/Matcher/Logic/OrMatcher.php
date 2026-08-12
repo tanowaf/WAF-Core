@@ -11,7 +11,7 @@ use TanoWAF\WAFCore\Matcher\Response\ResponseMatcherInterface;
 
 class OrMatcher implements RequestMatcherInterface, ResponseMatcherInterface
 {
-    /** @var \TanoWAF\WAFCore\Matcher\MatcherInterface[] */
+    /** @var MatcherInterface[] */
     protected array $matchers = [];
 
     /**

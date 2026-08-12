@@ -27,9 +27,9 @@ try {
 
     $httpClient = new MockUpstreamClient();
     // the upstream uri is not used in this case, since the MockUpstreamClient will happily ignore it
-    $upstreamConnector = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
+    $upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
 
-    $waf = new LoadTestWAF($firewall, $upstreamConnector);
+    $waf = new LoadTestWAF($firewall, $upstreamProxy);
 
     $psr17Factory = new Psr17Factory();
     $cookieParserFactory = new CookieParserFactory();
@@ -50,7 +50,7 @@ try {
     /// @todo... add support for the RoadRunner loop too
     if (array_key_exists('FRANKENPHP_WORKER', $_SERVER) && (int)$_SERVER['FRANKENPHP_WORKER'] !== 0) {
 
-        $handler = function() use($requestCreator, $waf, $responseEmitter) {
+        $requestHandler = function() use($requestCreator, $waf, $responseEmitter) {
             $serverRequest = $requestCreator->fromGlobals();
             $response = $waf->handle($serverRequest);
             $responseEmitter->emit($response);
@@ -61,7 +61,7 @@ try {
             // NB: `set_exception_handler` is called only when the worker script ends,
             // which may be unexpected, so we could (should?) catch and handle exceptions inside $handler
 
-            $keepRunning = \frankenphp_handle_request($handler);
+            $keepRunning = \frankenphp_handle_request($requestHandler);
 
             // Call the garbage collector to reduce the chances of it being triggered in the middle of a page generation
             if ($nbRequests % 10 === 0) {
@@ -81,5 +81,4 @@ try {
 
 } catch (\Throwable $e) {
     $responseEmitter->emit(LoadTestWAF::getErrorResponse());
-    exit();
 }

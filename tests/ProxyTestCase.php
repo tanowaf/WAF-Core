@@ -182,8 +182,8 @@ abstract class ProxyTestCase extends ServerTestCase
             $out .= $this->getProxyRequestTrace();
             if ($out != '') {
                 $out = "\nRequest received by the proxy (and possibly response generated):\n$out";
-            } else {
-                $out = (string)$out;
+            //} else {
+            //    $out = (string)$out;
             }
             $log = $this->getProxyTestLog();
             if ($log != '') {

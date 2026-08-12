@@ -18,6 +18,7 @@ use Psr\Http\Message\UriInterface;
  * @see https://github.com/Nyholm/psr7-server/issues/65, https://github.com/Nyholm/psr7-server/issues/62, https://github.com/Nyholm/psr7-server/pull/49
  *
  * @todo add support for trusted proxies in front of us: allow whitelisting their IPs and the headers such as x-forwarded-...
+ * @todo... fold into ServerRequestFactory?
  */
 class Creator
 {

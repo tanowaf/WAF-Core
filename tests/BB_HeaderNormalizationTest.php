@@ -29,7 +29,7 @@ class BB_HeaderNormalizationTest extends TestCase
     }
 
     // multi-valued, no double-quoted-strings header
-    public static function normalizingCustomHeadersDataProvider()
+    public static function normalizingCustomHeadersDataProvider(): array
     {
         return [
             [[], []],
@@ -80,7 +80,7 @@ class BB_HeaderNormalizationTest extends TestCase
     }
 
     // multi-valued, allows double-quoted-strings header
-    public static function normalizingDQHeadersDataProvider()
+    public static function normalizingDQHeadersDataProvider(): array
     {
         return [
             [[], []],
@@ -159,7 +159,7 @@ class BB_HeaderNormalizationTest extends TestCase
         }
     }
 
-    public static function normalizingJsonHeadersDataProvider()
+    public static function normalizingJsonHeadersDataProvider(): array
     {
         return [
             [['{" hello ":" world "}'], ['{" hello ":" world "}']],

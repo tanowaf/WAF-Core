@@ -9,6 +9,6 @@ use TanoWAF\WAFCore\Stdlib;
 
 interface Item extends Parameter
 {
-    /** @var Parameter[] */
+    /** @return Parameter[] */
     public function getParameters(): array;
 }
