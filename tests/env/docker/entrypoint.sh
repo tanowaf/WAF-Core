@@ -131,8 +131,19 @@ if [ -f /etc/roadrunner/rr.yaml ]; then
     chown roadrunner:roadrunner /var/lib/roadrunner
     chown roadrunner /var/log/roadrunner
 
-    # @todo...
-    #sed -e "s|^ *root .*|    root ${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/roadrunner/rr.yaml
+    sed -e "s|^ *command:.*|    command: php ${TESTS_ROOT_DIR}/tests/public/waf.php|g" --in-place /etc/roadrunner/rr.yaml
+fi
+
+if [ -f /etc/init.d/swoole ]; then
+    echo "[$(date)] Fixing Swoole configuration..."
+
+        groupmod -o -g "$CONTAINER_USER_GID" swoole
+        usermod -o -u "$CONTAINER_USER_UID" -g "$CONTAINER_USER_GID" swoole
+        chown swoole:swoole /run/swoole
+        chown swoole:swoole /var/lib/swoole
+        #chown swoole /var/log/swoole
+
+    sed -r -e "s|^TESTS_ROOT_DIR=.*|TESTS_ROOT_DIR=${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/init.d/swoole
 fi
 
 echo "[$(date)] Fixing FPM configuration..."
@@ -200,6 +211,16 @@ if [ "$START_WEBSERVER" = roadrunner ] || [ "$START_WEBSERVER" = all ]; then
     else
         if [ "$START_WEBSERVER" = roadrunner ]; then
             echo "Can not start roadrunner: it was not installed in this container" >&2
+            exit 1
+        fi
+    fi
+fi
+if [ "$START_WEBSERVER" = swoole ] || [ "$START_WEBSERVER" = all ]; then
+    if [ -f /etc/init.d/swoole ]; then
+        service swoole start
+    else
+        if [ "$START_WEBSERVER" = swoole ]; then
+            echo "Can not start swoole: it was not installed in this container" >&2
             exit 1
         fi
     fi

@@ -1,23 +1,25 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          roadrunner
+# Provides:          swoole
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
 # Required-Stop:     $local_fs $remote_fs $network $syslog $named
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # X-Interactive:     true
-# Short-Description: Roadrunner web server
-# Description:       Starts roadrunner using start-stop-daemon
+# Short-Description: Swoole web server
+# Description:       Starts swoole using start-stop-daemon
 ### END INIT INFO
 
-# Init.d service script for roadrunner on ubuntu/debian
+# Init.d service script for swoole on ubuntu/debian
 #
-# @todo in order to bind to privileged ports, it requires a call to `setcap 'cap_net_bind_service=+ep' /usr/bin/rr`
-#       Shall we add it in here? (or give a warning on FP start if this was not done?)
+# No setcap for Swoole, as it would be a liability issue, given it uses the php executable
 
-DESC="Roadrunner httpd web server"
-NAME=roadrunner
-DAEMON=/usr/bin/rr
+
+DESC="Swoole httpd web server"
+NAME=swoole
+DAEMON=/usr/bin/php
+TESTS_ROOT_DIR=/var/www/tests/public
+WORKER_SCRIPT=waf.php
 STOP_SCHEDULE=INT/5/QUIT/5/KILL/5
 VERBOSE=no
 
@@ -30,29 +32,30 @@ test -x $DAEMON || exit 1
 
 . /lib/lsb/init-functions
 
-if [ -z "$ROADRUNNER_CONFIG" ]; then
-    ROADRUNNER_CONFIG=/etc/roadrunner/rr.yaml
+if [ -z "$SWOOLE_CONFIG" ]; then
+    SWOOLE_CONFIG=/etc/swoole/swoole.json
 fi
-if [ -z "$ROADRUNNER_USER" ]; then
-    ROADRUNNER_USER="$NAME"
+if [ -z "$SWOOLE_USER" ]; then
+    SWOOLE_USER="$NAME"
 fi
-if [ -z "$ROADRUNNER_GROUP" ]; then
-    ROADRUNNER_GROUP="$ROADRUNNER_USER"
+if [ -z "$SWOOLE_GROUP" ]; then
+    SWOOLE_GROUP="$SWOOLE_USER"
 fi
 if [ -z "$WORKING_DIR" ]; then
-    WORKING_DIR="/var/lib/$ROADRUNNER_USER"
+    WORKING_DIR="/var/lib/$SWOOLE_USER"
 fi
 if [ -z "$PIDFILE" ]; then
-    PIDFILE="/run/$ROADRUNNER_USER/roadrunner.pid"
+    PIDFILE="/run/$SWOOLE_USER/swoole.pid"
 fi
 if [ -z "$LOGFILE" ]; then
-    LOGFILE="/var/log/$NAME/roadrunner.log"
+    LOGFILE="/var/log/$NAME/swoole.log"
 fi
 
-DAEMON_OPTS="--config $ROADRUNNER_CONFIG --WorkDir $WORKING_DIR $DAEMON_OPTS"
+# we set env vars that will be used by our worker for the log file, listening port
+DAEMON_OPTS="-dextension=openswoole -f $TESTS_ROOT_DIR/$WORKER_SCRIPT -- $SWOOLE_CONFIG"
 
 if [ -n "$ULIMIT" ]; then
-    # Set ulimit if it is set in /etc/default/roadrunner
+    # Set ulimit if it is set in /etc/default/swoole
     ulimit $ULIMIT
 fi
 
@@ -60,10 +63,10 @@ setup_dirs() {
     if [ ! -d "$(dirname "$PIDFILE")" ]; then
         mkdir "$(dirname "$PIDFILE")"
     fi
-    if [ "$(dirname "$PIDFILE")" = "/run/$ROADRUNNER_USER/" ]; then
-        chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
+    if [ "$(dirname "$PIDFILE")" = "/run/$SWOOLE_USER/" ]; then
+        chown "$SWOOLE_USER:$SWOOLE_GROUP" "$(dirname "$PIDFILE")"
     else
-        chgrp "$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
+        chgrp "$SWOOLE_GROUP" "$(dirname "$PIDFILE")"
         chmod g+w "$(dirname "$PIDFILE")"
     fi
 
@@ -74,7 +77,7 @@ setup_dirs() {
     if [ ! -f "$LOGFILE" ]; then
         touch "$LOGFILE"
     fi
-    chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$LOGFILE"
+    chown "$SWOOLE_USER:$SWOOLE_GROUP" "$LOGFILE"
     chmod 640 "$LOGFILE"
 
     if [ ! -d "$(dirname "$WORKING_DIR")" ]; then
@@ -98,9 +101,7 @@ do_start() {
     start-stop-daemon --start --quiet --exec $DAEMON --test > /dev/null \
         || return 1
 
-    # @todo check: do we need to allow easy rotation of the log file by piping into multilog or similar, or does roadrunner handle that via a signal?
-    # removed: -d "$WORKING_DIR"
-    start-stop-daemon --start --quiet -c "$ROADRUNNER_USER":"$ROADRUNNER_GROUP" -b -O "$LOGFILE" --make-pidfile --pidfile "$PIDFILE" \
+    start-stop-daemon --start --quiet -c "$SWOOLE_USER":"$SWOOLE_GROUP" -b -d "$WORKING_DIR" --make-pidfile --pidfile "$PIDFILE" \
         --exec $DAEMON -- serve $DAEMON_OPTS 2>/dev/null \
         || return 2
 }
@@ -109,9 +110,9 @@ do_start() {
 #   0 if config was reloaded
 #   2 if config could not be reloaded (eg. daemon not started)
 do_reload() {
-    ### @todo... send a signal SIGUSR2 to (restart the server and) reload the config - check if rr propagates it to php...
+    ### @todo... send a signal SIGHUP to (restart the server and) reload the config
     ### # This returns 1 if FP is not running or presumably other errors
-    ###$DAEMON reload --config "$ROADRUNNER_CONFIG" >/dev/null 2>&1 || return 2
+    ###$DAEMON reload --config "$SWOOLE_CONFIG" >/dev/null 2>&1 || return 2
     .
 }
 
@@ -127,12 +128,6 @@ do_reload() {
 #   1 if daemon was not running
 #   2 if daemon could not be stopped
 do_stop() {
-    # see https://caddy.community/t/looking-for-linux-signal-handling-details-for-caddy/15406
-    #if [ -z "$(pidofproc -p $PIDFILE $DAEMON)" ]; then
-    #    return 1
-    #fi
-    #$DAEMON stop $DAEMON_OPTS >/dev/null 2>&1 || return 2
-
     start-stop-daemon --stop --retry="$STOP_SCHEDULE" --quiet --remove-pidfile --pidfile $PIDFILE --name $NAME
 }
 

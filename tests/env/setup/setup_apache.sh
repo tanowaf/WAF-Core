@@ -2,7 +2,8 @@
 
 # Install and configure apache2
 # Has to be run as root
-# @todo make sure this works across all ubuntu versions (precise to resolute)
+
+# @todo make sure this works across all ubuntu lts versions (precise to resolute)
 
 set -e
 

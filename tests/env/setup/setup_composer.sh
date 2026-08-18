@@ -5,6 +5,8 @@
 
 echo "Installing Composer..."
 
+export DEBIAN_FRONTEND=noninteractive
+
 if dpkg -l composer 2>/dev/null; then
     apt-get remove -y composer
 fi

@@ -7,6 +7,8 @@ set -e
 
 echo "Setting up the app..."
 
+# @todo move to getopts...
+
 TESTS_ROOT_DIR="${1}"
 USERNAME="${2:-docker}"
 

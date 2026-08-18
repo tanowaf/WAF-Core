@@ -1,10 +1,17 @@
 #!/bin/sh
 
-# Uses env vars: PHP_VERSION, UBUNTU_VERSION, WEBSERVER_TYPE
+# Builds the container image
+#
+# Uses env vars: PHP_VERSION, UBUNTU_VERSION, WEBSERVER_TYPE, APT_PACKAGE_PROXY
 
 set -e
 
 if [ ! -f /.dockerenv ]; then touch /.dockerenv; fi
+
+# Allow the user to specify a proxy for speeding up downloading of apt packages
+if [ -n "${APT_PACKAGE_PROXY}" ] && [ "${APT_PACKAGE_PROXY}" != "none" ]; then
+    printf "Acquire::http::Proxy \"${APT_PACKAGE_PROXY}\";\nAcquire::https::Proxy \"DIRECT\";\n" > /etc/apt/apt.conf.d/00proxy
+fi
 
 cd /root/setup
 
@@ -29,13 +36,21 @@ if [ "$WEBSERVER_TYPE" = frankenphp ] || [ "$WEBSERVER_TYPE" = all ]; then
     ./setup_frankenphp.sh "${FP_VERSION}";
 fi
 
-./setup_php.sh "${PHP_VERSION}"
+# @todo move the list of php extensions to a cli option / env var
+./setup_php.sh -p 'brotli zstd protobuf' "${PHP_VERSION}"
 
 ./setup_composer.sh
 
 if [ "$WEBSERVER_TYPE" = roadrunner ] || [ "$WEBSERVER_TYPE" = all ]; then
     ./setup_roadrunner.sh;
 fi
+
+if [ "$WEBSERVER_TYPE" = swoole ] || [ "$WEBSERVER_TYPE" = all ]; then
+    ./setup_swoole.sh;
+fi
+
+# @todo... find what causes the need for this and fix it! (also, move this to setup_php.sh in the meantime?)
+chmod 755 /usr/lib/php && chmod 755 /usr/lib/php/20250925
 
 apt-get -y autoremove && apt-get -y autoclean && apt-get -y clean
 

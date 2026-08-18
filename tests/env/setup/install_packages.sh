@@ -8,8 +8,6 @@ echo "Installing base software packages..."
 
 UPDATE_INSTALLED=false
 
-export DEBIAN_FRONTEND=noninteractive
-
 while getopts ":u" opt
 do
     case $opt in
@@ -22,21 +20,19 @@ do
           ;;
     esac
 done
+shift $((OPTIND-1))
+
+export DEBIAN_FRONTEND=noninteractive
 
 if [ ! -d /usr/share/man/man1 ]; then mkdir -p /usr/share/man/man1; fi
-
-# Allow the user to specify a proxy for speeding up downloading of apt packages
-if [ "${APT_PACKAGE_PROXY}" != "none" ]; then
-    printf "Acquire::http::Proxy \"${APT_PACKAGE_PROXY}\";\nAcquire::https::Proxy \"DIRECT\";\n" > /etc/apt/apt.conf.d/00proxy
-fi
-
-# @todo allow the user to specify an ubuntu mirror for speeding up downloading of apt packages
 
 apt-get update --allow-releaseinfo-change
 
 if [ "$UPDATE_INSTALLED" = true ]; then
     apt-get upgrade -y
 fi
+
+# @todo allow passing in the list of packages to install via an env var / cli option
 
 # Curl is not required atm to run tests, but it is a good tool to run manual tests on the command-line.
 # It can query a unix socket too, via option `--unix-socket`

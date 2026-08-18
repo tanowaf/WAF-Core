@@ -47,7 +47,7 @@
 
     log
 
-    # Allow the proxy to make requests that will result in a 404
+    # Allow the proxy to make requests that will result in a 404 - do not funnel all of them into server.php
     #rewrite * /server.php
 
     # try to avoid mixing up access to the proxy and the server
@@ -56,7 +56,9 @@
     php_server
 
     # for worker mode (eg. for load tests), use
-    #php_server { worker var/www/tests/public/index.php }
+    #php_server {
+    #    worker /var/www/tests/public/loadtest/loadtest_frankenphp.php # or noop_frankenphp.php
+    #}
 }
 
 # Proxy

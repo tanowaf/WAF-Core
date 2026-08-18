@@ -6,6 +6,8 @@ set -e
 
 echo "Creating user account..."
 
+# @todo move to getopts, allow a custom group name...
+
 USERNAME="${1:-docker}"
 USER_ID="${2:-2000}"
 USER_GID="${3:-2000}"

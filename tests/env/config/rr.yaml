@@ -1,38 +1,43 @@
 version: '3'
 
 server:
-    # @todo... figure out this part
-    command: 'php app.php'
+    command: 'php /var/www/tests/public/waf.php'
     relay: pipes
+    env:
+        ROADRUNNER_WORKER: 1
 
+# @todo configure the pool with the same number of workers as the other servers
 http:
-    address: '0.0.0.0:8088'
-    middleware:
-        - gzip
-        - static
-    static:
-        dir: /home/docker/workspace/tests/public
-        forbid:
-            - .php
-            - .htaccess
+    address: '0.0.0.0:8083'
+#    middleware:
+#        - gzip
+#        - static
+#    static:
+#        dir: /home/docker/workspace/tests/public
+#        forbid:
+#            - .php
+#            - .htaccess
     pool:
-        num_workers: 1
+        num_workers: 2
         supervisor:
             max_worker_memory: 100
 
 # unused features
+#
 #jobs:
 #    pool:
 #        num_workers: 2
 #        max_worker_memory: 100
 #    consume: {}
+#
 #kv:
 #    local:
 #        driver: memory
 #        config:
 #            interval: 60
+#
 #rpc:
 #    listen: 'tcp://127.0.0.1:6001'
-
-metrics:
-    address: '127.0.0.1:2112'
+#
+#metrics:
+#    address: '127.0.0.1:2112'

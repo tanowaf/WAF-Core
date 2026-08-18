@@ -3,7 +3,13 @@ declare(strict_types=1);
 
 // *** A _minimalist_ waf proxy, to be used for load tests. Returns a fixed response, without contacting any upstream.
 
-require __DIR__ . '/../../vendor/autoload.php';
+if (!isset($_SERVER['FRANKENPHP_WORKER']) || (int)$_SERVER['FRANKENPHP_WORKER'] === 0) {
+    throw new \Exception('This script is meant to be used in FrankenPHP Worker mode, which is not enabled in the current configuration');
+}
+
+// FrankenPHP worker mode
+
+require __DIR__ . '/../../../vendor/autoload.php';
 
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -46,37 +52,25 @@ try {
         )
     );
 
-    // allow an optimized execution for servers such as frankenphp which can run php code in a loop
-    /// @todo... add support for the RoadRunner loop too
-    if (array_key_exists('FRANKENPHP_WORKER', $_SERVER) && (int)$_SERVER['FRANKENPHP_WORKER'] !== 0) {
-
-        $requestHandler = function() use($requestCreator, $waf, $responseEmitter) {
-            $serverRequest = $requestCreator->fromGlobals();
-            $response = $waf->handle($serverRequest);
-            $responseEmitter->emit($response);
-        };
-
-        $maxRequests = (isset($_SERVER['MAX_REQUESTS_PER_WORKER']) && $_SERVER['MAX_REQUESTS_PER_WORKER'] > 0) ? (int)$_SERVER['MAX_REQUESTS_PER_WORKER'] : PHP_INT_MAX;
-        for ($nbRequests = 0; $nbRequests < $maxRequests; ++$nbRequests) {
-            // NB: `set_exception_handler` is called only when the worker script ends,
-            // which may be unexpected, so we could (should?) catch and handle exceptions inside $handler
-
-            $keepRunning = \frankenphp_handle_request($requestHandler);
-
-            // Call the garbage collector to reduce the chances of it being triggered in the middle of a page generation
-            if ($nbRequests % 10 === 0) {
-                gc_collect_cycles();
-            }
-
-            if (!$keepRunning) break;
-        }
-
-    } else {
-
+    $requestHandler = function() use($requestCreator, $waf, $responseEmitter) {
         $serverRequest = $requestCreator->fromGlobals();
         $response = $waf->handle($serverRequest);
         $responseEmitter->emit($response);
+    };
 
+    $maxRequests = (isset($_SERVER['MAX_REQUESTS_PER_WORKER']) && $_SERVER['MAX_REQUESTS_PER_WORKER'] > 0) ? (int)$_SERVER['MAX_REQUESTS_PER_WORKER'] : PHP_INT_MAX;
+    for ($nbRequests = 0; $nbRequests < $maxRequests; ++$nbRequests) {
+        // NB: `set_exception_handler` is called only when the worker script ends,
+        // which may be unexpected, so we could (should?) catch and handle exceptions inside $handler
+
+        $keepRunning = \frankenphp_handle_request($requestHandler);
+
+        // Call the garbage collector to reduce the chances of it being triggered in the middle of a page generation
+        if ($nbRequests % 10 === 0) {
+            gc_collect_cycles();
+        }
+
+        if (!$keepRunning) break;
     }
 
 } catch (\Throwable $e) {

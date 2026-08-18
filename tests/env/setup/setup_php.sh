@@ -2,56 +2,48 @@
 
 # Has to be run as root
 
-# @todo make it optional to install xdebug. It is fe. missing in sury's ppa for Xenial
-# @todo make it optional to install fpm. It is not needed for the cd workflow
 # @todo make it optional to disable xdebug ?
-# @todo set the list of required php extensions in a variable, allow it to be overridden
 # @todo allow to force usage of ondrej repos regardless of php version in use
 
 set -e
 
-# @todo move to getopts
+PHP_EXTENSIONS="${PHP_EXTENSIONS:-cli curl dom fpm mbstring xdebug}"
+PIE_EXTENSIONS=''
+INSTALL_FPM=false
+INSTALL_XDEBUG=false
+
+while getopts ":e:p:" opt
+do
+    case $opt in
+        e)
+            PHP_EXTENSIONS="$OPTARG"
+            ;;
+        p)
+            PIE_EXTENSIONS="$OPTARG"
+            ;;
+        \?)
+          echo "Invalid option: -$OPTARG" >&2
+          exit 1
+          ;;
+    esac
+done
+shift $((OPTIND-1))
+
 PHP_VERSION="$1"
-PIE_EXTENSIONS="$2"
 
-echo "Installing PHP version '${PHP_VERSION}'..."
+if [ -z "$PHP_VERSION" ]; then
+    echo "PHP version has to be specified as 1st argument" >&2
+    exit 1
+fi
 
-SCRIPT_DIR="$(dirname -- "$(readlink -f "$0")")"
-
-export DEBIAN_FRONTEND=noninteractive
-
-configure_php_ini() {
-    # note: these settings are not required for cli config
-    cat "$SCRIPT_DIR/../config/php.append.ini" >> "${1}"
-
-    # we disable xdebug for speed for both cli and web mode
-    # @todo make this optional
-    if which phpdismod >/dev/null 2>/dev/null; then
-        phpdismod xdebug
-    elif [ -f "/etc/php/$PHP_VERSION/mods-available/xdebug.ini" ]; then
-        mv "/etc/php/$PHP_VERSION/mods-available/xdebug.ini" "/etc/php/$PHP_VERSION/mods-available/xdebug.ini.bak"
-    elif [ -f "/usr/local/php/$PHP_VERSION/etc/conf.d/20-xdebug.ini" ]; then
-        mv "/usr/local/php/$PHP_VERSION/etc/conf.d/20-xdebug.ini" "/usr/local/php/$PHP_VERSION/etc/conf.d/20-xdebug.ini.bak"
-    else
-        echo "Could not disable loading of xdebug - xdebug.ini file not found" >&2
-    fi
-}
-
-configure_php_fpm() {
-    # a high number of fpm processes is required for slow-loris tests
-    sed -e "s|^pm.max_children .*|pm.max_children = 30|g" --in-place "$1"
-}
-
-enable_pie_exts() {
-    if [ -d /usr/lib/php/pie/ ]; then
-        for EXT in /usr/lib/php/pie/*.so; do
-            FILENAME="$(basename "$EXT")"
-            mv "$EXT" /usr/lib/php/20250925
-            echo "extension=$FILENAME" > "/etc/php/$PHPVER/mods-available/$(echo "$FILENAME" | sed "s/\.so/.ini/")"
-            phpenmod "$(echo "$FILENAME" | sed "s/\.so//")"
-        done
-    fi
-}
+case " $PHP_EXTENSIONS " in
+    *" fpm "*) INSTALL_FPM=true ;;
+    *) . ;;
+esac
+case " $PHP_EXTENSIONS " in
+    *" xdebug "*) INSTALL_XDEBUG=true ;;
+    *) . ;;
+esac
 
 install_native() {
     echo "Using native PHP packages..."
@@ -61,19 +53,12 @@ install_native() {
     else
         PHPSUFFIX=
     fi
-    if [ -n "$PIE_EXTENSIONS" ]; then
-        PHP_PACKAGES="php${PHPSUFFIX}-cli php${PHPSUFFIX}-dev"
-    else
-        # @todo check for mbstring presence in php5 (jessie) packages
-        PHP_PACKAGES="php${PHPSUFFIX} \
-            php${PHPSUFFIX}-cli \
-            php${PHPSUFFIX}-dom \
-            php${PHPSUFFIX}-curl \
-            php${PHPSUFFIX}-fpm \
-            php${PHPSUFFIX}-mbstring \
-            php${PHPSUFFIX}-xdebug"
+    # @todo check for mbstring presence in php5 (jessie) packages
+    PHP_PACKAGES="php${PHPSUFFIX}"
+    for EXT in $PHP_EXTENSIONS; do
+        PHP_PACKAGES="$PHP_PACKAGES php${PHPSUFFIX}-${EXT}"
+    done
 
-    fi
     apt-get install -y ${PHP_PACKAGES}
 }
 
@@ -84,25 +69,116 @@ install_ondrej() {
 
     apt-get install -y language-pack-en-base software-properties-common
     LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
-    apt-get update
+    apt-get update --allow-releaseinfo-change
 
-    if [ -n "$PIE_EXTENSIONS" ]; then
-        PHP_PACKAGES="php${PHP_VERSION}-cli php${PHP_VERSION}-dev"
-    else
-        PHP_PACKAGES="php${PHP_VERSION} \
-            php${PHP_VERSION}-cli \
-            php${PHP_VERSION}-dom \
-            php${PHP_VERSION}-curl \
-            php${PHP_VERSION}-fpm \
-            php${PHP_VERSION}-mbstring \
-            php${PHP_VERSION}-xdebug"
-    fi
+    PHP_PACKAGES="php${PHP_VERSION}"
+    for EXT in $PHP_EXTENSIONS; do
+        PHP_PACKAGES="$PHP_PACKAGES php${PHP_VERSION}-${EXT}"
+    done
+
     apt-get install -y ${PHP_PACKAGES}
 
     update-alternatives --set php "/usr/bin/php${PHP_VERSION}"
 }
 
-# install php
+configure_php_ini() {
+    # note: these settings are not required for cli config
+    if [ -f "$SCRIPT_DIR/../config/php.append.ini" ]; then
+        cat "$SCRIPT_DIR/../config/php.append.ini" >> "$1"
+    fi
+
+    if [ "$INSTALL_XDEBUG" = true ]; then
+        # we disable xdebug for speed for both cli and web mode
+        if which phpdismod >/dev/null 2>/dev/null; then
+            phpdismod xdebug
+        elif [ -f "/etc/php/$PHP_VERSION/mods-available/xdebug.ini" ]; then
+            mv "/etc/php/$PHP_VERSION/mods-available/xdebug.ini" "/etc/php/$PHP_VERSION/mods-available/xdebug.ini.bak"
+        elif [ -f "/usr/local/php/$PHP_VERSION/etc/conf.d/20-xdebug.ini" ]; then
+            mv "/usr/local/php/$PHP_VERSION/etc/conf.d/20-xdebug.ini" "/usr/local/php/$PHP_VERSION/etc/conf.d/20-xdebug.ini.bak"
+        else
+            echo "Could not disable loading of xdebug - xdebug.ini file not found" >&2
+        fi
+    fi
+}
+
+configure_php_fpm() {
+    echo "Configuring PHP-FPM..."
+
+    service "php${PHPVER}-fpm" stop || true
+
+    if [ -d "/etc/php/${PHPVER}/fpm" ]; then
+        configure_php_ini "/etc/php/${PHPVER}/fpm/php.ini"
+    elif [ -f "/usr/local/php/${PHPVER}/etc/php.ini" ]; then
+        configure_php_ini "/usr/local/php/${PHPVER}/etc/php.ini"
+    fi
+
+    # @todo is the default pool always named www.conf?
+    if [ -f "/etc/php/${PHPVER}/fpm/pool.d/www.conf" ]; then
+        #configure_php_fpm "/etc/php/${PHPVER}/fpm/pool.d/www.conf"
+        sed -e "s|^pm.max_children .*|pm.max_children = 30|g" --in-place "/etc/php/${PHPVER}/fpm/pool.d/www.conf"
+    fi
+
+    # use a nice name for the php-fpm service, so that it does not depend on php version running. Try to make that work
+    # both for docker and VMs
+    if [ -f "/etc/init.d/php${PHPVER}-fpm" ]; then
+        ln -s "/etc/init.d/php${PHPVER}-fpm" /etc/init.d/php-fpm
+    fi
+    if [ -f "/lib/systemd/system/php${PHPVER}-fpm.service" ]; then
+        ln -s "/lib/systemd/system/php${PHPVER}-fpm.service" /lib/systemd/system/php-fpm.service
+        if [ ! -f /.dockerenv ]; then
+            systemctl daemon-reload
+        fi
+    fi
+
+    service php-fpm start
+
+    # reconfigure apache (if installed). Sadly, php will switch on mod-php and mpm_prefork at install time...
+    # @todo... allow having both mod-php and fpm running at the same time, on different vhosts...
+    if [ -n "$(dpkg --list | grep apache)" ]; then
+        configure_apache
+    fi
+}
+
+configure_apache() {
+    echo "Reconfiguring Apache..."
+
+    if [ -n "$(ls /etc/apache2/mods-enabled/php* 2>/dev/null)" ]; then
+        rm /etc/apache2/mods-enabled/php*
+    fi
+    a2dismod mpm_prefork
+    a2enmod mpm_event
+    a2enconf "php${PHPVER}-fpm"
+
+    #service apache2 restart
+}
+
+setup_pie_exts() {
+    echo "Setting up php extensions built with PIE..."
+
+    # @todo fix: this will fail if /usr/lib/php/pie exists but is empty
+    for EXT in /usr/lib/php/pie/*.so; do
+        FILENAME="$(basename "$EXT")"
+        EXTNAME="$(echo "$FILENAME" | sed 's/\.so//')"
+        EXTDIR=$(php -r 'echo ini_get("extension_dir");')
+        mv "$EXT" "$EXTDIR"
+        echo "extension=$FILENAME" > "/etc/php/$PHPVER/mods-available/${EXTNAME}.ini"
+        case " $PIE_EXTENSIONS " in
+            *" ${EXTNAME} "*)
+                phpenmod "$EXTNAME"
+                ;;
+            *) . ;;
+        esac
+    done
+}
+
+echo "Installing PHP version '${PHP_VERSION}'..."
+
+SCRIPT_DIR="$(dirname -- "$(readlink -f "$0")")"
+
+export DEBIAN_FRONTEND=noninteractive
+
+# use native packages if requested for a specific version and that is the same as available in the os repos
+
 # `lsb-release` is not necessarily onboard. We parse /etc/os-release instead
 DEBIAN_VERSION=$(grep 'VERSION_CODENAME=' /etc/os-release | sed 's/VERSION_CODENAME=//')
 if [ -z "${DEBIAN_VERSION}" ]; then
@@ -111,8 +187,6 @@ if [ -z "${DEBIAN_VERSION}" ]; then
     # VERSION="8 (jessie)"
     DEBIAN_VERSION=$(grep 'VERSION=' /etc/os-release | grep 'VERSION=' | sed 's/VERSION=//' | sed 's/"[0-9.]\+ *(\?//' | sed 's/)\?"//' | tr '[:upper:]' '[:lower:]' | sed 's/lts, *//' | sed 's/ \+tahr//')
 fi
-
-# use native packages if requested for a specific version and that is the same as available in the os repos
 
 DEFAULT_PHP_VERSION=
 if [ "${DEBIAN_VERSION}" = 'precise' ]; then
@@ -155,77 +229,29 @@ else
     #if [ "${PHP_VERSION}" = 5.3 ] || [ "${PHP_VERSION}" = 5.4 ] || [ "${PHP_VERSION}" = 5.5 ] || \
     if [ "${DEBIAN_VERSION}" = focal ] || [ "${DEBIAN_VERSION}" = bionic ] || [ "${DEBIAN_VERSION}" = xenial ] || [ "${DEBIAN_VERSION}" = trusty ]; then
         # @todo... bring this back and test that it works
-        install_shivammatur
+        #install_shivammatur
+        echo "Setting up PHP ${PHP_VERSION} on Ubuntu version ${DEBIAN_VERSION} is not supported atm" >&2
+        exit 1
     else
         install_ondrej
     fi
 fi
 
-# non-native php extensions
-# @todo the installation of extensions via PIE requires the presence of `phpize`, even when a "prebuilt archive" is
-#       available. phpize in turn is downloaded as an apt package, which brings in gcc and co. as dependencies. Which means
-#       a lot of disk bloat and long build times... can we obviate to that in any way (apart from the 2-stage build we currently use)?
-#       Take a look f.e. at https://github.com/mlocati/docker-php-extension-installer
-if [ -n "$PIE_EXTENSIONS" ]; then
-    # @todo install the github cli to verify the pie download (see f.e. https://linuxcapable.com/how-to-install-github-cli-on-ubuntu-linux/)
-    #  && gh attestation verify --owner php /tmp/pie.phar \
-    curl -fL --output /tmp/pie.phar https://github.com/php/pie/releases/latest/download/pie.phar && \
-        mv /tmp/pie.phar /usr/local/bin/pie && \
-        chmod +x /usr/local/bin/pie
-
-    for EXTENSION in $PIE_EXTENSIONS; do
-        pie install --no-build-tools-check --auto-install-system-dependencies --no-interaction "$EXTENSION"
-    done
-fi
-
 PHPVER=$(php -r 'echo implode(".",array_slice(explode(".",PHP_VERSION),0,2));' 2>/dev/null)
 
-if [ -z "$PIE_EXTENSIONS" ]; then
-
-    service "php${PHPVER}-fpm" stop || true
-
-    if [ -d "/etc/php/${PHPVER}/fpm" ]; then
-        configure_php_ini "/etc/php/${PHPVER}/fpm/php.ini"
-    elif [ -f "/usr/local/php/${PHPVER}/etc/php.ini" ]; then
-        configure_php_ini "/usr/local/php/${PHPVER}/etc/php.ini"
+# we have to set up pie extensions, as we use a 2 stage build and their build process leaves them in a different dir
+if [ -d /usr/lib/php/pie/ ]; then
+    setup_pie_exts
+else
+    if [ -n "$PIE_EXTENSIONS" ]; then
+        echo "There were no extensions built with PIE, can not enable $PIE_EXTENSIONS" >&2
     fi
-
-    # we enable pie exts when we don't build them - as the build process leaves them on, and we use a 2 stage build
-    enable_pie_exts
-
-    # @todo is the default pool always named www.conf?
-    if [ -f "/etc/php/${PHPVER}/fpm/pool.d/www.conf" ]; then
-        configure_php_fpm "/etc/php/${PHPVER}/fpm/pool.d/www.conf"
-    fi
-
-    # use a nice name for the php-fpm service, so that it does not depend on php version running. Try to make that work
-    # both for docker and VMs
-    if [ -f "/etc/init.d/php${PHPVER}-fpm" ]; then
-        ln -s "/etc/init.d/php${PHPVER}-fpm" /etc/init.d/php-fpm
-    fi
-    if [ -f "/lib/systemd/system/php${PHPVER}-fpm.service" ]; then
-        ln -s "/lib/systemd/system/php${PHPVER}-fpm.service" /lib/systemd/system/php-fpm.service
-        if [ ! -f /.dockerenv ]; then
-            systemctl daemon-reload
-        fi
-    fi
-
-    service php-fpm start
-
-    # reconfigure apache (if installed). Sadly, php will switch on mod-php and mpm_prefork at install time...
-    if [ -n "$(dpkg --list | grep apache)" ]; then
-        echo "Reconfiguring Apache..."
-        if [ -n "$(ls /etc/apache2/mods-enabled/php* 2>/dev/null)" ]; then
-            rm /etc/apache2/mods-enabled/php*
-        fi
-        a2dismod mpm_prefork
-        a2enmod mpm_event
-        a2enconf php${PHPVER}-fpm
-        #service apache2 restart
-    fi
-
-    php -v
-    echo
-    echo "Done installing PHP"
-
 fi
+
+if [ "$INSTALL_FPM" = true ]; then
+    configure_php_fpm
+fi
+
+php -v
+echo
+echo "Done installing PHP"

@@ -1,0 +1,9 @@
+{
+    "listen_ip": "0.0.0.0",
+    "listen_port": 8084,
+
+    "worker_num": 2,
+    "backlog": 128,
+
+    "log_file": "/var/log/swoole/swoole.log"
+}

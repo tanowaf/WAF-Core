@@ -51,8 +51,7 @@ cp -f "$SCRIPT_DIR/../config/rr.yaml" /etc/roadrunner/rr.yaml
 if [ -n "${GITHUB_ACTIONS}" ]; then
     ### @todo...
     TESTS_ROOT_DIR="$(pwd)"
-    # @todo...
-    ###sed -e "s|^ *root .*|    root ${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/roadrunner/rr.yaml
+    sed -e "s|^ *command:.*|    command: ${TESTS_ROOT_DIR}/waf.php|g" --in-place /etc/roadrunner/rr.yaml
     ###sed -r -e "s|^ *output +stdout.*|        output file /var/log/frankenphp/frankenphp.log|g" --in-place /etc/roadrunner/rr.yaml
 else
     setcap 'cap_net_bind_service=+ep' /usr/bin/rr
