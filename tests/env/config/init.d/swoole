@@ -52,7 +52,7 @@ if [ -z "$LOGFILE" ]; then
 fi
 
 # we set env vars that will be used by our worker for the log file, listening port
-DAEMON_OPTS="-dextension=openswoole -f $TESTS_ROOT_DIR/$WORKER_SCRIPT -- $SWOOLE_CONFIG"
+DAEMON_OPTS="-f $TESTS_ROOT_DIR/$WORKER_SCRIPT -- $SWOOLE_CONFIG"
 
 if [ -n "$ULIMIT" ]; then
     # Set ulimit if it is set in /etc/default/swoole
@@ -95,14 +95,21 @@ setup_dirs() {
 do_start() {
     setup_dirs
 
+    if "$DAEMON" -m 2>/dev/null | fgrep -q openswoole 2>/dev/null; then
+        PHP_OPTS="-dextension=openswoole $DAEMON_OPTS"
+    else
+        PHP_OPTS="$DAEMON_OPTS"
+    fi
+
     #if pidofproc -p $PIDFILE "$DAEMON" > /dev/null 2>&1 ; then
     #    return 1
     #fi
+    # @todo... this will most likely return true for _any_ php process running... either add `--pidfile` or move to using pidofproc
     start-stop-daemon --start --quiet --exec $DAEMON --test > /dev/null \
         || return 1
 
     start-stop-daemon --start --quiet -c "$SWOOLE_USER":"$SWOOLE_GROUP" -b -d "$WORKING_DIR" --make-pidfile --pidfile "$PIDFILE" \
-        --exec $DAEMON -- serve $DAEMON_OPTS 2>/dev/null \
+        --exec $DAEMON -- serve $PHP_OPTS 2>/dev/null \
         || return 2
 }
 
