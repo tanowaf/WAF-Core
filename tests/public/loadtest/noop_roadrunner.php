@@ -47,6 +47,9 @@ while (true) {
 /// @todo... for a true 'best case scenario' timing, there is no need to deserialize the goridge message into an http one
 ///          (can we simplify the `$httpWorker->respond` call too?)
         $request = $httpWorker->waitRequest();
+        if ($request === null) {
+            break;
+        }
     } catch (\Throwable $e) {
         // Although the PSR-17 specification clearly states that there can be
         // no exceptions when creating a request, however, some implementations
@@ -59,7 +62,7 @@ while (true) {
     }
 
     try {
-        // Reply by the 200 OK response
+        // Reply with a 200 OK response
         $httpWorker->respond(200);
     } catch (\Throwable $e) {
         // In case of any exceptions in the application code, you should handle

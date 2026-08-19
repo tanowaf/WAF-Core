@@ -18,7 +18,7 @@
 DESC="Roadrunner httpd web server"
 NAME=roadrunner
 DAEMON=/usr/bin/rr
-STOP_SCHEDULE=INT/5/QUIT/5/KILL/5
+STOP_SCHEDULE=QUIT/5/KILL/5
 VERBOSE=no
 
 # Include config defaults if available
