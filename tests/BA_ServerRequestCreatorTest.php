@@ -6,7 +6,7 @@ namespace TanoWAF\WAFCore\Tests;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * Tests the ServerRequestCreator class for all kind of weird http input.
+ * Tests the ServerRequestFactory class for all kind of weird http input.
  * In fact these tests are more of a smoke-test for the webserver used to run PHP, how it handles malformed http requests,
  * and what it lets through to the application.
  *

@@ -43,8 +43,7 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
     /** @var string[]|null */
     private array|null $cookieHeader;
 
-    /** @var array|object|null */
-    private $parsedBody;
+    private array|object|null $parsedBody = null;
 
     /** @var string[]|null */
     private array|null $queryParams;

@@ -8,6 +8,8 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use Psr\Http\Message\UriFactoryInterface;
+use Psr\Http\Message\UriInterface;
 use TanoWAF\WAFCore\Http\CookieParserInterface;
 use TanoWAF\WAFCore\Http\HeaderParserInterface;
 use TanoWAF\WAFCore\Http\QueryStringParserInterface;
@@ -17,15 +19,22 @@ use TanoWAF\WAFCore\Stdlib;
 
 /**
  * A ServerRequestFactory which
- * - builds the requests out of data in $_SERVER and also $_POST, $_FILES (though use of the latter 2 might change)
+ * - can build the requests out of data in $_SERVER and also $_POST, $_FILES (though use of the latter 2 might change)
+ * - can build the requests out of the data gotten from RoadRunner and Swoole
+ * - implements ServerRequestFactoryInterface from PSR17
  * - tries to build a Request as faithful as possible to the received http payload, by eschewing usage of data
  *   commonly (and, sadly, unreliably) pre-parsed by php or the webserver, such as $_GET and $_COOKIE
  *
- * Original code taken from (parts of) Nyholm\Psr7Server\ServerRequestCreator and patched to better work for the proxy
- * use-case (and to stay as close as possible to the ServerRequestFactoryInterface API).
+ * Original code taken from Nyholm\Psr7Server\ServerRequestCreator and patched to better work for the proxy use-case
+ * and fix known bugs (and to stay as close as possible to the ServerRequestFactoryInterface API).
+ *
+ * @see https://github.com/Nyholm/psr7-server/issues/65, https://github.com/Nyholm/psr7-server/issues/62, https://github.com/Nyholm/psr7-server/pull/49
+ *
+ * @todo add support for trusted proxies in front of us: allow whitelisting their IPs and the headers such as x-forwarded-...
  */
 class ServerRequestFactory implements ServerRequestFactoryInterface
 {
+    protected UriFactoryInterface $uriFactory;
     protected UploadedFileFactoryInterface $uploadedFileFactory;
     protected StreamFactoryInterface $streamFactory;
 
@@ -33,9 +42,10 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
     protected HeaderParserInterface $headerParser;
     protected QueryStringParserInterface $queryStringParser;
 
-    public function __construct(UploadedFileFactoryInterface $uploadedFileFactory, StreamFactoryInterface $streamFactory,
+    public function __construct(UriFactoryInterface $uriFactory, UploadedFileFactoryInterface $uploadedFileFactory, StreamFactoryInterface $streamFactory,
         CookieParserInterface $cookieParser, HeaderParserInterface $headerParser, QueryStringParserInterface $queryStringParser)
     {
+        $this->uriFactory = $uriFactory;
         $this->uploadedFileFactory = $uploadedFileFactory;
         $this->streamFactory = $streamFactory;
 
@@ -44,12 +54,150 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
         $this->queryStringParser = $queryStringParser;
     }
 
-    public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequest
+    /**
+     * @param array $serverParams should be consistent with $_SERVER
+     * @param array|null $post $serverParams should be consistent with $_POST
+     * @param array|null $files should be consistent with $_FILES
+     */
+    public function createServerRequest(string $method, $uri, array $serverParams = [], array|null $post = null, array|null $files = null): ServerRequest
     {
         // waf-core change: never call 'getallheaders' - as we allow callers to monkey-patch $_SERVER
         $headers = Stdlib::getHeadersFromServer($serverParams);
 
-        $post = null;
+        $request = $this->fromArrays($method, $uri, $headers, \fopen('php://input', 'r') ?: null, $serverParams, $post, $files);
+
+        return $request;
+    }
+
+    /**
+     * Creates a ServerRequest out of the PHP superglobals $_SERVER, $_POST, $_FILES (but not $_GET, $_COOKIES)
+     */
+    public function fromGlobals(): ServerRequest
+    {
+        $server = $_SERVER;
+
+        $requestAttributes = new Attributes();
+
+        if (isset($server['REQUEST_METHOD']) === false) {
+            $method = 'GET';
+            $requestAttributes->set(Attributes::REQUEST_METHOD_SYNTHETIC, true);
+        } else {
+            $method = $server['REQUEST_METHOD'];
+        }
+
+        // waf-core change: expanded getUriFromEnvWithHTTP inline in createUriFromArray, so we can add an attribute in case uri scheme is missing
+        //$uri = $this->getUriFromEnvWithHTTP($server);
+        $uri = $this->createUriFromArray($server, $requestAttributes);
+
+        $request = $this->createServerRequest($method, $uri, $server, $_POST, $_FILES);
+
+        /** @var Attributes $ra */
+        if (($ra = $request->getAttribute(Attributes::class)) === null) {
+            $request = $request->withAttribute(Attributes::class, $requestAttributes);
+        } else {
+            foreach ($requestAttributes->keys() as $key) {
+                $ra->set($key, $requestAttributes->get($key));
+            }
+        }
+
+        return $request;
+    }
+
+    /**
+     * Create a new uri from server variables.
+     * NB: eschews access to $_GET.
+     * NB: trusts the Host header over SERVER_PORT, SERVER_NAME
+     *
+     * @param array $server $_SERVER or an array having compatible structure and data
+     */
+    protected function createUriFromArray(array $server, Attributes $requestAttributes): UriInterface
+    {
+        $uri = $this->uriFactory->createUri('');
+
+        // waf-core change: do not trust X-FORWARDED-PROTO. We have to add 1st support for trusted proxies IPs
+        /// @see https://github.com/Nyholm/psr7-server/issues/63
+        //if (isset($server['HTTP_X_FORWARDED_PROTO'])) {
+        //    $uri = $uri->withScheme($server['HTTP_X_FORWARDED_PROTO']);
+        //} else {
+
+/// @todo... there is at least one user mentioning having HTTPS=on and REQUEST_SCHEME=http... See issue #54
+        if (isset($server['REQUEST_SCHEME'])) {
+            $uri = $uri->withScheme($server['REQUEST_SCHEME']);
+        } elseif (isset($server['HTTPS'])) {
+            $uri = $uri->withScheme('on' === $server['HTTPS'] ? 'https' : 'http');
+        } else {
+            // waf-core change: inlined here from getUriFromEnvWithHTTP
+            $uri = $uri->withScheme('http');
+            $requestAttributes->set(Attributes::URI_SCHEME_SYNTHETIC, true);
+        }
+        //}
+
+        if (false !== ($haveHostHeader = isset($server['HTTP_HOST']))) {
+            if (1 === \preg_match('/^(.+):(\d+)$/', $server['HTTP_HOST'], $matches)) {
+                // waf-core change: fix issue #52 by casting to int
+                $uri = $uri->withHost($matches[1])->withPort((int)$matches[2]);
+            } else {
+                // waf-core change: in case the Host header misses a port, we consider that it uses the default port for
+                // the current scheme instead of the one from $server['SERVER_PORT']
+                $uri = $uri->withHost($server['HTTP_HOST']);
+            }
+        } else {
+            $requestAttributes->set(Attributes::MISSING_HOST_HEADER, true);
+        }
+
+        // waf-core change: $server['SERVER_PORT'] can be set and empty when the server is listening on a unix socket
+        if (isset($server['SERVER_PORT']) && $server['SERVER_PORT'] !== '') {
+            if (!$haveHostHeader) {
+                // waf-core change: fix issue #52 by casting to int
+                $uri = $uri->withPort((int)$server['SERVER_PORT']);
+                $requestAttributes->set(Attributes::URI_PORT_SYNTHETIC, true);
+            }
+            $requestAttributes->set(Attributes::SERVER_PORT, $server['SERVER_PORT']);
+        }
+        if (isset($server['SERVER_NAME'])) {
+            if (!$haveHostHeader) {
+                $uri = $uri->withHost($server['SERVER_NAME']);
+                $requestAttributes->set(Attributes::URI_HOST_SYNTHETIC, true);
+            }
+            $requestAttributes->set(Attributes::SERVER_NAME, $server['SERVER_NAME']);
+        }
+
+        if (isset($server['REQUEST_URI'])) {
+            // waf-core change: fix issue #66. On Apache, when requests are received with an absolute uri as target,
+            // $_SERVER['REQUEST_URI'] will indeed be the absolute uri. Sadly other webservers do not share this behaviour...
+/// @todo... tag the request with the absolute uri, if $server['REQUEST_URI'] is in fact such.
+///          Also, check carefully the HTTP spec to see what is says about precedence of the Host header vs the absolute url
+            $parts = parse_url($server['REQUEST_URI']);
+            $uri = $uri->withPath($parts['path']);
+            if (isset($parts['host'])) {
+                $requestAttributes->set(Attributes::ABSOLUTE_REQUEST_URI, $server['REQUEST_URI']);
+            }
+
+            // NB: we do _not_ have to handle the fragment part here, as that is in fact handled purely in-browser
+        } else {
+            $requestAttributes->set(Attributes::MISSING_REQUEST_URI, true);
+        }
+
+        if (isset($server['QUERY_STRING'])) {
+            $uri = $uri->withQuery($server['QUERY_STRING']);
+        }
+
+        return $uri;
+    }
+
+    /**
+     * NB: unlike the original class, this implementation will eschew usage of $_COOKIE, $_GET.
+     * @todo... the signature this method is silly, as it gets plenty of redundant data, and one can not tell by looking
+     *          at it which data is going to be considered truthful
+     * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
+     * @throws \InvalidArgumentException
+     */
+    protected function fromArrays(string $method, $uri, array $headers = [], $body = null, array $server = [],
+        array|null $post = null, array|null $files = null): ServerRequest
+    {
+        $requestAttributes = new Attributes();
+
+        $parsedBody = null;
         if ('POST' === $method /*$serverParams['REQUEST_METHOD']*/) {
             foreach ($headers as $headerName => $headerValue) {
                 if (true === \is_int($headerName) || 'content-type' !== \strtolower($headerName)) {
@@ -59,7 +207,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
                     \strtolower(\trim(\explode(';', $headerValue, 2)[0])),
                     ['application/x-www-form-urlencoded', 'multipart/form-data']
                 )) {
-                    $post = $_POST;
+                    $parsedBody = $post;
 
                     break;
                 }
@@ -67,27 +215,11 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             /// @todo consistency check: if $_POST is not empty, and 'content-type' header is not one of the expected 2, tag the response
         }
 
-        $request = $this->fromArrays($method, $uri, $headers, \fopen('php://input', 'r') ?: null, $serverParams, $post, $_FILES);
-
-        return $request;
-    }
-
-    /**
-     * NB: unlike the original class, this implementation will in fact eschew usage of $_COOKIE, $_GET
-     * @todo... the signature this method is silly, as it gets plenty of redundant data, and one can not tell by looking
-     *          at it which data is going to be considered truthful
-     * @todo see the logic in Symfony\Component\HttpFoundation\Request::createFromGlobals for comparison
-     */
-    protected function fromArrays(string $method, $uri, array $headers = [], $body = null, array $server = [],
-        array|null $post = null, array $files = []): ServerRequest
-    {
-        $requestAttributes = new Attributes();
-
         if (false === isset($server['SERVER_PROTOCOL'])) {
             $protocol = '1.1';
             $requestAttributes->set(Attributes::SERVER_PROTOCOL_SYNTHETIC, true);
         } else {
-            $protocol =\str_replace('HTTP/', '', $server['SERVER_PROTOCOL']);
+            $protocol = \str_replace('HTTP/', '', $server['SERVER_PROTOCOL']);
         }
 
         // waf-core change: Psr17Factory::createServerRequest misses the ability of ServerRequest::__construct to work off
@@ -113,11 +245,15 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
         // waf-core change: avoid doing double-work with the Query Params, as they are first built by a call to `parse_str`
         // in the ServerRequest constructor, then immediately overwritten with the `->withQueryParams($get)` call.
         // Same for the Cookie Params
-        $serverRequest = $serverRequest
-            //->withCookieParams($cookie)
-            //->withQueryParams($get)
-            ->withParsedBody($post)
-            ->withUploadedFiles($this->normalizeFiles($files));
+        //$serverRequest = $serverRequest
+        //    ->withCookieParams($cookie)
+        //    ->withQueryParams($get);
+        if ($parsedBody !== null) {
+            $serverRequest = $serverRequest->withParsedBody($parsedBody);
+        }
+        if ($files) {
+            $serverRequest = $serverRequest->withUploadedFiles($this->normalizeFiles($files));
+        }
 
         if (isset($server['REMOTE_ADDR'])) {
             $requestAttributes->set(Attributes::REMOTE_ADDR, $server['REMOTE_ADDR']);

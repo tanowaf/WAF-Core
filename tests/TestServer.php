@@ -12,7 +12,6 @@ use TanoWAF\WAFCore\Http\CookieParserFactory;
 use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
-use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
 use TanoWAF\WAFCore\Stdlib;
 use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
 
@@ -153,7 +152,7 @@ class TestServer
                 '_GET' => $_GET,
                 '_POST' => $_POST,
                 '_COOKIE' => $_COOKIE,
-                /// @todo add other bits of $_SERVER and $_ENV that we know are used by ServerRequestCreator::fromGlobals
+                /// @todo add other bits of $_SERVER and $_ENV that we know are used by ServerRequestFactory::fromGlobals
                 /// @todo what about $_FILES?
                 'getHeadersFromServer' => $requestHeaders,
                 /// @todo limit the length of the body / throw if too big
@@ -215,17 +214,15 @@ class TestServer
                 $cookieParserFactory = new CookieParserFactory();
                 $headerParserFactory = new HeaderParserFactory();
                 $queryStringParserFactory = new QueryStringParserFactory();
-                $creator = new ServerRequestCreator(
+                $requestFactory = new ServerRequestFactory(
                     $psr17Factory, // UriFactory
-                    new ServerRequestFactory(
-                        $psr17Factory, // UploadedFileFactory
-                        $psr17Factory, // StreamFactory
-                        $cookieParserFactory->fromConfiguration([]),
-                        $headerParserFactory->fromConfiguration([]),
-                        $queryStringParserFactory->fromConfiguration([])
-                    )
+                    $psr17Factory, // UploadedFileFactory
+                    $psr17Factory, // StreamFactory
+                    $cookieParserFactory->fromConfiguration([]),
+                    $headerParserFactory->fromConfiguration([]),
+                    $queryStringParserFactory->fromConfiguration([])
                 );
-                return $creator->fromGlobals();
+                return $requestFactory->fromGlobals();
             case 'guzzle':
                 return GuzzleServerRequest::fromGlobals();
             case 'symfony':

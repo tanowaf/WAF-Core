@@ -28,7 +28,7 @@ class PortMatcher extends BaseMatcher
 
     public function matchesRequest(ServerRequestInterface $request): bool
     {
-        // @todo if $request was created by the Psr7\Creator, the port would have been set in `$request->getUri` with
+        // @todo if $request was created by the ServerRequestFactory, the port would have been set in `$request->getUri` with
         //       the port from the Host header as preferred choice. For other sources of $request, we can't be 100% sure,
         //       as they might give higher precedence to f.e. $server['SERVER_PORT']. In which case we should replicate
         //       here the logic of checking the 'Host' header as preferred source of truth...

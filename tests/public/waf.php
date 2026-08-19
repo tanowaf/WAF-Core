@@ -25,7 +25,6 @@ use TanoWAF\WAFCore\Logger\FileLogger;
 use TanoWAF\WAFCore\Middleware\Dispatcher;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
-use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use TanoWAF\WAFCore\Tests\TestWAF;
 use TanoWAF\WAFCore\UpstreamClient\MiddlewareAware as MiddlewareAwareClient;
@@ -213,18 +212,16 @@ class WAFPage
             $firewall->setCookieParser($cookieParser)
                 ->setHeaderParser($headerParser);
 
-            $requestCreator = new ServerRequestCreator(
+            $requestFactory = new ServerRequestFactory(
                 $psr17Factory, // UriFactory
-                new ServerRequestFactory(
-                    $psr17Factory, // UploadedFileFactory
-                    $psr17Factory, // StreamFactory
-                    $cookieParser,
-                    $headerParser,
-                    $queryStringParserFactory->fromConfiguration([])
-                )
+                $psr17Factory, // UploadedFileFactory
+                $psr17Factory, // StreamFactory
+                $cookieParser,
+                $headerParser,
+                $queryStringParserFactory->fromConfiguration([])
             );
 
-            $serverRequest = $this->fromGlobals($requestCreator);
+            $serverRequest = $this->fromGlobals($requestFactory);
             $tracer?->filterServerRequest($serverRequest);
             $response = $waf->handle($serverRequest);
             $tracer?->filterResponse($response, $serverRequest);
@@ -246,7 +243,7 @@ class WAFPage
      * Clean up ("patch") the data we allow the WAF to handle - remove test-managing headers and cookies.
      * NB: calling this results in manipulation of $_SERVER and co.
      */
-    protected function fromGlobals(ServerRequestCreator $requestCreator): ServerRequest
+    protected function fromGlobals(ServerRequestFactory $requestFactory): ServerRequest
     {
         foreach ($_SERVER as $name => $value) {
             if (str_starts_with($name, 'HTTP_X_WAFCORE_')) {
@@ -260,7 +257,7 @@ class WAFPage
             }
         }
 
-        return $requestCreator->fromGlobals();
+        return $requestFactory->fromGlobals();
     }
 
     protected function fileIsInTestsDir($fileName): bool

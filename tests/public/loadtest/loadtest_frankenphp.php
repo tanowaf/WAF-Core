@@ -19,7 +19,6 @@ use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
-use TanoWAF\WAFCore\ServerRequest\Psr7\Creator as ServerRequestCreator;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
@@ -41,19 +40,17 @@ try {
     $cookieParserFactory = new CookieParserFactory();
     $headerParserFactory = new HeaderParserFactory();
     $queryStringParserFactory = new QueryStringParserFactory();
-    $requestCreator = new ServerRequestCreator(
+    $requestFactory = new ServerRequestFactory(
         $psr17Factory, // UriFactory
-        new ServerRequestFactory(
-            $psr17Factory, // UploadedFileFactory
-            $psr17Factory, // StreamFactory
-            $cookieParserFactory->fromConfiguration([]),
-            $headerParserFactory->fromConfiguration([]),
-            $queryStringParserFactory->fromConfiguration([])
-        )
+        $psr17Factory, // UploadedFileFactory
+        $psr17Factory, // StreamFactory
+        $cookieParserFactory->fromConfiguration([]),
+        $headerParserFactory->fromConfiguration([]),
+        $queryStringParserFactory->fromConfiguration([])
     );
 
-    $requestHandler = function() use($requestCreator, $waf, $responseEmitter) {
-        $serverRequest = $requestCreator->fromGlobals();
+    $requestHandler = function() use($requestFactory, $waf, $responseEmitter) {
+        $serverRequest = $requestFactory->fromGlobals();
         $response = $waf->handle($serverRequest);
         $responseEmitter->emit($response);
     };
