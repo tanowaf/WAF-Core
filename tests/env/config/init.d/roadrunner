@@ -14,6 +14,18 @@
 #
 # @todo in order to bind to privileged ports, it requires a call to `setcap 'cap_net_bind_service=+ep' /usr/bin/rr`
 #       Shall we add it in here? (or give a warning on FP start if this was not done?)
+#
+# Env vars which can be set in /etc/default/roadrunner:
+# DAEMON
+# DAEMON_OPTS
+# ROADRUNNER_CONFIG
+# ROADRUNNER_GROUP
+# ROADRUNNER_USER
+# LOGFILE
+# PIDFILE
+# ULIMIT
+# VERBOSE
+# WORKING_DIR
 
 DESC="Roadrunner httpd web server"
 NAME=roadrunner
@@ -57,30 +69,36 @@ if [ -n "$ULIMIT" ]; then
 fi
 
 setup_dirs() {
-    if [ ! -d "$(dirname "$PIDFILE")" ]; then
-        mkdir "$(dirname "$PIDFILE")"
-    fi
-    if [ "$(dirname "$PIDFILE")" = "/run/$ROADRUNNER_USER/" ]; then
-        chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
-    else
-        chgrp "$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
-        chmod g+w "$(dirname "$PIDFILE")"
+    if [ -n "$PIDFILE" ]; then
+        if [ ! -d "$(dirname "$PIDFILE")" ]; then
+            mkdir "$(dirname "$PIDFILE")"
+        fi
+        if [ "$(dirname "$PIDFILE")" = "/run/$ROADRUNNER_USER/" ]; then
+            chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
+        else
+            chgrp "$ROADRUNNER_GROUP" "$(dirname "$PIDFILE")"
+            chmod g+w "$(dirname "$PIDFILE")"
+        fi
     fi
 
-    if [ ! -d "$(dirname "$LOGFILE")" ]; then
-        mkdir "$(dirname "$LOGFILE")"
+    if [ -n "$LOGFILE" ]; then
+        if [ ! -d "$(dirname "$LOGFILE")" ]; then
+            mkdir "$(dirname "$LOGFILE")"
+        fi
+        # @todo do we need a chgrp+chmod here?
+        if [ ! -f "$LOGFILE" ]; then
+            touch "$LOGFILE"
+        fi
+        chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$LOGFILE"
+        chmod 640 "$LOGFILE"
     fi
-    # @todo do we need a chgrp+chmod here?
-    if [ ! -f "$LOGFILE" ]; then
-        touch "$LOGFILE"
-    fi
-    chown "$ROADRUNNER_USER:$ROADRUNNER_GROUP" "$LOGFILE"
-    chmod 640 "$LOGFILE"
 
-    if [ ! -d "$(dirname "$WORKING_DIR")" ]; then
-        mkdir "$(dirname "$WORKING_DIR")"
+    if [ -n "$WORKING_DIR" ]; then
+        if [ ! -d "$(dirname "$WORKING_DIR")" ]; then
+            mkdir "$(dirname "$WORKING_DIR")"
+        fi
+        # @todo do we need a chgrp+chmod here?
     fi
-    # @todo do we need a chgrp+chmod here?
 }
 
 # Start the daemon/service

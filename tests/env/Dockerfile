@@ -8,12 +8,15 @@ ARG PHP_VERSION=default
 
 COPY --chmod=755 setup/build_pie_extensions.sh setup/setup_php.sh /root/setup/
 # @todo see https://github.com/protocolbuffers/protobuf/issues/21808 - the PIE name of the protobuf extension might change soon...
+# NB: for Swoole, there are 2 extensions we can use:
+# - https://packagist.org/packages/swoole/swoole
+# - https://packagist.org/packages/openswoole/ext-openswoole
+# As of 2026/8/20, we have to work around ext-openswoole issue #397: the only way to get it installed is to specify dev-master version
 # @todo see https://github.com/openswoole/ext-openswoole#1-install-via-pie-php-installer-for-extensions : we might need
-#       to pass in extra flags for full installation of ext-openswoole
-# work around ext-openswoole issue #397: the only way to get it installed is to specify dev-master version
+#       to pass in extra flags for the full installation of ext-openswoole
 RUN DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y unzip && \
-    /root/setup/build_pie_extensions.sh 'kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master'
+    /root/setup/build_pie_extensions.sh 'kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master swoole/swoole'
 
 ARG UBUNTU_VERSION=resolute
 FROM ubuntu:${UBUNTU_VERSION}
@@ -40,8 +43,8 @@ EXPOSE 81 8081 444 8444
 EXPOSE 1082 8082
 # roadrunner: proxy
 EXPOSE 8083
-# swoole: proxy
-EXPOSE 8084
+# swoole: website, proxy
+EXPOSE 1084 8084
 
 # @todo can we avoid hardcoding this here? We can f.e. get it passed down as ARG...
 WORKDIR /home/docker/workspace

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\ServerRequest\Psr17;
 
 use Psr\Http\Message\ServerRequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
@@ -100,6 +101,29 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
         }
 
         return $request;
+    }
+
+    /**
+     * "transforms" an instance of ServerRequestInterface into a ServerRequest.
+     * @return ServerRequest (was: NB: if the $request passed in is a ServerRequest, the original instance itself is returned)
+     */
+    public function fromServerRequest(ServerRequestInterface $request): ServerRequest
+    {
+        if ($request instanceof ServerRequest) {
+            $serverRequest = clone $request;
+        } else {
+            $serverRequest = new ServerRequest($request->getMethod(), $request->getUri(), $request->getHeaders(),
+                $request->getBody(), $request->getProtocolVersion(), $request->getServerParams());
+            $serverRequest = $serverRequest
+                ->withParsedBody($request->getParsedBody())
+                ->withUploadedFiles($request->getUploadedFiles());
+        }
+
+        $serverRequest->setCookieParser($this->cookieParser)
+            ->setHeaderParser($this->headerParser)
+            ->setQueryStringParser($this->queryStringParser);
+
+        return $serverRequest;
     }
 
     /**

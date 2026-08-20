@@ -65,6 +65,7 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 ///          ServerRequestInterface methods `getCookieParams` and `getQueryParams` - no other class but
 ///          our own ServerRequest will use the cookieParser and queryStringParser to build the values
 ///          returned by those methods)
+/// @todo simplify this - just inject the ServerRequestFactory, and call `fromServerRequest`
         if (! $request instanceof HeaderParsingCapableServerRequestInterface) {
             $request = ServerRequest::fromRequest($request);
             if ($this->cookieParser !== null) {

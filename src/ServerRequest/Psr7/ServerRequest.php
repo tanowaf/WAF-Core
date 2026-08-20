@@ -95,7 +95,8 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
 
     /**
      * "transforms" an instance of ServerRequestInterface into a ServerRequest.
-     * @return ServerRequest NB: if the $request passed in is a ServerRequest, the original instance itself is returned
+     * @return ServerRequest (was: NB: if the $request passed in is a ServerRequest, the original instance itself is returned)
+     * @todo drop this, in favour of ServerRequestFactory::fromRequest
      */
     public static function fromRequest(ServerRequestInterface $request): static
     {
@@ -371,6 +372,8 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
         return $new;
     }
 
+    /// @todo allow an optimized version of this method which avoids calling validateAndTrimHeader, for when we know
+    ///       the headers we get have already been trimmed +  validated externally (eg. by the webserver)
     private function setHeaders(array $headers, $preserveCookieParams = false): void
     {
         foreach ($headers as $header => $value) {

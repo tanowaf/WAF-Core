@@ -124,7 +124,7 @@ fi
 if [ -f /etc/roadrunner/rr.yaml ]; then
     echo "[$(date)] Fixing RoadRunner configuration..."
 
-    # let roadrunner run using its own user and group, but make them share ids with the docker guy (yes, that's possible)
+    # let roadrunner run using its own user and group, but make them share ids with the docker guy
     groupmod -o -g "$CONTAINER_USER_GID" roadrunner
     usermod -o -u "$CONTAINER_USER_UID" -g "$CONTAINER_USER_GID" roadrunner
     chown roadrunner:roadrunner /run/roadrunner
@@ -137,13 +137,14 @@ fi
 if [ -f /etc/init.d/swoole ]; then
     echo "[$(date)] Fixing Swoole configuration..."
 
-        groupmod -o -g "$CONTAINER_USER_GID" swoole
-        usermod -o -u "$CONTAINER_USER_UID" -g "$CONTAINER_USER_GID" swoole
-        chown swoole:swoole /run/swoole
-        chown swoole:swoole /var/lib/swoole
-        #chown swoole /var/log/swoole
+    # let swoole run using its own user and group, but make them share ids with the docker guy
+    groupmod -o -g "$CONTAINER_USER_GID" swoole
+    usermod -o -u "$CONTAINER_USER_UID" -g "$CONTAINER_USER_GID" swoole
+    chown swoole:swoole /run/swoole
+    chown swoole:swoole /var/lib/swoole
+    chown swoole /var/log/swoole
 
-    sed -r -e "s|^TESTS_ROOT_DIR=.*|TESTS_ROOT_DIR=${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/init.d/swoole
+    sed -r -e "s|^WORKER_SCRIPT_DIR=.*|WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/init.d/swoole
 fi
 
 echo "[$(date)] Fixing FPM configuration..."

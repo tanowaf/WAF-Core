@@ -3,23 +3,41 @@ declare(strict_types=1);
 
 // *** A _minimalist_ waf proxy, to be used for load tests. Returns a fixed response, without contacting any upstream.
 
-$configFile = @$argv[1];
-
-if (! is_file($configFile) || !extension_loaded('openswoole') || PHP_SAPI !== 'cli') {
+if (!isset($_SERVER['SWOOLE_WORKER']) || (int)$_SERVER['SWOOLE_WORKER'] === 0 ||
+    (!extension_loaded('openswoole') && !extension_loaded('swoole')) ||
+    PHP_SAPI !== 'cli') {
     throw new \Exception('This script is meant to be used in Swoole Worker mode, which is not enabled in the current configuration');
 }
 
-// RoadRunner version
+$configFile = @$argv[1];
+if (!is_file($configFile) ) {
+    throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
+}
+
+$logFile = null;
+if ($argc > 2) {
+    $logFile = $argv[2];
+}
+
+// (Open)Swoole worker mode
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-use OpenSwoole\Http\Server;
-use OpenSwoole\Http\Request;
-use OpenSwoole\Http\Response;
+use Nyholm\Psr7\Factory\Psr17Factory;
+//use OpenSwoole\Http\Server;
+//use OpenSwoole\Http\Request;
+//use OpenSwoole\Http\Response;
+use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\Firewall\FirewallFactory;
+use TanoWAF\WAFCore\Http\CookieParserFactory;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
+use TanoWAF\WAFCore\Swoole\ServerRequestFactory;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
+
+// 1. Set up signal handling
 
 if (function_exists('pcntl_signal')) {
     function sigHandler($signo)
@@ -44,14 +62,7 @@ if (function_exists('pcntl_signal')) {
     pcntl_signal(SIGHUP,  "sigHandler");
 }
 
-$config = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
-
-$server = new Server($config['listen_ip'], (int)$config['listen_port']);
-
-unset($config['listen_ip'], $config['listen_port']);
-
-/// @see https://openswoole.com/docs/modules/swoole-server/configuration
-$server->set($config);
+// 2. Build the WAF
 
 $firewallFactory = new FirewallFactory();
 
@@ -64,11 +75,74 @@ $upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
 
 $waf = new LoadTestWAF($firewall, $upstreamProxy);
 
-// The main HTTP server request callback event, entry point for all incoming HTTP requests
-$server->on('Request', function(Request $request, Response $response) use ($waf)
-{
-    /// @todo... use a custom requestCreator to build our own request type out of the swoole env, then serialize back the response
-    //$response->end('');
-});
+$psr17Factory = new Psr17Factory();
+$cookieParserFactory = new CookieParserFactory();
+$headerParserFactory = new HeaderParserFactory();
+$queryStringParserFactory = new QueryStringParserFactory();
+$requestFactory = new ServerRequestFactory(
+    $psr17Factory, // UriFactory
+    $psr17Factory, // UploadedFileFactory
+    $psr17Factory, // StreamFactory
+    $cookieParserFactory->fromConfiguration([]),
+    $headerParserFactory->fromConfiguration([]),
+    $queryStringParserFactory->fromConfiguration([])
+);
+
+// 3. Build the (Open)Swoole server
+
+if ($logFile !== null) {
+    $config['log_file'] = $logFile;
+}
+
+$config = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
+
+if (class_exists('\OpenSwoole\Http\Server')) {
+    $serverClass = '\OpenSwoole\Http\Server';
+} else if (class_exists('\Swoole\Http\Server')) {
+    $serverClass = '\Swoole\Http\Server';
+} else {
+    throw new \Exception("This should never happen");
+}
+
+$server = new $serverClass($config['listen_ip'], (int)$config['listen_port']);
+unset($config['listen_ip'], $config['listen_port']);
+
+/// @see https://openswoole.com/docs/modules/swoole-server/configuration
+$server->set($config);
+
+// 4. Loop
+
+// *** Method A - the most automated - sadly it does not work, as we get back an empty `$request->getUri()`. See https://github.com/openswoole/ext-openswoole/issues/403
+
+//$server->setHandler($waf);
+
+// *** Method B - useful to debug the Request
+
+/// @todo... more testing for the Swoole parsing of cookies, QS and co...
+
+if (method_exists($server, 'handle')) {
+
+    // OpenSwoole supports ("almost" compliant) PSR  handlers
+    $server->handle(function (ServerRequestInterface $request) use ($waf, $requestFactory) {
+        //file_put_contents('/tmp/y.log', var_export($request, true), FILE_APPEND);
+        $wafRequest = $requestFactory->fromOpenSwooleServerRequest($request);
+        return $waf->handle($wafRequest);
+    });
+
+} else {
+
+    $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($waf, $requestFactory)
+    {
+        try {
+            $wafRequest = $requestFactory->fromSwooleRequest($request);
+            $wafResponse = $waf->handle($wafRequest);
+        } catch (\Throwable $e) {
+            $wafResponse = $waf::getErrorResponse();
+        }
+/// @todo...
+        //$response->end('');
+    });
+
+}
 
 $server->start();

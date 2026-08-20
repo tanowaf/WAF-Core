@@ -13,28 +13,44 @@
 # Init.d service script for swoole on ubuntu/debian
 #
 # No setcap for Swoole, as it would be a liability issue, given it uses the php executable
-
+#
+# Env vars which can be set in /etc/default/swoole_server:
+# DAEMON
+# DAEMON_OPTS
+# ROADRUNNER_CONFIG
+# SWOOLE_GROUP
+# SWOOLE_USER
+# LOGFILE
+# PIDFILE
+# SWOOLE_EXTENSION (either swoole or openswoole)
+# ULIMIT
+# VERBOSE
+# VHOST
+# WORKER_ARGS
+# WORKER_SCRIPT
+# WORKER_SCRIPT_DIR
+# WORKING_DIR
 
 DESC="Swoole httpd web server"
 NAME=swoole
-DAEMON=/usr/bin/php
-TESTS_ROOT_DIR=/var/www/tests/public
-WORKER_SCRIPT=waf.php
+DAEMON=/usr/bin/swoole
+PREPEND_FILE=/etc/swoole/prepend.php
 STOP_SCHEDULE=INT/5/QUIT/5/KILL/5
+SWOOLE_EXTENSION=openswoole
 VERBOSE=no
+VHOST=server
+WORKER_SCRIPT=waf.php
+WORKER_SCRIPT_DIR=/var/www/tests/public
 
 # Include config defaults if available
-if [ -r "/etc/default/$NAME" ]; then
-    . "/etc/default/$NAME"
+if [ -r "/etc/default/${NAME}_${VHOST}" ]; then
+    . "/etc/default/${NAME}_${VHOST}"
 fi
 
 test -x $DAEMON || exit 1
 
 . /lib/lsb/init-functions
 
-if [ -z "$SWOOLE_CONFIG" ]; then
-    SWOOLE_CONFIG=/etc/swoole/swoole.json
-fi
 if [ -z "$SWOOLE_USER" ]; then
     SWOOLE_USER="$NAME"
 fi
@@ -47,12 +63,16 @@ fi
 if [ -z "$PIDFILE" ]; then
     PIDFILE="/run/$SWOOLE_USER/swoole.pid"
 fi
+# @todo should we leave the log file to swoole_$vhost.json?
 if [ -z "$LOGFILE" ]; then
-    LOGFILE="/var/log/$NAME/swoole.log"
+    LOGFILE="/var/log/$NAME/${VHOST}.log"
+fi
+if [ -z "$WORKER_ARGS" ]; then
+    WORKER_ARGS="/etc/swoole/swoole_${VHOST}.json $LOGFILE"
 fi
 
-# we set env vars that will be used by our worker for the log file, listening port
-DAEMON_OPTS="-f $TESTS_ROOT_DIR/$WORKER_SCRIPT -- $SWOOLE_CONFIG"
+# we use a php auto_prepend_file to set env vars that can be used by our worker for the log file, listening port
+DAEMON_OPTS="-d auto_prepend_file=$PREPEND_FILE -f $WORKER_SCRIPT_DIR/$WORKER_SCRIPT $DAEMON_OPTS -- $WORKER_ARGS"
 
 if [ -n "$ULIMIT" ]; then
     # Set ulimit if it is set in /etc/default/swoole
@@ -60,30 +80,36 @@ if [ -n "$ULIMIT" ]; then
 fi
 
 setup_dirs() {
-    if [ ! -d "$(dirname "$PIDFILE")" ]; then
-        mkdir "$(dirname "$PIDFILE")"
-    fi
-    if [ "$(dirname "$PIDFILE")" = "/run/$SWOOLE_USER/" ]; then
-        chown "$SWOOLE_USER:$SWOOLE_GROUP" "$(dirname "$PIDFILE")"
-    else
-        chgrp "$SWOOLE_GROUP" "$(dirname "$PIDFILE")"
-        chmod g+w "$(dirname "$PIDFILE")"
+    if [ -n "$PIDFILE" ]; then
+        if [ ! -d "$(dirname "$PIDFILE")" ]; then
+            mkdir "$(dirname "$PIDFILE")"
+        fi
+        if [ "$(dirname "$PIDFILE")" = "/run/$SWOOLE_USER/" ]; then
+            chown "$SWOOLE_USER:$SWOOLE_GROUP" "$(dirname "$PIDFILE")"
+        else
+            chgrp "$SWOOLE_GROUP" "$(dirname "$PIDFILE")"
+            chmod g+w "$(dirname "$PIDFILE")"
+        fi
     fi
 
-    if [ ! -d "$(dirname "$LOGFILE")" ]; then
-        mkdir "$(dirname "$LOGFILE")"
+    if [ -n "$LOGFILE" ]; then
+        if [ ! -d "$(dirname "$LOGFILE")" ]; then
+            mkdir "$(dirname "$LOGFILE")"
+        fi
+        # @todo do we need a chgrp+chmod here?
+        if [ ! -f "$LOGFILE" ]; then
+            touch "$LOGFILE"
+        fi
+        chown "$SWOOLE_USER:$SWOOLE_GROUP" "$LOGFILE"
+        chmod 640 "$LOGFILE"
     fi
-    # @todo do we need a chgrp+chmod here?
-    if [ ! -f "$LOGFILE" ]; then
-        touch "$LOGFILE"
-    fi
-    chown "$SWOOLE_USER:$SWOOLE_GROUP" "$LOGFILE"
-    chmod 640 "$LOGFILE"
 
-    if [ ! -d "$(dirname "$WORKING_DIR")" ]; then
-        mkdir "$(dirname "$WORKING_DIR")"
+    if [ -n "$WORKING_DIR" ]; then
+        if [ ! -d "$(dirname "$WORKING_DIR")" ]; then
+            mkdir "$(dirname "$WORKING_DIR")"
+        fi
+        # @todo do we need a chgrp+chmod here?
     fi
-    # @todo do we need a chgrp+chmod here?
 }
 
 # Start the daemon/service
@@ -95,8 +121,8 @@ setup_dirs() {
 do_start() {
     setup_dirs
 
-    if "$DAEMON" -m 2>/dev/null | fgrep -q openswoole 2>/dev/null; then
-        PHP_OPTS="-dextension=openswoole $DAEMON_OPTS"
+    if "$DAEMON" -m 2>/dev/null | fgrep -q swoole 2>/dev/null; then
+        PHP_OPTS="-dextension=$SWOOLE_EXTENSION $DAEMON_OPTS"
     else
         PHP_OPTS="$DAEMON_OPTS"
     fi
@@ -104,7 +130,7 @@ do_start() {
     #if pidofproc -p $PIDFILE "$DAEMON" > /dev/null 2>&1 ; then
     #    return 1
     #fi
-    # @todo... this will most likely return true for _any_ php process running... either add `--pidfile` or move to using pidofproc
+# @todo...test:  this will most likely return true for _any_ php process running... either add `--pidfile` or move to using pidofproc
     start-stop-daemon --start --quiet --exec $DAEMON --test > /dev/null \
         || return 1
 
@@ -140,7 +166,7 @@ do_stop() {
 
 case "$1" in
     start)
-        log_daemon_msg "Starting $DESC" "$NAME"
+        log_daemon_msg "Starting $DESC" "$VHOST"
         do_start
         RET_STATUS=$?
         case "$RET_STATUS" in
@@ -156,7 +182,7 @@ case "$1" in
         ;;
 
     stop)
-        log_daemon_msg "Stopping $DESC" "$NAME"
+        log_daemon_msg "Stopping $DESC" "$VHOST"
         do_stop "$1"
         RET_STATUS=$?
         case "$RET_STATUS" in
@@ -179,7 +205,7 @@ case "$1" in
         ;;
 
     reload)
-        log_daemon_msg "Reloading $DESC" "$NAME"
+        log_daemon_msg "Reloading $DESC" "$VHOST"
         do_reload
         RET_STATUS=$?
         case "$RET_STATUS" in
@@ -196,7 +222,7 @@ case "$1" in
         ;;
 
     restart)
-        log_daemon_msg "Restarting $DESC" "$NAME"
+        log_daemon_msg "Restarting $DESC" "$VHOST"
         do_stop stop
         case "$?" in
             0|1)

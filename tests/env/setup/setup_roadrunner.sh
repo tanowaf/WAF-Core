@@ -44,7 +44,7 @@ if [ -z "${GITHUB_ACTIONS}" ]; then
     cp "$SCRIPT_DIR/../config/init.d/roadrunner" /etc/init.d/roadrunner && chmod 755 /etc/init.d/roadrunner
 fi
 
-# configure virtual hosts
+# configure "virtual hosts"
 
 cp -f "$SCRIPT_DIR/../config/rr.yaml" /etc/roadrunner/rr.yaml
 

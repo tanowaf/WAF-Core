@@ -7,14 +7,19 @@ if (!isset($_SERVER['ROADRUNNER_WORKER']) || (int)$_SERVER['ROADRUNNER_WORKER'] 
     throw new \Exception('This script is meant to be used in RoadRunner Worker mode, which is not enabled in the current configuration');
 }
 
-// RoadRunner version
+// RoadRunner worker mode
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-use Spiral\RoadRunner\Http\HttpWorker;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use Spiral\RoadRunner\Worker;
 use TanoWAF\WAFCore\Firewall\FirewallFactory;
+use TanoWAF\WAFCore\Http\CookieParserFactory;
+use TanoWAF\WAFCore\Http\HeaderParserFactory;
+use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
+use TanoWAF\WAFCore\RoadRunner\ServerRequestFactory;
+use TanoWAF\WAFCore\RoadRunner\Worker as HttpWorker;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
@@ -41,43 +46,53 @@ if (function_exists('pcntl_signal')) {
     pcntl_signal(SIGHUP,  "sigHandler");
 }
 
-// Create new RoadRunner worker from global environment
+// Create the WAF
+
+$firewallFactory = new FirewallFactory();
+
+// one of the simplest rules that allows to easily test both allow and deny responses: look for 'y' in the query string
+$firewall = $firewallFactory->fromConfiguration([['query_string_parameter_value' => ['y' => '*']]]);
+
+$httpClient = new MockUpstreamClient();
+
+// the upstream uri is not used in this case, since the MockUpstreamClient will happily ignore it
+$upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
+
+$waf = new LoadTestWAF($firewall, $upstreamProxy);
+
+$psr17Factory = new Psr17Factory();
+$cookieParserFactory = new CookieParserFactory();
+$headerParserFactory = new HeaderParserFactory();
+$queryStringParserFactory = new QueryStringParserFactory();
+$requestFactory = new ServerRequestFactory(
+    $psr17Factory, // UriFactory
+    $psr17Factory, // UploadedFileFactory
+    $psr17Factory, // StreamFactory
+    $cookieParserFactory->fromConfiguration([]),
+    $headerParserFactory->fromConfiguration([]),
+    $queryStringParserFactory->fromConfiguration([])
+);
+
+// Create new RoadRunner worker
 $worker = Worker::create();
-$httpWorker = new HttpWorker($worker);
+$httpWorker = new HttpWorker($worker, $requestFactory);
 
-try {
-
-    $firewallFactory = new FirewallFactory();
-
-    // one of the simplest rules that allows to easily test both allow and deny responses: look for 'y' in the query string
-    $firewall = $firewallFactory->fromConfiguration([['query_string_parameter_value' => ['y' => '*']]]);
-
-    $httpClient = new MockUpstreamClient();
-    // the upstream uri is not used in this case, since the MockUpstreamClient will happily ignore it
-    $upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
-
-    $waf = new LoadTestWAF($firewall, $upstreamProxy);
-
-    while (true) {
-        try {
-
-
-/// @todo... use a custom requestCreator to build our own request type out of the RR env, then serialize back the response
-            //$response = $waf->handle($serverRequest);
-
-        } catch (\Throwable $e) {
-            // Although the PSR-17 specification clearly states that there can be
-            // no exceptions when creating a request, however, some implementations
-            // may violate this rule. Therefore, it is recommended to process the
-            // incoming request for errors.
-            //
-            // Send "Bad Request" response.
-            $httpWorker->respond(400);
-            continue;
+while (true) {
+    try {
+        $request = $httpWorker->waitRequest();
+        if ($request === null) {
+            break;
         }
+        $response = $waf->handle($request);
+    } catch (\Throwable $e) {
+        $httpWorker->respond(LoadTestWAF::getErrorResponse());
+        continue;
     }
 
-} catch (\Throwable $e) {
-    $httpWorker->respond(500);
-    $worker->error((string)$e);
+    try {
+        $httpWorker->respond($response);
+    } catch (\Throwable $e) {
+        $httpWorker->respond(LoadTestWAF::getErrorResponse());
+        $worker->error((string)$e);
+    }
 }
