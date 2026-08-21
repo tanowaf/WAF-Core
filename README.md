@@ -35,6 +35,7 @@ Main missing features:
 - HTTPS support
 - HTTP2, HTTP3 support
 - Documentation
+- support for Swoole and OpenSwoole PHP runtimes is in progress...
 
 See the [Roadmap](Roadmap.md) for a detailed list of features not yet implemented.
 
@@ -135,8 +136,10 @@ The testsuite can be run using FrankenPHP or Apache as webserver with the follow
 
 * How fast is this? Can it scale?
 
-  Preliminary load testing shows that, when running the WAF with FrankenPHP in worker mode, a delay of 0.6 ms per request
-  is introduced, when using the smallest possible filtering ruleset.
+  Preliminary load testing shows that, when running the WAF with FrankenPHP in worker mode, a delay of 0.3 ms per request
+  is introduced, when using the smallest possible filtering ruleset. With Swoole, this is down to 0.1 ms per request.
+
+  Further testing is planned, including optimizing php and webserver configuration and measuring cpu and memory usage.
 
 * Why not reusing Symfony HTTP Foundation / another existing library?
 

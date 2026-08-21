@@ -24,9 +24,6 @@ if ($argc > 2) {
 require __DIR__ . '/../../../vendor/autoload.php';
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-//use OpenSwoole\Http\Server;
-//use OpenSwoole\Http\Request;
-//use OpenSwoole\Http\Response;
 use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\Firewall\FirewallFactory;
 use TanoWAF\WAFCore\Http\CookieParserFactory;

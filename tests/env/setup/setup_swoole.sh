@@ -68,4 +68,4 @@ cp "$SCRIPT_DIR/../config/swoole_proxy.json" /etc/swoole/
 cp "$SCRIPT_DIR/../config/swoole_server.json" /etc/swoole/
 cp "$SCRIPT_DIR/../config/swoole_prepend.php" /etc/swoole/prepend.php
 
-echo "Done installing OpenSwoole"
+echo "Done installing (Open)Swoole"

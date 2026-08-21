@@ -10,26 +10,6 @@ use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 
 class ServerRequestFactory extends BaseServerRequestFactory
 {
-    /**
-     * @param \OpenSwoole\Core\Psr\ServerRequest $request
-     */
-    public function fromOpenSwooleServerRequest(ServerRequestInterface $request): ServerRequest
-    {
-        $serverRequest = $this->fromServerRequest($request);
-
-        // fix the request Uri - see https://github.com/openswoole/ext-openswoole/issues/403
-        $params = $request->getServerParams();
-        $uri = $params['request_uri'];
-        if (array_key_exists('query_string', $params) && $params['query_string'] !== '') {
-/// @todo... check if there is any urlencoding at play here
-            $uri .= '?' . $params['query_string'];
-        }
-
-        $serverRequest = $serverRequest->withUri($this->uriFactory->createUri($uri));
-
-        return $serverRequest;
-    }
-
     /// @see https://github.com/imefisto/psr-swoole-native/
     public function fromSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request $request): ServerRequest
     {
@@ -65,6 +45,26 @@ class ServerRequestFactory extends BaseServerRequestFactory
                 $ra->set($key, $requestAttributes->get($key));
             }
         }
+
+        return $serverRequest;
+    }
+
+    /**
+     * @param \OpenSwoole\Core\Psr\ServerRequest $request
+     */
+    public function fromOpenSwooleServerRequest(ServerRequestInterface $request): ServerRequest
+    {
+        $serverRequest = $this->fromServerRequest($request);
+
+        // fix the request Uri - see https://github.com/openswoole/ext-openswoole/issues/403
+        $params = $request->getServerParams();
+        $uri = $params['request_uri'];
+        if (array_key_exists('query_string', $params) && $params['query_string'] !== '') {
+/// @todo... check if there is any urlencoding at play here
+            $uri .= '?' . $params['query_string'];
+        }
+
+        $serverRequest = $serverRequest->withUri($this->uriFactory->createUri($uri));
 
         return $serverRequest;
     }
