@@ -16,6 +16,7 @@ SWOOLE_GROUP=swoole
 
 # @todo... test that the (Open)Swoole extension (.so) does exist
 
+# @todo... /usr/bin/php is a symlink. Resolve it before creating the hardlink
 ln /usr/bin/php /usr/bin/swoole
 
 # @todo check first if the user already exists

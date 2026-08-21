@@ -5,6 +5,7 @@ namespace TanoWAF\WAFCore\Swoole;
 
 use Psr\Http\Message\ServerRequestInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory as BaseServerRequestFactory;
+use TanoWAF\WAFCore\ServerRequest\Psr7\Attributes;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 
 class ServerRequestFactory extends BaseServerRequestFactory
@@ -19,7 +20,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
         // fix the request Uri - see https://github.com/openswoole/ext-openswoole/issues/403
         $params = $request->getServerParams();
         $uri = $params['request_uri'];
-        if (@$params['query_string'] !== '') {
+        if (array_key_exists('query_string', $params) && $params['query_string'] !== '') {
 /// @todo... check if there is any urlencoding at play here
             $uri .= '?' . $params['query_string'];
         }
@@ -29,23 +30,41 @@ class ServerRequestFactory extends BaseServerRequestFactory
         return $serverRequest;
     }
 
+    /// @see https://github.com/imefisto/psr-swoole-native/
     public function fromSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request $request): ServerRequest
     {
-        $headers = $request->header;
-/// @todo... verify the format of $headers (esp. double headers, continuation, 2-lines 'Cookie')
+/// @todo... check that uppercased $server is what we expect in createUriFromArray and fromArrays, ie. the $_SERVER format
+        $server = [];
+        foreach ($request->server as $k => $v) {
+            $server[strtoupper($k)] = $v;
+        };
 
+        $requestAttributes = new Attributes();
+
+        $method = $request->getMethod();
+
+/// @todo... check that $server is compatible with what we expect
+        $uri = $this->createUriFromArray($server, $requestAttributes);
+
+/// @todo... verify the format of $headers (esp. double headers, continuation, 2-lines 'Cookie')
+        $headers = $request->header; // no need, atm this is already done by called code: array_map(fn($value) => is_array($value) ? $value : [$value], $request->header)
+
+        /// @todo use instead a Stream?
         $body = $request->getContent();
         if ($body === false) {
             $body = null;
         }
 
-/// @todo...
-        $uri = '...';
+        $serverRequest = $this->fromArrays($method, $uri, $headers, $body, $server, $request->post, $request->files);
 
-        $server = $request->server;
-/// @todo... transform  $server into what we expect in fromArrays, ie. the $_SERVER format
-
-        $serverRequest = $this->fromArrays($request->getMethod(), $uri, $headers, $body, $server, $request->post, $request->files);
+        /** @var Attributes $ra */
+        if (($ra = $serverRequest->getAttribute(Attributes::class)) === null) {
+            $serverRequest = $serverRequest->withAttribute(Attributes::class, $requestAttributes);
+        } else {
+            foreach ($requestAttributes->keys() as $key) {
+                $ra->set($key, $requestAttributes->get($key));
+            }
+        }
 
         return $serverRequest;
     }

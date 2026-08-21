@@ -134,8 +134,9 @@ do_start() {
     start-stop-daemon --start --quiet --exec $DAEMON --test > /dev/null \
         || return 1
 
+# @todo funnel errors into $LOGFILE
     start-stop-daemon --start --quiet -c "$SWOOLE_USER":"$SWOOLE_GROUP" -b -d "$WORKING_DIR" --make-pidfile --pidfile "$PIDFILE" \
-        --exec $DAEMON -- serve $PHP_OPTS 2>/dev/null \
+        --exec $DAEMON -- $PHP_OPTS 2>/dev/null \
         || return 2
 }
 

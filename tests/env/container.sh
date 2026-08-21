@@ -77,7 +77,7 @@ Environment variables:
     HOST_PROXYPORT_\$SRV    default value: 8080/8081/8082. Set to 'no' to disable exposing the container port to the host
   used by both build and start:
     CONTAINER_IMAGE_PREFIX default value: 'tw-wafcore'. Change if you build/run many containers in parallel
-    CONTAINER_NAME_PREFIX  default value: 'tw_wafcore'. Change if you build/run many containers in parallel
+    CONTAINER_NAME_PREFIX  default value: 'tw_wafcore_'. Change if you build/run many containers in parallel
   used by the 'runtests' and 'runcoverage' actions:
     TEST_WEBSERVER         default value: nginx. Can be set to apache, frankenphp
 "

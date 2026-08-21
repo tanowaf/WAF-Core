@@ -33,12 +33,14 @@ use TanoWAF\WAFCore\Http\CookieParserFactory;
 use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
+use TanoWAF\WAFCore\Swoole\Emitter;
 use TanoWAF\WAFCore\Swoole\ServerRequestFactory;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
 // 1. Set up signal handling
 
+/*
 if (function_exists('pcntl_signal')) {
     function sigHandler($signo)
     {
@@ -61,19 +63,9 @@ if (function_exists('pcntl_signal')) {
     pcntl_signal(SIGTERM, "sigHandler");
     pcntl_signal(SIGHUP,  "sigHandler");
 }
+*/
 
 // 2. Build the WAF
-
-$firewallFactory = new FirewallFactory();
-
-// one of the simplest rules that allows to easily test both allow and deny responses: look for 'y' in the query string
-$firewall = $firewallFactory->fromConfiguration([['query_string_parameter_value' => ['y' => '*']]]);
-
-$httpClient = new MockUpstreamClient();
-// the upstream uri is not used in this case, since the MockUpstreamClient will happily ignore it
-$upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
-
-$waf = new LoadTestWAF($firewall, $upstreamProxy);
 
 $psr17Factory = new Psr17Factory();
 $cookieParserFactory = new CookieParserFactory();
@@ -87,6 +79,19 @@ $requestFactory = new ServerRequestFactory(
     $headerParserFactory->fromConfiguration([]),
     $queryStringParserFactory->fromConfiguration([])
 );
+
+$firewallFactory = new FirewallFactory();
+
+// one of the simplest rules that allows to easily test both allow and deny responses: look for 'y' in the query string
+$firewall = $firewallFactory->fromConfiguration([['query_string_parameter_value' => ['y' => '*']]]);
+
+$httpClient = new MockUpstreamClient();
+// the upstream uri is not used in this case, since the MockUpstreamClient will happily ignore it
+$upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
+
+$waf = new LoadTestWAF($firewall, $upstreamProxy);
+
+$emitter = new Emitter();
 
 // 3. Build the (Open)Swoole server
 
@@ -124,14 +129,13 @@ if (method_exists($server, 'handle')) {
 
     // OpenSwoole supports ("almost" compliant) PSR  handlers
     $server->handle(function (ServerRequestInterface $request) use ($waf, $requestFactory) {
-        //file_put_contents('/tmp/y.log', var_export($request, true), FILE_APPEND);
         $wafRequest = $requestFactory->fromOpenSwooleServerRequest($request);
         return $waf->handle($wafRequest);
     });
 
 } else {
 
-    $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($waf, $requestFactory)
+    $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($requestFactory, $waf, $emitter)
     {
         try {
             $wafRequest = $requestFactory->fromSwooleRequest($request);
@@ -139,8 +143,7 @@ if (method_exists($server, 'handle')) {
         } catch (\Throwable $e) {
             $wafResponse = $waf::getErrorResponse();
         }
-/// @todo...
-        //$response->end('');
+        $emitter->emit($wafResponse, $response);
     });
 
 }
