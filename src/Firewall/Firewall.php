@@ -11,14 +11,12 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\RequestDenied;
-use TanoWAF\WAFCore\Http\CookieParserAwareTrait;
-use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
-use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
 use TanoWAF\WAFCore\Response\Psr7\HeaderParsingCapableResponseInterface;
-use TanoWAF\WAFCore\Response\Psr7\Response;
+//use TanoWAF\WAFCore\Response\Psr7\Response;
+use TanoWAF\WAFCore\Response\Psr7\ResponseConverterInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\HeaderParsingCapableServerRequestInterface;
-use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
+use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequestConverterInterface;
 use TanoWAF\WAFCore\Stdlib;
 
 /**
@@ -28,9 +26,8 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     use PrivateLoggerTrait;
-    use CookieParserAwareTrait;
-    use HeaderParserAwareTrait;
-    use QueryStringParserAwareTrait;
+    protected ServerRequestConverterInterface $requestFactory;
+    protected ResponseConverterInterface $responseFactory;
 
     /** @var Rule[] */
     protected array $rules;
@@ -41,8 +38,10 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
      * @param Rule[] $rules
      * @throws \InvalidArgumentException
      */
-    public function __construct(array $rules, LoggerInterface|null $logger = null)
+    public function __construct(array $rules, ServerRequestConverterInterface $requestFactory, ResponseConverterInterface $responseFactory, LoggerInterface|null $logger = null)
     {
+        $this->requestFactory = $requestFactory;
+        $this->responseFactory = $responseFactory;
         $this->logger = $logger;
         if (!Stdlib::array_of($rules, Rule::class)) {
             throw new \InvalidArgumentException("Array passed to " . static::class . " constructor must contain only instances of " . Rule::class);
@@ -65,18 +64,8 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 ///          ServerRequestInterface methods `getCookieParams` and `getQueryParams` - no other class but
 ///          our own ServerRequest will use the cookieParser and queryStringParser to build the values
 ///          returned by those methods)
-/// @todo simplify this - just inject the ServerRequestFactory, and call `fromServerRequest`
         if (! $request instanceof HeaderParsingCapableServerRequestInterface) {
-            $request = ServerRequest::fromRequest($request);
-            if ($this->cookieParser !== null) {
-                $request->setCookieParser($this->cookieParser);
-            }
-            if ($this->headerParser !== null) {
-                $request->setHeaderParser($this->headerParser);
-            }
-            if ($this->queryStringParser !== null) {
-                $request->setQueryStringParser($this->queryStringParser);
-            }
+            $request = $this->requestFactory->fromServerRequest($request);
         }
 
         $request = $this->filterServerRequest($request);
@@ -134,13 +123,14 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
 ///          in case a matcher or filter needs to access them. The HeaderParsingCapableResponseInterface
 ///          does not guarantee that - rename and expand it? (see similar comment above)
         if (! $response instanceof HeaderParsingCapableResponseInterface) {
-            $response = Response::fromResponse($response);
+            $response = $this->responseFactory->fromResponse($response);
+            /*$response = Response::fromResponse($response);
             if ($this->cookieParser !== null) {
                 $response->setCookieParser($this->cookieParser);
             }
             if ($this->headerParser !== null) {
                 $response->setHeaderParser($this->headerParser);
-            }
+            }*/
         }
 
         return $response;

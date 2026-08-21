@@ -7,14 +7,20 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\ConfigurationError;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
+use TanoWAF\WAFCore\Response\Psr7\ResponseConverterInterface;
+use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequestConverterInterface;
 
 class FirewallFactory
 {
     use LoggerAwareTrait;
     use PrivateLoggerTrait;
+    protected ServerRequestConverterInterface $requestFactory;
+    protected ResponseConverterInterface $responseFactory;
 
-    public function __construct(LoggerInterface|null $logger = null)
+    public function __construct(ServerRequestConverterInterface $requestFactory, ResponseConverterInterface $responseFactory, LoggerInterface|null $logger = null)
     {
+        $this->requestFactory = $requestFactory;
+        $this->responseFactory = $responseFactory;
         $this->logger = $logger;
     }
 
@@ -82,6 +88,6 @@ class FirewallFactory
             }
         }
 
-        return new Firewall($rules, $this->logger);
+        return new Firewall($rules, $this->requestFactory, $this->responseFactory, $this->logger);
     }
 }

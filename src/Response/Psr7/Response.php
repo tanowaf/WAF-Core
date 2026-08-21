@@ -35,16 +35,6 @@ class Response implements HeaderParsingCapableResponseInterface
     /** @var int */
     private $statusCode;
 
-    public static function fromResponse(ResponseInterface $response): static
-    {
-        /// @todo should we do this?
-        //if ($request instanceof Response) {
-        //    return $request;
-        //}
-
-        return new static($response->getStatusCode(), $response->getHeaders(), $response->getBody(), $response->getProtocolVersion(), $response->getReasonPhrase());
-    }
-
     /**
      * @param int $status Status code
      * @param array $headers Response headers

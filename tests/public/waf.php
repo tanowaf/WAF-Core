@@ -5,7 +5,7 @@ declare(strict_types=1);
 // ***
 // *** _Do not use for anything else!_ ***
 // ***
-// *** For a simpler take, look at loadtest.php
+// *** For a simpler take, look at loadtest/loadtest.php
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -30,16 +30,16 @@ use TanoWAF\WAFCore\Tests\TestWAF;
 use TanoWAF\WAFCore\UpstreamClient\MiddlewareAware as MiddlewareAwareClient;
 
 $waf = new WAFPage();
-$waf->preflight();
+$waf->preFlight();
 $waf->proxyRequest();
-$waf->postflight();
+$waf->postFlight();
 
 class WAFPage
 {
     protected LoggerInterface|null $logger;
     protected string|null $phpunitSeleniumTestId;
 
-    public function preflight(): void
+    public function preFlight(): void
     {
         // In case this file is made available on an open-access server, avoid it being useable by anyone who can not
         // also write a specific file to disk.
@@ -107,7 +107,7 @@ class WAFPage
         $this->logger = $logger;
     }
 
-    public function postflight(): void
+    public function postFlight(): void
     {
         if ($this->phpunitSeleniumTestId !== null) {
             $_COOKIE['PHPUNIT_SELENIUM_TEST_ID'] = $this->phpunitSeleniumTestId;
@@ -128,6 +128,22 @@ class WAFPage
 
             // avoid php interfering with the proxy sending out compressed responses
             ini_set('zlib.output_compression', 0);
+
+            $psr17Factory = new Psr17Factory();
+            $cookieParserFactory = new CookieParserFactory();
+            $headerParserFactory = new HeaderParserFactory();
+            $queryStringParserFactory = new QueryStringParserFactory();
+            $cookieParser = $cookieParserFactory->fromConfiguration([]);
+            $headerParser = $headerParserFactory->fromConfiguration([]);
+            $requestFactory = new ServerRequestFactory(
+                $psr17Factory, // UriFactory
+                $psr17Factory, // UploadedFileFactory
+                $psr17Factory, // StreamFactory
+                $cookieParser,
+                $headerParser,
+                $queryStringParserFactory->fromConfiguration([])
+            );
+            $responseFactory = new \TanoWAF\WAFCore\Response\Psr7\ResponseFactory($cookieParser, $headerParser);
 
             if (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']) !== '') {
                 $this->logger->debug("Using '{$_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']}' client type to connect to upstream");
@@ -152,7 +168,7 @@ class WAFPage
                 $httpClient = new MiddlewareAwareClient(new Tracer($traceFileName, '>> ', '<< '), $httpClient, $this->logger);
             }
 
-            $firewallFactory = new FirewallFactory($this->logger);
+            $firewallFactory = new FirewallFactory($requestFactory, $responseFactory, $this->logger);
             $config = array_key_exists('HTTP_X_WAFCORE_CONFIG', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG']) : '';
             $configFile = array_key_exists('HTTP_X_WAFCORE_CONFIG_FILE', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG_FILE']) : '';
             if ($configFile !== '') {
@@ -200,26 +216,6 @@ class WAFPage
 
             $upstreamProxy = new FixedUpstreamProxy($upstreamUri, $httpClient, null, $this->logger);
             $waf = new TestWAF($middlewareChain, $upstreamProxy, $this->logger);
-            $psr17Factory = new Psr17Factory();
-
-            $cookieParserFactory = new CookieParserFactory();
-            $headerParserFactory = new HeaderParserFactory();
-            $queryStringParserFactory = new QueryStringParserFactory();
-
-            $cookieParser = $cookieParserFactory->fromConfiguration([]);
-            $headerParser = $headerParserFactory->fromConfiguration([]);
-
-            $firewall->setCookieParser($cookieParser)
-                ->setHeaderParser($headerParser);
-
-            $requestFactory = new ServerRequestFactory(
-                $psr17Factory, // UriFactory
-                $psr17Factory, // UploadedFileFactory
-                $psr17Factory, // StreamFactory
-                $cookieParser,
-                $headerParser,
-                $queryStringParserFactory->fromConfiguration([])
-            );
 
             $serverRequest = $this->fromGlobals($requestFactory);
             $tracer?->filterServerRequest($serverRequest);

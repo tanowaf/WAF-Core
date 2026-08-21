@@ -16,6 +16,7 @@ use TanoWAF\WAFCore\Http\HeaderParserInterface;
 use TanoWAF\WAFCore\Http\QueryStringParserInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Attributes;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
+use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequestConverterInterface;
 use TanoWAF\WAFCore\Stdlib;
 
 /**
@@ -32,7 +33,7 @@ use TanoWAF\WAFCore\Stdlib;
  *
  * @todo add support for trusted proxies in front of us: allow whitelisting their IPs and the headers such as x-forwarded-...
  */
-class ServerRequestFactory implements ServerRequestFactoryInterface
+class ServerRequestFactory implements ServerRequestFactoryInterface, ServerRequestConverterInterface
 {
     protected UriFactoryInterface $uriFactory;
     protected UploadedFileFactoryInterface $uploadedFileFactory;

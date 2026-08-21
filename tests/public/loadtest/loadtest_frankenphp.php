@@ -18,6 +18,7 @@ use TanoWAF\WAFCore\Http\CookieParserFactory;
 use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
+use TanoWAF\WAFCore\Response\Psr7\ResponseFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
@@ -25,7 +26,23 @@ use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 $responseEmitter = new SapiEmitter();
 try {
 
-    $firewallFactory = new FirewallFactory();
+    $psr17Factory = new Psr17Factory();
+    $cookieParserFactory = new CookieParserFactory();
+    $headerParserFactory = new HeaderParserFactory();
+    $queryStringParserFactory = new QueryStringParserFactory();
+    $cookieParser = $cookieParserFactory->fromConfiguration([]);
+    $headerParser = $headerParserFactory->fromConfiguration([]);
+    $requestFactory = new ServerRequestFactory(
+        $psr17Factory, // UriFactory
+        $psr17Factory, // UploadedFileFactory
+        $psr17Factory, // StreamFactory
+        $cookieParser,
+        $headerParser,
+        $queryStringParserFactory->fromConfiguration([])
+    );
+    $responseFactory = new ResponseFactory($cookieParser, $headerParser);
+
+    $firewallFactory = new FirewallFactory($requestFactory, $responseFactory);
 
     // one of the simplest rules that allows to easily test both allow and deny responses: look for 'y' in the query string
     $firewall = $firewallFactory->fromConfiguration([['query_string_parameter_value' => ['y' => '*']]]);
@@ -35,19 +52,6 @@ try {
     $upstreamProxy = new FixedUpstreamProxy('http://127.0.0.1/', $httpClient);
 
     $waf = new LoadTestWAF($firewall, $upstreamProxy);
-
-    $psr17Factory = new Psr17Factory();
-    $cookieParserFactory = new CookieParserFactory();
-    $headerParserFactory = new HeaderParserFactory();
-    $queryStringParserFactory = new QueryStringParserFactory();
-    $requestFactory = new ServerRequestFactory(
-        $psr17Factory, // UriFactory
-        $psr17Factory, // UploadedFileFactory
-        $psr17Factory, // StreamFactory
-        $cookieParserFactory->fromConfiguration([]),
-        $headerParserFactory->fromConfiguration([]),
-        $queryStringParserFactory->fromConfiguration([])
-    );
 
     $requestHandler = function() use($requestFactory, $waf, $responseEmitter) {
         $serverRequest = $requestFactory->fromGlobals();
