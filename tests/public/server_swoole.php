@@ -50,9 +50,13 @@ $server->set($config);
 
 $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($testServer)
 {
+    $testServer->setSwooleRequest($request);
     $testServer->setSwooleResponse($response);
     $testServer->respond($request->getMethod(), @$request->get['action'] ?? 'info', @$request->get['action_args'] ? (array)$request->get['action_args'] : []);
     $response->end();
+    $testServer->setSwooleRequest(null);
+    $testServer->setSwooleResponse(null);
+
 });
 
 $server->start();

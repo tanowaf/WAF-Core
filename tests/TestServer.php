@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use TanoWAF\WAFCore\Http\CookieParserFactory;
 use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Http\QueryStringParserFactory;
-use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
+use TanoWAF\WAFCore\Swoole\ServerRequestFactory;
 use TanoWAF\WAFCore\Stdlib;
 use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
 
@@ -25,6 +25,7 @@ class TestServer
     protected string $requestPrefix = '';
 
     protected null|\OpenSwoole\Http\Response|\Swoole\Http\Response $swooleResponse = null;
+    protected null|\OpenSwoole\Http\Request|\Swoole\Http\Request $swooleRequest = null;
 
     public function preflight(): void
     {
@@ -77,7 +78,12 @@ class TestServer
         }
     }
 
-    public function setSwooleResponse(\OpenSwoole\Http\Response|\Swoole\Http\Response $response)
+    public function setSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request|null $request)
+    {
+        $this->swooleRequest = $request;
+    }
+
+    public function setSwooleResponse(\OpenSwoole\Http\Response|\Swoole\Http\Response|null $response)
     {
         $this->swooleResponse = $response;
     }
@@ -154,7 +160,11 @@ class TestServer
     protected function displayInfoResponse(string $serverRequestLibrary = 'wafcore'): void
     {
         $serverRequest = $this->buildServerRequest($serverRequestLibrary);
-        $requestHeaders = Stdlib::getHeadersFromServer($_SERVER);
+        if ($this->swooleRequest === null) {
+            $requestHeaders = Stdlib::getHeadersFromServer($_SERVER);
+        } else {
+            $requestHeaders = $this->swooleRequest->header;
+        }
 
         $response = array_merge(
             self::DEFAULT_RESPONSE,
@@ -205,7 +215,8 @@ class TestServer
             $this->header('Content-type', 'application/php-serialized+base64');
         }
 
-        if (@$_SERVER['REQUEST_METHOD'] === 'HEAD') {
+        if (($this->swooleRequest === null && @$_SERVER['REQUEST_METHOD'] === 'HEAD') ||
+            ($this->swooleRequest !== null && $this->swooleRequest->getMethod() === 'HEAD')) {
             // (note that this is allowed as per RFC 9110)
             $this->header('Content-Length', (string)strlen($payload));
         } else {
@@ -232,7 +243,12 @@ class TestServer
                     $headerParserFactory->fromConfiguration([]),
                     $queryStringParserFactory->fromConfiguration([])
                 );
-                return $requestFactory->fromGlobals();
+                if ($this->swooleRequest !== null) {
+                    return $requestFactory->fromSwooleRequest($this->swooleRequest);
+                } else {
+                    return $requestFactory->fromGlobals();
+                }
+
             case 'guzzle':
                 return GuzzleServerRequest::fromGlobals();
             case 'symfony':
