@@ -114,7 +114,7 @@ do_start() {
         || return 1
 
     # @todo allow easy rotation of the log file by piping into multilog or similar, since frankenphp does not handle that via a signal
-    start-stop-daemon --start --quiet -c "$FRANKENPHP_USER":"$FRANKENPHP_GROUP" -d "$WORKING_DIR" -b -O "$LOGFILE" \
+    start-stop-daemon --start --quiet -b -c "$FRANKENPHP_USER":"$FRANKENPHP_GROUP" -d "$WORKING_DIR" -O "$LOGFILE" \
         --exec $DAEMON -- run $DAEMON_OPTS 2>/dev/null \
         || return 2
 }

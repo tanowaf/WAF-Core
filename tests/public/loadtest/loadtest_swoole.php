@@ -9,17 +9,12 @@ if (!isset($_SERVER['SWOOLE_WORKER']) || (int)$_SERVER['SWOOLE_WORKER'] === 0 ||
     throw new \Exception('This script is meant to be used in Swoole Worker mode, which is not enabled in the current configuration');
 }
 
+// (Open)Swoole worker mode
+
 $configFile = @$argv[1];
 if (!is_file($configFile) ) {
     throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
 }
-
-$logFile = null;
-if ($argc > 2) {
-    $logFile = $argv[2];
-}
-
-// (Open)Swoole worker mode
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
@@ -38,6 +33,7 @@ use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
 // 1. Set up signal handling
 
+/// @todo check if this is beneficial / works as expected, with both Swoole and OpenSwoole
 /*
 if (function_exists('pcntl_signal')) {
     function sigHandler($signo)
@@ -96,16 +92,12 @@ $emitter = new Emitter();
 
 // 3. Build the (Open)Swoole server
 
-if ($logFile !== null) {
-    $config['log_file'] = $logFile;
-}
-
 $config = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
 
-if (class_exists('\OpenSwoole\Http\Server')) {
-    $serverClass = '\OpenSwoole\Http\Server';
-} else if (class_exists('\Swoole\Http\Server')) {
+if (class_exists('\Swoole\Http\Server')) {
     $serverClass = '\Swoole\Http\Server';
+} else if (class_exists('\OpenSwoole\Http\Server')) {
+    $serverClass = '\OpenSwoole\Http\Server';
 } else {
     throw new \Exception("This should never happen");
 }
@@ -113,6 +105,7 @@ if (class_exists('\OpenSwoole\Http\Server')) {
 $server = new $serverClass($config['listen_ip'], (int)$config['listen_port']);
 unset($config['listen_ip'], $config['listen_port']);
 
+/// @see https://wiki.swoole.com/en/#/http_server?id=configuration-options
 /// @see https://openswoole.com/docs/modules/swoole-server/configuration
 $server->set($config);
 

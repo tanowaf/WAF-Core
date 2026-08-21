@@ -36,10 +36,10 @@ NAME=swoole
 DAEMON=/usr/bin/swoole
 PREPEND_FILE=/etc/swoole/prepend.php
 STOP_SCHEDULE=INT/5/QUIT/5/KILL/5
-SWOOLE_EXTENSION=openswoole
+SWOOLE_EXTENSION=swoole
 VERBOSE=no
 VHOST=server
-WORKER_SCRIPT=waf.php
+WORKER_SCRIPT=server_swoole.php
 WORKER_SCRIPT_DIR=/var/www/tests/public
 
 # Include config defaults if available
@@ -63,16 +63,18 @@ fi
 if [ -z "$PIDFILE" ]; then
     PIDFILE="/run/$SWOOLE_USER/swoole.pid"
 fi
-# @todo should we leave the log file to swoole_$vhost.json?
 if [ -z "$LOGFILE" ]; then
     LOGFILE="/var/log/$NAME/${VHOST}.log"
 fi
 if [ -z "$WORKER_ARGS" ]; then
-    WORKER_ARGS="/etc/swoole/swoole_${VHOST}.json $LOGFILE"
+    WORKER_ARGS="/etc/swoole/swoole_${VHOST}.json"
 fi
 
 # we use a php auto_prepend_file to set env vars that can be used by our worker for the log file, listening port
-DAEMON_OPTS="-d auto_prepend_file=$PREPEND_FILE -f $WORKER_SCRIPT_DIR/$WORKER_SCRIPT $DAEMON_OPTS -- $WORKER_ARGS"
+# @todo it would be nice to be able to have the $WORKER_SCRIPT_DIR/$WORKER_SCRIPT value be set in the json file,
+#       as we do for RoadRunner and FrankenPHP, but there is a bootstrap issue: we need to know the php script name
+#       to build the command line used here. We could maybe use jq to achieve that, but it seems hackish...
+DAEMON_OPTS="-dauto_prepend_file=$PREPEND_FILE -f $WORKER_SCRIPT_DIR/$WORKER_SCRIPT $DAEMON_OPTS -- $WORKER_ARGS"
 
 if [ -n "$ULIMIT" ]; then
     # Set ulimit if it is set in /etc/default/swoole
@@ -130,12 +132,14 @@ do_start() {
     #if pidofproc -p $PIDFILE "$DAEMON" > /dev/null 2>&1 ; then
     #    return 1
     #fi
-# @todo...test:  this will most likely return true for _any_ php process running... either add `--pidfile` or move to using pidofproc
+# @todo...test:  this will most likely return true for _any_ php/swoole process running... either add `--pidfile` or move to using pidofproc
     start-stop-daemon --start --quiet --exec $DAEMON --test > /dev/null \
         || return 1
 
-# @todo funnel errors into $LOGFILE
-    start-stop-daemon --start --quiet -c "$SWOOLE_USER":"$SWOOLE_GROUP" -b -d "$WORKING_DIR" --make-pidfile --pidfile "$PIDFILE" \
+    # @todo allow easy rotation of the log file by piping into multilog or similar (we prefer not to use swoole's own logger
+    #       as it misses logging errors happening before $server->start()))
+    # @todo check if option `daemonize` is valid for both swoole and openswoole. If it is, test using that instead of `-b` here
+    start-stop-daemon --start --quiet -b -c "$SWOOLE_USER":"$SWOOLE_GROUP" -d "$WORKING_DIR" -O "$LOGFILE" --make-pidfile --pidfile "$PIDFILE" \
         --exec $DAEMON -- $PHP_OPTS 2>/dev/null \
         || return 2
 }

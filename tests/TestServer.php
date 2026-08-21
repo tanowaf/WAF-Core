@@ -24,6 +24,8 @@ class TestServer
 
     protected string $requestPrefix = '';
 
+    protected null|\OpenSwoole\Http\Response|\Swoole\Http\Response $swooleResponse = null;
+
     public function preflight(): void
     {
 /// @todo... enable this after we add support for the PHPUNIT_RANDOM_TEST_ID cookie in the direct-access tests
@@ -75,6 +77,11 @@ class TestServer
         }
     }
 
+    public function setSwooleResponse(\OpenSwoole\Http\Response|\Swoole\Http\Response $response)
+    {
+        $this->swooleResponse = $response;
+    }
+
     /**
      * Displays an error response
      */
@@ -83,8 +90,8 @@ class TestServer
         if ($statusCode < 400 || $statusCode > 599) {
             throw new \InvalidArgumentException("Unsupported status code for returning an error response");
         }
-        http_response_code($statusCode);
-        echo $message;
+        $this->http_response_code($statusCode);
+        $this->echo($message);
     }
 
     /**
@@ -92,8 +99,8 @@ class TestServer
      */
     protected function displayOptionsResponse(): void
     {
-        http_response_code(204);
-        header('Allow: GET, HEAD, OPTIONS, POST, PUT, TRACE');
+        $this->http_response_code(204);
+        $this->header('Allow', 'GET, HEAD, OPTIONS, POST, PUT, TRACE');
     }
 
     /**
@@ -107,8 +114,8 @@ class TestServer
             case 303:
             case 307:
             case 308:
-                http_response_code((int)$statusCode);
-                header("Location: $location");
+                $this->http_response_code((int)$statusCode);
+                $this->header('Location', $location);
                 break;
             default:
                 throw new \InvalidArgumentException("Unsupported status code for returning a redirection response");
@@ -117,6 +124,9 @@ class TestServer
 
     protected function displaySlowResponse($duration = 30): void
     {
+        if ($this->swooleResponse !== null) {
+            throw new \Exception("Slow responses are not supported with (Open)Swoole");
+        }
         if ($duration < 0 || $duration > ini_get('max_execution_time')) {
             throw new \InvalidArgumentException("Unsupported duration for returning a slow response");
         }
@@ -134,8 +144,8 @@ class TestServer
      */
     protected function displayTraceResponse(string $serverRequestLibrary = 'wafcore'): void
     {
-        header('Content-Type: message/http');
-        echo $this->serializeRequest($this->buildServerRequest($serverRequestLibrary));
+        $this->header('Content-Type', 'message/http');
+        $this->echo($this->serializeRequest($this->buildServerRequest($serverRequestLibrary)));
     }
 
     /**
@@ -189,17 +199,17 @@ class TestServer
         $payload = json_encode($response);
         if ($payload !== false) {
             //$response = json_last_error_msg();
-            header('Content-type: application/json');
+            $this->header('Content-type', 'application/json');
         } else {
             $payload = base64_encode(serialize($response));
-            header('Content-type: application/php-serialized+base64');
+            $this->header('Content-type', 'application/php-serialized+base64');
         }
 
         if (@$_SERVER['REQUEST_METHOD'] === 'HEAD') {
             // (note that this is allowed as per RFC 9110)
-            header("Content-Length: " . strlen($payload));
+            $this->header('Content-Length', (string)strlen($payload));
         } else {
-            echo $payload;
+            $this->echo($payload);
         }
     }
 
@@ -265,5 +275,32 @@ class TestServer
         }
 
         return $body;
+    }
+
+    protected function header(string $name, string $value): void
+    {
+        if ($this->swooleResponse === null) {
+            header("$name: $value");
+        } else {
+            $this->swooleResponse->header($name, $value);
+        }
+    }
+
+    protected function http_response_code(int $statusCode): void
+    {
+        if ($this->swooleResponse === null) {
+            http_response_code($statusCode);
+        } else {
+            $this->swooleResponse->status($statusCode);
+        }
+    }
+
+    protected function echo(string $content): void
+    {
+        if ($this->swooleResponse === null) {
+            echo $content;
+        } else {
+            $this->swooleResponse->write($content);
+        }
     }
 }

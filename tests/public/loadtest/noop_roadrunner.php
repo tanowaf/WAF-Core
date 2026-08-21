@@ -7,7 +7,7 @@ if (!isset($_SERVER['ROADRUNNER_WORKER']) || (int)$_SERVER['ROADRUNNER_WORKER'] 
     throw new \Exception('This script is meant to be used in RoadRunner Worker mode, which is not enabled in the current configuration');
 }
 
-// RoadRunner version
+// RoadRunner worker mode
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
