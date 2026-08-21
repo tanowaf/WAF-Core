@@ -14,10 +14,9 @@ SCRIPT_DIR="$(dirname -- "$(readlink -f "$0")")"
 SWOOLE_USER=swoole
 SWOOLE_GROUP=swoole
 
-# @todo... test that the (Open)Swoole extension (.so) does exist
+# @todo... test that either the Swoole or OpenSwoole php extension (.so) does exist
 
-# @todo... /usr/bin/php is a symlink. Resolve it before creating the hardlink
-ln /usr/bin/php /usr/bin/swoole
+ln "$(readlink -f /usr/bin/php)" /usr/bin/swoole
 
 # @todo check first if the user already exists
 ./create_user.sh "$SWOOLE_USER" 2002 2002
