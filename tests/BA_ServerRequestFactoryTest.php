@@ -141,7 +141,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
 
         // one more test case where different webservers behave differently :-(
         // Nginx recognizes Cookie and treats it specifically, Apache and FrankenPHP do not
-        if ($_ENV['SERVER_TYPE'] === 'nginx') {
+        if ($_ENV['SERVER_TYPE'] === 'nginx' || $_ENV['SERVER_TYPE'] === 'swoole') {
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", 'Cookie', 'lang1=xx-YY; lang2=en-US; lang3=fr-FR'];
         } else {
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", 'Cookie', 'lang1=xx-YY; lang2=en-US, lang3=fr-FR'];
@@ -185,6 +185,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         $cases[] = ["Cookie: one.=one", ['one.' => 'one']]; // $_COOKIE has: 'one_' => 'one'
         $cases[] = ["Cookie: o n e=one", ['o n e' => 'one']]; // $_COOKIE has: 'o_n_e' => 'one'
         $cases[] = ["Cookie: o\tne=one", ["o\tne" => 'one']];
+
         /// @todo... report this as php bug?
         $cases[] = ["Cookie: o\tn\te=one",  ["o\tn\te" => 'one']];  // $_COOKIE has it different: ...
 
@@ -213,8 +214,8 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         $cases[] = ['Cookie: one=one; one=two', ['one' => ['one', 'two']]]; // $_COOKIE has: 'one' => 'one'
 
         // one more test case where different webservers behave differently :-(
-        // Apache and FP glue together 2 `Cookie` header lines using ', ' (and then use that as cookie value), Nginx does
-        // that in a smarter way using ';' (though not necessarily more rfc-compliant)
+        // Apache and FP glue together 2 `Cookie` header lines using ', ' (and then use that as cookie value), Nginx
+        // and our Swoole adapter do that in a smarter way using ';' (though not necessarily more rfc-compliant)
         /// @todo check: did this behaviour change in frankenphp 1.12.7 ??
         if ($_ENV['SERVER_TYPE'] === 'apache' || $_ENV['SERVER_TYPE'] === 'frankenphp') {
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", ['lang1' => 'xx-YY', 'lang2' => 'en-US, lang3=fr-FR']];

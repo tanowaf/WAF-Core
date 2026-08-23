@@ -74,10 +74,38 @@ class ServerRequestFactory extends BaseServerRequestFactory
         $headers = [];
         foreach ($request->header as $k => $v) {
             // try to keep as close as possible to Stdlib::getHeadersFromServer
-            $headers[\ucwords($k, "-_")] = $v;
+            $headers[\ucwords((string)$k, "-_")] = $v;
             // no need, atm this is already done by called code
             //array_map(fn($value) => is_array($value) ? $value : [$value], $request->header)
         };
+
+        // retrieve the cookie header, since swoole removes it from $request->header
+        if ($request->cookie && !array_key_exists('Cookie', $headers)) {
+
+            // sadly this does not give us access to the original cookie header line(s)
+            /*$cookies = [];
+            foreach ($request->cookie as $k => $v) {
+                $cookies[] = "$k=$v";
+            }
+            $headers['Cookie'] = implode('; ', $cookies);*/
+
+            /// @todo... speed-up and harden this header parser against eg. overlong headers (then use it for all headers?)
+            ///          - avoid doing data copies with substr
+            ///          - set a limit on header line length (check if swoole does that on its own)
+            ///          take a look at eg. the QBix server header parser
+            $payload = $request->getData();
+            $pos = strpos($payload, "\r\n\r\n");
+            if ($pos !== false) {
+                $headers['Cookie'] = [];
+                foreach (explode("\r\n", substr($payload, 0, $pos)) as $headerLine) {
+                    if (preg_match('/^Cookie:/i', $headerLine, $matches)) {
+                        $headers['Cookie'][] = trim(substr($headerLine, 7), " \t");
+                    }
+                }
+                $headers['Cookie'] = implode('; ', $headers['Cookie']);
+            }
+        }
+
         return $headers;
     }
 }
