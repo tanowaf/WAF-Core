@@ -24,6 +24,7 @@ use TanoWAF\WAFCore\RoadRunner\Worker as HttpWorker;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
+/// @todo... test: does RR actually forward the signals to the workers? If not, we could have the init.d script signal them directly...
 if (function_exists('pcntl_signal')) {
     function sigHandler($signo)
     {

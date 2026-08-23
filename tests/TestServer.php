@@ -12,7 +12,6 @@ use TanoWAF\WAFCore\Http\CookieParserFactory;
 use TanoWAF\WAFCore\Http\HeaderParserFactory;
 use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Swoole\ServerRequestFactory;
-use TanoWAF\WAFCore\Stdlib;
 use TanoWAF\WAFCore\Tracer\RequestTracerTrait;
 
 class TestServer
@@ -161,9 +160,9 @@ class TestServer
     {
         $serverRequest = $this->buildServerRequest($serverRequestLibrary);
         if ($this->swooleRequest === null) {
-            $requestHeaders = Stdlib::getHeadersFromServer($_SERVER);
+            $requestHeaders = ServerRequestFactory::getHeadersFromServer($_SERVER);
         } else {
-            $requestHeaders = $this->swooleRequest->header;
+            $requestHeaders = ServerRequestFactory::getHeadersFromSwooleRequest($this->swooleRequest);
         }
 
         $response = array_merge(

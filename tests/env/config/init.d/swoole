@@ -168,12 +168,10 @@ do_start() {
 
 # Returns:
 #   0 if config was reloaded
-#   2 if config could not be reloaded (eg. daemon not started)
-### @todo... send a signal (SIGHUP?) to (restart the server and) reload the config
-#do_reload() {
-#    # This returns 1 if FP is not running or presumably other errors
-#    DAEMON reload --config "$SWOOLE_CONFIG" >/dev/null 2>&1 || return 2
-#}
+#   1 if config could not be reloaded because daemon not started
+do_reload() {
+    start-stop-daemon --stop --signal USR1 --quiet --pidfile $PIDFILE
+}
 
 # @todo... check if we can send a signal to rotate the logs
 #rotate_logs() {
@@ -235,23 +233,22 @@ case "$1" in
         #exit $?
         ;;
 
-#    reload)
-#        log_daemon_msg "Reloading $DESC" "$VHOST"
-#        do_reload
-#        RET_STATUS=$?
-#        case "$RET_STATUS" in
-#            0|1)
-#                log_end_msg 0
-#                # @todo what does this message mean? Server _should_ have been running...
-#                #[ "$VERBOSE" != no ] && [ $RET_STATUS = 1 ] && log_warning_msg "Server was already running"
-#                exit 0
-#                ;;
-#            2)
-#                log_end_msg 1
-#                exit 1
-#                ;;
-#        esac
-#        ;;
+    reload)
+        log_daemon_msg "Reloading $DESC" "$VHOST"
+        do_reload
+        RET_STATUS=$?
+        case "$RET_STATUS" in
+            0|1)
+                log_end_msg 0
+                [ "$VERBOSE" != no ] && [ $RET_STATUS = 1 ] && log_warning_msg "Server was not running"
+                exit 0
+                ;;
+            2)
+                log_end_msg 1
+                exit 1
+                ;;
+        esac
+        ;;
 
     restart)
         log_daemon_msg "Restarting $DESC" "$VHOST"
@@ -281,7 +278,7 @@ case "$1" in
     # @todo add a `rotate` action
 
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|status|restart}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|status|restart|reload}" >&2
         exit 3
         ;;
 esac

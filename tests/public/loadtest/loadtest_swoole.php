@@ -31,35 +31,7 @@ use TanoWAF\WAFCore\Swoole\ServerRequestFactory;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
 
-// 1. Set up signal handling
-
-/// @todo check if this is beneficial / works as expected, with both Swoole and OpenSwoole
-/*
-if (function_exists('pcntl_signal')) {
-    function sigHandler($signo)
-    {
-        switch ($signo) {
-            case SIGINT:
-            case SIGQUIT:
-            case SIGTERM:
-                // handle shutdown tasks
-                exit;
-            case SIGHUP:
-                /// @todo... reload the config and restart the server
-                break;
-            default:
-                // handle all other signals
-        }
-    }
-    pcntl_async_signals(true);
-    pcntl_signal(SIGINT, "sigHandler");
-    pcntl_signal(SIGQUIT, "sigHandler");
-    pcntl_signal(SIGTERM, "sigHandler");
-    pcntl_signal(SIGHUP,  "sigHandler");
-}
-*/
-
-// 2. Build the WAF
+// 1. Build the WAF
 
 $psr17Factory = new Psr17Factory();
 $cookieParserFactory = new CookieParserFactory();
@@ -90,7 +62,7 @@ $waf = new LoadTestWAF($firewall, $upstreamProxy);
 
 $emitter = new Emitter();
 
-// 3. Build the (Open)Swoole server
+// 2. Build the (Open)Swoole server
 
 $serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
 
@@ -109,7 +81,7 @@ unset($serverConfig['listen_ip'], $serverConfig['listen_port']);
 /// @see https://openswoole.com/docs/modules/swoole-server/configuration
 $server->set($serverConfig);
 
-// 4. Loop
+// 3. Loop
 
 // *** Method A - the most automated - sadly it does not work, as we get back an empty `$request->getUri()`. See https://github.com/openswoole/ext-openswoole/issues/403
 

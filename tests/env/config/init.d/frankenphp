@@ -129,6 +129,7 @@ test_config() {
 #   2 if config could not be reloaded (eg. daemon not started)
 do_reload() {
     # This returns 1 if FP is not running or presumably other errors
+    # @todo... check if this restarts the workers / reloads the php code
     $DAEMON reload --config "$FRANKENPHP_CONFIG" >/dev/null 2>&1 || return 2
 }
 

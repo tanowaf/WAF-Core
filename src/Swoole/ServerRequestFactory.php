@@ -27,7 +27,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
         $uri = $this->createUriFromArray($server, $requestAttributes);
 
 /// @todo... verify the format of $headers (esp. double headers, continuation, 2-lines 'Cookie')
-        $headers = $request->header; // no need, atm this is already done by called code: array_map(fn($value) => is_array($value) ? $value : [$value], $request->header)
+        $headers = static::getHeadersFromSwooleRequest($request);
 
         /// @todo use instead a Stream?
         $body = $request->getContent();
@@ -67,5 +67,17 @@ class ServerRequestFactory extends BaseServerRequestFactory
         $serverRequest = $serverRequest->withUri($this->uriFactory->createUri($uri));
 
         return $serverRequest;
+    }
+
+    public static function getHeadersFromSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request $request): array
+    {
+        $headers = [];
+        foreach ($request->header as $k => $v) {
+            // try to keep as close as possible to Stdlib::getHeadersFromServer
+            $headers[\ucwords($k, "-_")] = $v;
+            // no need, atm this is already done by called code
+            //array_map(fn($value) => is_array($value) ? $value : [$value], $request->header)
+        };
+        return $headers;
     }
 }

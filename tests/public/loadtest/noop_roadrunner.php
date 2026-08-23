@@ -14,6 +14,7 @@ require __DIR__ . '/../../../vendor/autoload.php';
 use Spiral\RoadRunner\Http\HttpWorker;
 use Spiral\RoadRunner\Worker;
 
+/// @todo... test: does RR actually forward the signals to the workers? If not, we could have the init.d script signal them directly...
 if (function_exists('pcntl_signal')) {
     function sigHandler($signo)
     {

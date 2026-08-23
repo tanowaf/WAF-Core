@@ -18,30 +18,6 @@ if (!is_file($configFile) ) {
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-/// @todo check if this is beneficial / works as expected, with both Swoole and OpenSwoole
-if (function_exists('pcntl_signal')) {
-    function sigHandler($signo)
-    {
-        switch ($signo) {
-            case SIGINT:
-            case SIGQUIT:
-            case SIGTERM:
-                // handle shutdown tasks
-                exit;
-            case SIGHUP:
-                /// @todo... reload the config and restart the server
-                break;
-            default:
-                // handle all other signals
-        }
-    }
-    pcntl_async_signals(true);
-    pcntl_signal(SIGINT, "sigHandler");
-    pcntl_signal(SIGQUIT, "sigHandler");
-    pcntl_signal(SIGTERM, "sigHandler");
-    pcntl_signal(SIGHUP,  "sigHandler");
-}
-
 $serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
 
 if (class_exists('\Swoole\Http\Server')) {

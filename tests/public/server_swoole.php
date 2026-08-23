@@ -26,7 +26,7 @@ if (!is_file($configFile) ) {
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use TanoWAF\WAFCore\Tests\DotConf;
+//use TanoWAF\WAFCore\Tests\DotConf;
 use TanoWAF\WAFCore\Tests\TestServer;
 
 //$dotConf = new DotConf();
@@ -60,7 +60,6 @@ $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $r
     $response->end();
     $testServer->setSwooleRequest(null);
     $testServer->setSwooleResponse(null);
-
 });
 
 $server->start();

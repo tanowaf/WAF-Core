@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\HttpClient\Internal\Dechunker;
 
 /**
  * Tests the ServerRequestFactory class for all kind of weird http input.
@@ -14,7 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  *                      - headers which have a known syntax, to check if the webservers strip the double quotes and comments
  *                      - unexpected values for Host header (incl. double Host)
  */
-class BA_ServerRequestCreatorTest extends ServerTestCase
+class BA_ServerRequestFactoryTest extends ServerTestCase
 {
     /**
      * Test http headers which cause all (tested) servers to pass them on to PHP - single header
@@ -77,8 +78,8 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         $cases[] = ['Custom: ' . $obsText, 'Custom', $obsText];
 
         // obs-fold, ie. continuing a header on the next line
-        // NB: Nginx, as of 1.28.3 at least, does not allow it, whereas apache and frankenphp do...
-        if ($_ENV['SERVER_TYPE'] !== 'nginx') {
+        // NB: Nginx, as of 1.28.3 at least, and swoole 6.2.2 do not allow it, whereas apache and frankenphp do...
+        if ($_ENV['SERVER_TYPE'] !== 'nginx' && $_ENV['SERVER_TYPE'] !== 'swoole') {
             $cases[] = ["Custom: hey\r\n  you", 'Custom', 'hey you'];
             $cases[] = ["Custom: hey\r\n\tyou", 'Custom', 'hey you'];
         }
@@ -98,7 +99,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         $data = $this->getDecodedBody($response);
         $headers = $data['serverRequest']['headers'];
         $this->assertArrayHasKey($expectedHeaderName, $headers, $failureMessage);
-        $this->assertSame($expectedHeaderValue, $headers[$expectedHeaderName][0], $failureMessage);
+        $this->assertSame($expectedHeaderValue, is_string($expectedHeaderValue) ? $headers[$expectedHeaderName][0] : $headers[$expectedHeaderName], $failureMessage);
     }
 
     public static function duplicateHttpHeaderDataProvider(): array
@@ -122,7 +123,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
 
         // LF without CR
         // NB: Apache, as of 2026/7/21 at least, does not allow it, whereas frankenphp and nginx do...
-        if ($_ENV['SERVER_TYPE'] !== 'apache') {
+        if ($_ENV['SERVER_TYPE'] !== 'apache' && $_ENV['SERVER_TYPE'] !== 'swoole') {
             $cases[] = ["Custom: hey\nCustom: there", 'Custom', 'hey, there'];
         }
 
@@ -146,6 +147,13 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", 'Cookie', 'lang1=xx-YY; lang2=en-US, lang3=fr-FR'];
         }
         $cases[] = ['Cookie: withquotes="xx-YY"', 'Cookie', 'withquotes="xx-YY"'];
+
+        // swoole does in fact preserve multi-valued headers!
+        if ($_ENV['SERVER_TYPE'] === 'swoole') {
+            foreach ($cases as $i => &$v) {
+                $v[2] = explode(', ', $v[2]);
+            }
+        }
 
         return self::mergeCommonDataProviderOptions($cases);
     }
@@ -598,7 +606,7 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
         if (json_last_error() !== 0) {
             $data = @base64_decode($body);
             if ($data !== false) {
-                $data = unserialize($data, ['allowed_classes' => false]);
+                $data = @unserialize($data, ['allowed_classes' => false]);
             }
         }
         $this->assertIsArray($data);
@@ -608,13 +616,23 @@ class BA_ServerRequestCreatorTest extends ServerTestCase
     /**
      * Really simple separator of body from headers
      */
-    protected function extractBody(string $response): string
+    protected function extractBody(string $response, bool $dechunk = true): string
     {
         /// @todo accept single \n as line terminators: "Although the line terminator for the start-line and fields is
         ///        the sequence CRLF, a recipient MAY recognize a single LF as a line terminator and ignore any preceding CR"
         $pos = strpos($response, "\r\n\r\n");
         if ($pos !== false) {
-            return substr($response, $pos + 4);
+            $body = substr($response, $pos + 4);
+            if ($dechunk) {
+                $headers = substr($response, 0, $pos);
+                foreach (explode("\r\n", $headers) as $header) {
+                    if (str_starts_with(strtolower($header), 'transfer-encoding:') && trim(substr($header, 18), " \t") == 'chunked') {
+                        $dechunker = new Dechunker();
+                        $body = $dechunker->dechunk($body);
+                    }
+                }
+            }
+            return $body;
         }
         return '';
     }
