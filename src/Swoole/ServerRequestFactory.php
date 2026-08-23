@@ -23,10 +23,8 @@ class ServerRequestFactory extends BaseServerRequestFactory
 
         $method = $request->getMethod();
 
-/// @todo... check that $server is compatible with what we expect
         $uri = $this->createUriFromArray($server, $requestAttributes);
 
-/// @todo... verify the format of $headers (esp. double headers, continuation, 2-lines 'Cookie')
         $headers = static::getHeadersFromSwooleRequest($request);
 
         /// @todo use instead a Stream?
