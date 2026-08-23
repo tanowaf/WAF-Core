@@ -24,6 +24,7 @@ use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Logger\FileLogger;
 use TanoWAF\WAFCore\Middleware\Dispatcher;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
+use TanoWAF\WAFCore\Response\Psr7\ResponseFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use TanoWAF\WAFCore\Tests\TestWAF;
@@ -143,7 +144,7 @@ class WAFPage
                 $headerParser,
                 $queryStringParserFactory->fromConfiguration([])
             );
-            $responseFactory = new \TanoWAF\WAFCore\Response\Psr7\ResponseFactory($cookieParser, $headerParser);
+            $responseFactory = new ResponseFactory($cookieParser, $headerParser);
 
             if (array_key_exists('HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE', $_SERVER) && trim($_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']) !== '') {
                 $this->logger->debug("Using '{$_SERVER['HTTP_X_WAFCORE_UPSTREAM_CLIENT_TYPE']}' client type to connect to upstream");

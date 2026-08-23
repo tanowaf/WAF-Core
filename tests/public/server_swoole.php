@@ -19,6 +19,11 @@ if (!is_file($configFile) ) {
     throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
 }
 
+/// @todo we could set the process name using `cli_set_process_title`, to make it easier for daemon management tools -
+///       but take care that doing that by default removes the command line args
+//$vhostName = @$argv[2];
+//cli_set_process_title("swoole_$vhostName $configFile");
+
 require __DIR__ . '/../../vendor/autoload.php';
 
 use Symfony\Component\Dotenv\Dotenv;
@@ -31,7 +36,7 @@ $dotenv->loadEnv(__DIR__.'/../.env');
 $testServer = new TestServer();
 $testServer->preflight();
 
-$config = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
+$serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
 
 if (class_exists('\Swoole\Http\Server')) {
     $serverClass = '\Swoole\Http\Server';
@@ -41,12 +46,12 @@ if (class_exists('\Swoole\Http\Server')) {
     throw new \Exception("This should never happen");
 }
 
-$server = new $serverClass($config['listen_ip'], (int)$config['listen_port']);
-unset($config['listen_ip'], $config['listen_port']);
+$server = new $serverClass($serverConfig['listen_ip'], (int)$serverConfig['listen_port']);
+unset($serverConfig['listen_ip'], $serverConfig['listen_port']);
 
 /// @see https://wiki.swoole.com/en/#/http_server?id=configuration-options
 /// @see https://openswoole.com/docs/modules/swoole-server/configuration
-$server->set($config);
+$server->set($serverConfig);
 
 $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($testServer)
 {

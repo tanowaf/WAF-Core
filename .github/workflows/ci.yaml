@@ -56,12 +56,29 @@ jobs:
                     if [ '${{ matrix.webserver }}' = 'frankenphp' ]; then
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_frankenphp.sh "$(echo "${{ matrix.php }}" | tr -d '.')"
                     fi
+                    if [ '${{ matrix.webserver }}' = 'roadrunner' ]; then
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_roadrunner.sh
+                    fi
+
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php.sh ${{ matrix.php }}
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_composer.sh
+
+                    if [ '${{ matrix.webserver }}' = 'openswoole' ]; then
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh swoole/swoole
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
+                        sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_server
+                        sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_waf
+                    fi
+                    if [ '${{ matrix.webserver }}' = 'swoole' ]; then
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh openswoole/ext-openswoole:dev-master
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
+                    fi
+
                     # fix fs perms for recent Apache versions configuration (ie. starting from Jammy)
                     f="$(pwd)"; while [[ $f != / ]]; do sudo chmod +rx "$f"; f="$(dirname "$f")"; done;
                     find . -type d -exec chmod +rx {} \;
                     find . -type f -exec chmod +r {} \;
+
                     if [ '${{ matrix.webserver }}' = 'apache' ]; then
                         sudo service apache2 start
                     elif [ '${{ matrix.webserver }}' = 'frankenphp' ]; then
@@ -69,12 +86,17 @@ jobs:
                         sudo service '${{ matrix.webserver }}' stop || true
                         # @todo figure out why `frankenphp start` works but exits with code 1...
                         sudo ./tests/env/config/init.d/frankenphp start || true
+                    #elif [ '${{ matrix.webserver }}' = 'roadrunner' ]; then
+                    #    ...
+                    elif [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
+                        sudo ./tests/env/config/init.d/swoole_server start || true
+                        sudo ./tests/env/config/init.d/swoole_waf start || true
                     else
                         sudo service '${{ matrix.webserver }}' start
                     fi
 
             # Avoid downloading composer deps on every workflow run. Is this useful for us? Caching the installation of
-            # php/apache/privoxy/perl would be more useful...
+            # php/apache/pie-built extensions would be more useful...
             #-
             #    uses: actions/cache@v2
             #    with:
@@ -82,7 +104,11 @@ jobs:
             #        key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
 
             -   name: install dependencies
-                run: 'composer install --no-interaction --no-progress'
+                run: |
+                    composer install --no-interaction --no-progress --optimize-autoloader
+                    if [ '${{ matrix.webserver }}' = 'openswoole' ]; then
+                        composer require --no-interaction --no-progress --optimize-autoloader openswoole/core
+                    fi
 
             -   name: run tests and upload coverage info if needed
                 run: |

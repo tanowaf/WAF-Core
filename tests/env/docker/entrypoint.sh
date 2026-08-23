@@ -144,7 +144,8 @@ if [ -f /etc/init.d/swoole ]; then
     chown swoole:swoole /var/lib/swoole
     chown swoole /var/log/swoole
 
-    sed -r -e "s|^WORKER_SCRIPT_DIR=.*|WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public|g" --in-place /etc/init.d/swoole
+    echo "WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public" > /etc/default/swoole_server
+    echo "WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public" > /etc/default/swoole_waf
 fi
 
 echo "[$(date)] Fixing FPM configuration..."

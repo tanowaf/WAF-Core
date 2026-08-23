@@ -14,7 +14,7 @@ SCRIPT_DIR="$(dirname -- "$(readlink -f "$0")")"
 SWOOLE_USER=swoole
 SWOOLE_GROUP=swoole
 
-# @todo... test that either the Swoole or OpenSwoole php extension (.so) does exist
+# @todo... test that either the Swoole or OpenSwoole php extensions (.so) do exist
 
 ln "$(readlink -f /usr/bin/php)" /usr/bin/swoole
 
@@ -56,15 +56,20 @@ chown "$SWOOLE_USER:$SWOOLE_GROUP" /run/swoole
 # configure "virtual hosts"
 if [ -n "${GITHUB_ACTIONS}" ]; then
     TESTS_ROOT_DIR="$(pwd)"
-    sed -r -e "s|^TESTS_ROOT_DIR=.*|TESTS_ROOT_DIR=${TESTS_ROOT_DIR}|g" --in-place "$SCRIPT_DIR/../config/init.d/swoole"
+    echo "WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public" > /etc/default/swoole_server
+    echo "WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public" > /etc/default/swoole_waf
+    SWOOLE_SVC_SCRIPT_DIR="$(realpath "$SCRIPT_DIR/../config/init.d/")"
 else
     cp "$SCRIPT_DIR/../config/init.d/swoole" /etc/init.d/swoole && chmod 755 /etc/init.d/swoole
+    SWOOLE_SVC_SCRIPT_DIR=/etc/init.d
 fi
+ln -s "${SWOOLE_SVC_SCRIPT_DIR}/swoole" "${SWOOLE_SVC_SCRIPT_DIR}/swoole_server"
+ln -s "${SWOOLE_SVC_SCRIPT_DIR}/swoole" "${SWOOLE_SVC_SCRIPT_DIR}/swoole_waf"
 
 if [ ! -d /etc/swoole ]; then
     mkdir /etc/swoole
 fi
-cp "$SCRIPT_DIR/../config/swoole_proxy.json" /etc/swoole/
+cp "$SCRIPT_DIR/../config/swoole_waf.json" /etc/swoole/
 cp "$SCRIPT_DIR/../config/swoole_server.json" /etc/swoole/
 cp "$SCRIPT_DIR/../config/swoole_prepend.php" /etc/swoole/prepend.php
 
