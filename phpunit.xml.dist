@@ -3,7 +3,7 @@
 <phpunit
     colors="true"
     cacheResult="false"
-    bootstrap="tests/bootstrap.php"
+    bootstrap="tests/_bootstrap.php"
     displayDetailsOnAllIssues="true"
 >
 
