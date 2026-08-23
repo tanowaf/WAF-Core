@@ -32,7 +32,7 @@ use TanoWAF\WAFCore\UpstreamClient\MiddlewareAware as MiddlewareAwareClient;
 
 $waf = new WAFPage();
 $waf->preFlight();
-$waf->proxyRequest();
+$waf->handleRequest();
 $waf->postFlight();
 
 class WAFPage
@@ -94,9 +94,9 @@ class WAFPage
             if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] !== '') {
                 /// @todo this seems to be wrong most of the time. $_SERVER['SERVER_PORT'] is most likely built from
                 ///       the received `Host` header...
-                //$logger->debug("Proxy listening on port: {$_SERVER['SERVER_PORT']}");
+                //$logger->debug("WAF listening on port: {$_SERVER['SERVER_PORT']}");
             } else {
-                $logger->debug("Proxy listening on a unix socket");
+                $logger->debug("WAF listening on a unix socket");
             }
         }
 
@@ -111,7 +111,7 @@ class WAFPage
         }
     }
 
-    public function proxyRequest(): void
+    public function handleRequest(): void
     {
         $responseEmitter = new SapiEmitter();
 
@@ -122,7 +122,7 @@ class WAFPage
             // NB: HTTP_PROXY uppercase should not be used by any clients, as it can be spoofed by an http header from clients...
             unset($_SERVER['http_proxy'], $_SERVER['HTTP_PROXY'], $_SERVER['https_proxy'], $_SERVER['HTTPS_PROXY'], $_SERVER['no_proxy'], $_SERVER['NO_PROXY']);
 
-            // avoid php interfering with the proxy sending out compressed responses
+            // avoid php interfering with the waf sending out compressed responses
             ini_set('zlib.output_compression', 0);
 
             $psr17Factory = new Psr17Factory();

@@ -7,16 +7,16 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
 /**
- * Tests how the proxy deals with redirect responses.
+ * Tests how the waf deals with redirect responses.
  */
-class CD_HTTPRedirects extends ProxyTestCase
+class CD_HTTPRedirects extends WAFTestCase
 {
     /**
      * Test getting back a 30x - without following it.
      * @todo use a custom DataProvider to test 302, 303, 307, 308 responses
      */
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testRedirectingUpstream(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testRedirectingUpstream(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http', int $redirectCode = 301)
     {
         $rule = [['always' => true]];
@@ -27,7 +27,7 @@ class CD_HTTPRedirects extends ProxyTestCase
             ],
             'GET',
             static::getServerPath() . '?action=redirect&action_args[]=' . $redirectCode,
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
@@ -35,7 +35,7 @@ class CD_HTTPRedirects extends ProxyTestCase
             /// @todo check for presence of a `Location` header
 
         } catch (ExceptionInterface $e) {
-            $this->assertSame($redirectCode, null, 'Exception thrown by client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame($redirectCode, null, 'Exception thrown by client while communicating to the waf: ' . $e->getMessage());
         }
     }
 }

@@ -8,17 +8,17 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use TanoWAF\WAFCore\Proxy\Proxy;
 
 /**
- * Tests scenarios in which the proxy should return an http error not related to rules.
+ * Tests scenarios in which the waf should return an http error not related to rules.
  *
  * @todo declare dependency on Smoke Tests
  */
-class CB_HTTPErrorsTest extends ProxyTestCase
+class CB_HTTPErrorsTest extends WAFTestCase
 {
     /**
      * Test getting back a 504 error if upstream is slow in sending back responses
      */
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testSlowUpstream(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testSlowUpstream(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         if ($upstreamClientType === 'guzzle_stream') {
@@ -30,7 +30,7 @@ class CB_HTTPErrorsTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule), 'X-WAFCORE-Force-Accept-Encoding' => 'identity']],
             'GET',
             static::getServerPath() . '?action=slowloris&action_args[]=5',
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
@@ -44,7 +44,7 @@ class CB_HTTPErrorsTest extends ProxyTestCase
      * Test getting back a 404 error if using a bad uri path for upstream
      */
     #[DataProvider('getCommonDataProviderOptions')]
-    public function test404Upstream(string|null $clientType = null, string $proxyScheme = 'http',
+    public function test404Upstream(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $rule = [['always' => true]];
@@ -52,13 +52,13 @@ class CB_HTTPErrorsTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule), 'X-WAFCORE-Force-Accept-Encoding' => 'identity']],
             'GET',
             '/no_such_page',
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
             $this->assertResponseHasStatusCode(404, $response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(404, null, 'Exception thrown by client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(404, null, 'Exception thrown by client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -66,11 +66,11 @@ class CB_HTTPErrorsTest extends ProxyTestCase
      * Test getting back a 502 error if using a bad port for upstream
      */
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testNoUpstream(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testNoUpstream(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         if ($serverScheme === 'unix') {
-            $this->markTestIncomplete('Todo: allow the proxy to connect to an overridden (but controlled) unix socket path');
+            $this->markTestIncomplete('Todo: allow the waf to connect to an overridden (but controlled) unix socket path');
         }
 
         $rule = [['always' => true]];
@@ -80,7 +80,7 @@ class CB_HTTPErrorsTest extends ProxyTestCase
             static::buildUrl([
                     'scheme' => 'http', 'host' => $_ENV['HTTPSERVER_HOST'], 'port' => intval(@$_ENV['HTTPSERVER_PORT']) + 3000
                 ]) . static::getServerPath(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);

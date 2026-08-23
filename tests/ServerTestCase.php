@@ -89,7 +89,7 @@ abstract class ServerTestCase extends TestCase
      */
     protected function request(array $requestOptions, string $method = 'GET', string $path = '', array $testOptions = []): ResponseInterface
     {
-        $client = $this->getProxyClient([], $testOptions);
+        $client = $this->getWAFClient([], $testOptions);
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             $uri = $path;
         } else {
@@ -99,14 +99,14 @@ abstract class ServerTestCase extends TestCase
     }
 
     /**
-     * Creates an http client with the given options, making its requests go through the proxy
+     * Creates an http client with the given options, making its requests go through the waf
      * @throws \Exception
      * @todo check and add if needed support for tests iterating over http features, such as req/resp compression, charsets, etc...
      */
-    protected function getProxyClient(array $clientOptions = [], array $testOptions = []): HttpClientInterface
+    protected function getWAFClient(array $clientOptions = [], array $testOptions = []): HttpClientInterface
     {
         $clientOptions = $clientOptions + [
-            'proxy' => static::getProxyBaseUri(),
+            'proxy' => static::getWAFBaseUri(),
         ];
         if (@$testOptions['proxy_scheme'] === 'unix') {
             $clientOptions['bindto'] = 'unix:' . $_ENV['WAF_SOCKET'];
@@ -157,7 +157,7 @@ abstract class ServerTestCase extends TestCase
         $clientOptions = $clientOptions + [
             /// @todo this will fail when testing with sfhc < 8.1. Enable this selectively
             //'max_connect_duration' => 1.0, // seconds
-            'max_duration' => 4.0, // seconds: one more than the timeout of the proxy talking to upstream
+            'max_duration' => 4.0, // seconds: one more than the timeout of the waf talking to upstream
         ];
 
         switch (@$testOptions['client_type']) {
@@ -224,7 +224,7 @@ abstract class ServerTestCase extends TestCase
     }
 
     /**
-     * These are the types of symfony http clients used to query the server/proxy
+     * These are the types of symfony http clients used to query the server/waf
      * @return string[]
      */
     protected static function getSupportedClientTypes(): array

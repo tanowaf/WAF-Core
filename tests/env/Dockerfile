@@ -35,13 +35,13 @@ RUN /root/setup/build.sh
 
 COPY --chmod=755 docker/entrypoint.sh /root/entrypoint.sh
 
-# nginx: website, proxy, website https, proxy https
+# nginx: website, waf, website https, waf https
 EXPOSE 80 8080 443 8443
-# apache: website, proxy, website https, proxy https
+# apache: website, waf, website https, waf https
 EXPOSE 81 8081 444 8444
-# frankenphp: website, proxy
+# frankenphp: website, waf
 EXPOSE 1082 8082
-# roadrunner: proxy
+# roadrunner: waf
 EXPOSE 8083
 # swoole: website, proxy
 EXPOSE 1084 8084

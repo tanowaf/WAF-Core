@@ -8,15 +8,15 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use TanoWAF\WAFCore\Http\BodyCompressorTrait;
 
 /**
- * Tests the proxy ability to deal with compressed bodies.
+ * Tests the waf ability to deal with compressed bodies.
  */
-class CC_HTTPCompressionTest extends ProxyTestCase
+class CC_HTTPCompressionTest extends WAFTestCase
 {
     use BodyCompressorTrait;
 
     #[DataProvider('passingCompressionRulesDataProvider')]
-    public function testPassingCompressionRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
-        string|null $upstreamClientType = null, string $serverScheme = 'http', string $clientAcceptEncoding = '', string $proxyAcceptEncoding = '')
+    public function testPassingCompressionRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
+        string|null $upstreamClientType = null, string $serverScheme = 'http', string $clientAcceptEncoding = '', string $wafAcceptEncoding = '')
     {
         $acceptedCompressionHeaders = [];
         if ($clientAcceptEncoding !== '') {
@@ -27,12 +27,12 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             [
                 'headers' => [
                     'X-WAFCORE-Config-File' => $configFileName,
-                    'X-WAFCORE-Force-Accept-Encoding' => $proxyAcceptEncoding
+                    'X-WAFCORE-Force-Accept-Encoding' => $wafAcceptEncoding
                 ] + $acceptedCompressionHeaders
             ],
             'GET',
             static::getServerPath(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
@@ -53,7 +53,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             $this->assertIsArray($result, $failureMessage);
             $this->assertSame(TestServer::DEFAULT_RESPONSE['result'], $result['result'], $failureMessage);
             // NB: for this to work, the target webserver has to be set up to serve gzip-compressed responses
-            if ($proxyAcceptEncoding === 'gzip' && in_array($clientAcceptEncoding, ['', '*', 'gzip'])) {
+            if ($wafAcceptEncoding === 'gzip' && in_array($clientAcceptEncoding, ['', '*', 'gzip'])) {
 /// @todo... figure out why this does not work with the current nginx setup (funnily enough, 403 responses do get compressed by it...)
                 if ($_ENV['SERVER_TYPE'] !== 'nginx') {
                     $this->assertGreaterThan(0, count($ceHeader), $failureMessage);
@@ -61,7 +61,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
                 }
             }
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -70,8 +70,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         $out = [];
         foreach (self::getRuleBasedTestDataProviderOptions('compression', 'passing') as $args) {
             foreach (self::getClientAllowedCompressionSchemes() as $clientAllowedCompressionScheme) {
-                foreach (self::getProxyAllowedCompressionSchemes() as $proxyAllowedCompressionScheme) {
-                    $out[] = array_merge($args, [$clientAllowedCompressionScheme, $proxyAllowedCompressionScheme]);
+                foreach (self::getWAFAllowedCompressionSchemes() as $wafAllowedCompressionScheme) {
+                    $out[] = array_merge($args, [$clientAllowedCompressionScheme, $wafAllowedCompressionScheme]);
                 }
             }
         }
@@ -79,8 +79,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
     }
 
     #[DataProvider('failingCompressionRulesDataProvider')]
-    public function testFailingCompressionRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
-        string|null $upstreamClientType = null, string $serverScheme = 'http', string $clientAcceptEncoding = '', string $proxyAcceptEncoding = '')
+    public function testFailingCompressionRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
+        string|null $upstreamClientType = null, string $serverScheme = 'http', string $clientAcceptEncoding = '', string $wafAcceptEncoding = '')
     {
         $acceptedCompressionHeaders = [];
         if ($clientAcceptEncoding !== '') {
@@ -91,12 +91,12 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             [
                 'headers' => [
                     'X-WAFCORE-Config-File' => $configFileName,
-                    'X-WAFCORE-Force-Accept-Encoding' => $proxyAcceptEncoding
+                    'X-WAFCORE-Force-Accept-Encoding' => $wafAcceptEncoding
                 ] + $acceptedCompressionHeaders
             ],
             'GET',
             static::getServerPath(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
@@ -117,7 +117,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             $this->assertIsArray($result, $failureMessage);
             $this->assertSame(TestWAF::ACCESS_DENIED_RESPONSE, $result, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -126,8 +126,8 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         $out = [];
         foreach (self::getRuleBasedTestDataProviderOptions('compression', 'failing') as $args) {
             foreach (self::getClientAllowedCompressionSchemes() as $clientAllowedCompressionScheme) {
-                foreach (self::getProxyAllowedCompressionSchemes() as $proxyAllowedCompressionScheme) {
-                    $out[] = array_merge($args, [$clientAllowedCompressionScheme, $proxyAllowedCompressionScheme]);
+                foreach (self::getWAFAllowedCompressionSchemes() as $wafAllowedCompressionScheme) {
+                    $out[] = array_merge($args, [$clientAllowedCompressionScheme, $wafAllowedCompressionScheme]);
                 }
             }
         }
@@ -135,7 +135,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
     }
 
     #[DataProvider('passingRequestCompressionRulesDataProvider')]
-    public function testPassingRequestCompressionRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPassingRequestCompressionRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http', string $requestEncoding = '', string $verb = 'POST')
     {
         $requestCompressionHeaders = [];
@@ -154,7 +154,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             ],
             $verb,
             static::getServerPath(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
@@ -163,7 +163,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             $this->assertSame(TestServer::DEFAULT_RESPONSE['result'], $data['result'], $failureMessage);
             $this->assertSame(['test' => 'localhost'], $data['requestBody'], $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -181,7 +181,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
     }
 
     #[DataProvider('failingRequestCompressionRulesDataProvider')]
-    public function testFailingRequestCompressionRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testFailingRequestCompressionRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http', string $requestEncoding = '', string $verb = 'POST')
     {
         $requestCompressionHeaders = [];
@@ -199,14 +199,14 @@ class CC_HTTPCompressionTest extends ProxyTestCase
             ],
             $verb,
             static::getServerPath(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
             $this->assertResponseHasStatusCode(TestWAF::ACCESS_DENIED_STATUS_CODE, $response, $failureMessage);
             $this->assertResponseHasGivenArrayBody(TestWAF::ACCESS_DENIED_RESPONSE, $response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_RESPONSE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_RESPONSE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -250,7 +250,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
      * @return string[] '' for "do not mess with defaults", 'none' for "please remove accept-encodings headers"
      * @todo... test also compression schemes with weights
      */
-    protected static function getProxyAllowedCompressionSchemes(): array
+    protected static function getWAFAllowedCompressionSchemes(): array
     {
         // @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Encoding
         // @see https://www.iana.org/assignments/http-parameters/http-parameters.xhtml
@@ -259,7 +259,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         /// @todo add support for dcb, dcz (brotli) if the relevant php extensions are available
         $schemes = ['', 'none', 'identity', '*', 'compress', 'gzip', 'deflate'];
 
-        /// @todo ideally check for function existence proxy-side for decoding it, and upstream-server-side for serving
+        /// @todo ideally check for function existence waf-side for decoding it, and upstream-server-side for serving
         ///       it (or do the server-side encoding in php))
         if ($_ENV['SERVER_TYPE'] !== 'frankenphp') {
             if (function_exists('brotli_uncompress')) {
@@ -283,7 +283,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
         // We might as well drop 'deflate', as that is not supported by Apache, because of flaky support by browsers
         // and most likely also neither by Nginx nor FrankenPHP (see https://zlib.net/zlib_faq.html#faq39)
         /// @todo add 'compress', br, dcb, dcz (brotli), zstd if the relevant php extensions are available (ideally check both
-        ///       client-side and proxy-side)
+        ///       client-side and waf-side)
         return ['', '*', 'identity', 'gzip', 'deflate'];
     }
 
@@ -294,7 +294,7 @@ class CC_HTTPCompressionTest extends ProxyTestCase
     {
         /// @todo... add tests for 'compress'
         $schemes = ['', 'identity', 'gzip', 'deflate'];
-        /// @todo either find a way to have brotli, zstd enabled on frankenphp, or ask the proxy server for their availability
+        /// @todo either find a way to have brotli, zstd enabled on frankenphp, or ask the waf server for their availability
         if ($_ENV['SERVER_TYPE'] !== 'frankenphp') {
             if (function_exists('brotli_uncompress')) {
                 $schemes[] = 'br';

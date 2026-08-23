@@ -6,7 +6,7 @@ namespace TanoWAF\WAFCore\Tests;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-abstract class ProxyTestCase extends ServerTestCase
+abstract class WAFTestCase extends ServerTestCase
 {
     /**
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
@@ -14,7 +14,7 @@ abstract class ProxyTestCase extends ServerTestCase
      */
     protected function request(array $requestOptions, string $method = 'GET', string $path = '', array $testOptions = []): ResponseInterface
     {
-        $client = $this->getProxyClient([], $testOptions);
+        $client = $this->getWAFClient([], $testOptions);
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             $uri = $path;
         } else {
@@ -24,14 +24,14 @@ abstract class ProxyTestCase extends ServerTestCase
     }
 
     /**
-     * Creates an http client with the given options, making its requests go _through_ the proxy
+     * Creates an http client with the given options, making its requests go _through_ the waf
      * @throws \Exception
      * @todo check and add if needed support for tests iterating over http features, such as req/resp compression, charsets, etc...
      */
-    protected function getProxyClient(array $clientOptions = [], array $testOptions = []): HttpClientInterface
+    protected function getWAFClient(array $clientOptions = [], array $testOptions = []): HttpClientInterface
     {
         $clientOptions = [
-            'proxy' => static::getProxyBaseUri(),
+            'proxy' => static::getWAFBaseUri(),
         ] + $clientOptions;
         if (@$testOptions['proxy_scheme'] === 'unix') {
             $clientOptions['bindto'] = $_ENV['WAF_SOCKET'];
@@ -49,7 +49,7 @@ abstract class ProxyTestCase extends ServerTestCase
 
     /**
      * Creates an http client with the given options, adding to its requests the cookies and custom http headers used by
-     * the test proxy page to drive its operations. Useful basically to test direct access to the proxy page.
+     * the test waf page to drive its operations. Useful basically to test direct access to the waf page.
      * @throws \Exception
      */
     protected function getTestClient(array $clientOptions = [], array $testOptions = []): HttpClientInterface
@@ -66,7 +66,7 @@ abstract class ProxyTestCase extends ServerTestCase
     /**
      * @throws \Exception
      */
-    protected static function getProxyBaseUri(string $scheme = 'http'): string
+    protected static function getWAFBaseUri(string $scheme = 'http'): string
     {
         switch ($scheme) {
             case 'http':
@@ -79,14 +79,14 @@ abstract class ProxyTestCase extends ServerTestCase
             //case 'unix':
             //    return 'unix:' . $_ENV['WAF_SOCKET'];
             default:
-                throw new \InvalidArgumentException("Unsupported proxy scheme: $scheme");
+                throw new \InvalidArgumentException("Unsupported waf scheme: $scheme");
         }
     }
 
     /**
-     * Only to be used for accessing the proxy endpoint directly
+     * Only to be used for accessing the waf endpoint directly
      */
-    protected static function getProxyPath(): string
+    protected static function getWAFPath(): string
     {
         return $_ENV['WAF_PATH'];
     }
@@ -96,18 +96,18 @@ abstract class ProxyTestCase extends ServerTestCase
     {
         $out = [];
         foreach (self::getSupportedServerSchemes() as $serverScheme) {
-            foreach (self::getSupportedProxyClientTypes() as $upstreamClientType) {
+            foreach (self::getSupportedWAFClientTypes() as $upstreamClientType) {
                 // so far the only upstream client which we can successfully configure to bind to a socket is the sfhc curl one
                 if ($serverScheme === 'unix' && ($upstreamClientType === 'guzzle' || $upstreamClientType === 'guzzle_stream' || $upstreamClientType === 'sfhc_native')) {
                     continue;
                 }
-                foreach (self::getSupportedProxySchemes() as $proxyScheme) {
+                foreach (self::getSupportedWAFSchemes() as $wafScheme) {
                     foreach (self::getSupportedClientTypes() as $clientType) {
                         // the sfhc can talk to unix sockets only when using curl
-                        if ($proxyScheme === 'unix' && $clientType === 'native') {
+                        if ($wafScheme === 'unix' && $clientType === 'native') {
                             continue;
                         }
-                        $out[] = [$clientType, $proxyScheme, $upstreamClientType, $serverScheme];
+                        $out[] = [$clientType, $wafScheme, $upstreamClientType, $serverScheme];
                     }
                 }
             }
@@ -115,7 +115,7 @@ abstract class ProxyTestCase extends ServerTestCase
         return $out;
     }
 
-    protected static function getSupportedProxySchemes(): array
+    protected static function getSupportedWAFSchemes(): array
     {
         $schemes = [];
         if (isset($_ENV['WAF_HOST']) && trim($_ENV['WAF_HOST']) !== '') {
@@ -128,10 +128,10 @@ abstract class ProxyTestCase extends ServerTestCase
     }
 
     /**
-     * NB: we _presume_ that the proxy used to run the tests has installed php-curl, sf-http-client and guzzle
+     * NB: we _presume_ that the waf used to run the tests has installed php-curl, sf-http-client and guzzle
      * @return string[]
      */
-    protected static function getSupportedProxyClientTypes(): array
+    protected static function getSupportedWAFClientTypes(): array
     {
         return ['sfhc_native', 'sfhc_curl', 'guzzle', 'guzzle_stream'];
     }
@@ -161,7 +161,7 @@ abstract class ProxyTestCase extends ServerTestCase
         return $body;
     }
 
-    protected function assertResponseIsProxyDenial(ResponseInterface $response, string $message = ''): void
+    protected function assertResponseIsWAFDenial(ResponseInterface $response, string $message = ''): void
     {
         // Note that in case of php errors, the status code will be 200 when display_errors in php.ini is on, and 500 when it is off
         $this->assertResponseHasStatusCode(TestWAF::ACCESS_DENIED_STATUS_CODE, $response, $message);
@@ -179,13 +179,13 @@ abstract class ProxyTestCase extends ServerTestCase
     {
         $out = '';
         if (@$_ENV['VERBOSITY'] >= 1) {
-            $out .= $this->getProxyRequestTrace();
+            $out .= $this->getWAFRequestTrace();
             if ($out != '') {
-                $out = "\nRequest received by the proxy (and possibly response generated):\n$out";
+                $out = "\nRequest received by the waf (and possibly response generated):\n$out";
             //} else {
             //    $out = (string)$out;
             }
-            $log = $this->getProxyTestLog();
+            $log = $this->getWAFTestLog();
             if ($log != '') {
                 $out .= "\nServer log:\n$log";
             }
@@ -198,7 +198,7 @@ abstract class ProxyTestCase extends ServerTestCase
         return $out;
     }
 
-    protected function getProxyRequestTrace(): string|null|false
+    protected function getWAFRequestTrace(): string|null|false
     {
         $serverSideTraceFile = sys_get_temp_dir() . '/' . $this->testId . '.trace';
         if (file_exists($serverSideTraceFile)) {
@@ -207,7 +207,7 @@ abstract class ProxyTestCase extends ServerTestCase
         return null;
     }
 
-    protected function getProxyTestLog(): string|null|false
+    protected function getWAFTestLog(): string|null|false
     {
         $serverSideLogFile = sys_get_temp_dir() . '/' . $this->testId . '.log';
 

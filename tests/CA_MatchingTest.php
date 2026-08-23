@@ -7,22 +7,22 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
 /**
- * Tests proxy rules.
+ * Tests waf rules.
  * @todo declare dependency on Smoke Tests
  */
-class CA_MatchingTest extends ProxyTestCase
+class CA_MatchingTest extends WAFTestCase
 {
     static protected int $clientPort = 31000;
 
     #[DataProvider('invalidRulesDataProvider')]
-    public function testInvalidRules(string $configAsString, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testInvalidRules(string $configAsString, string|null $clientType = null, string $wafScheme = 'http',
        string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
             ['headers' => ['X-WAFCORE-Config' => $configAsString]],
             'GET',
             '',
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -30,7 +30,7 @@ class CA_MatchingTest extends ProxyTestCase
             $this->assertResponseHasStatusCode(TestWAF::ERROR_STATUS_CODE, $response, $failureMessage);
             $this->assertArrayIsEqualToArrayIgnoringListOfKeys(TestWAF::ERROR_RESPONSE, $this->responseBodyToArray($response), ['message', 'file', 'line'], $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ERROR_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ERROR_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -89,7 +89,7 @@ class CA_MatchingTest extends ProxyTestCase
             '{"rule 1": {"resp_match": {"body": "whatever"}, "resp_action": "deny, "resp_filters: ["one"]"}}',
         ];
         $out = [];
-        /// @todo is this really necessary? We could just pick one type of client / proxy / server for these tests...
+        /// @todo is this really necessary? We could just pick one type of client / waf / server for these tests...
         foreach (self::getCommonDataProviderOptions() as $opts) {
             foreach ($strings as $string) {
                 $out[] = array_merge([$string], $opts);
@@ -99,16 +99,16 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('passingGetRulesDataProvider')]
-    public function testPassingGetRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPassingGetRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
        string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         // skip test cases which are bound to fail with given configs
         /// @todo this should be more robust/flexible... We should allow the json configs to specify excluded test configs...
-        if ($proxyScheme === 'unix' && in_array(basename($configFileName), [
+        if ($wafScheme === 'unix' && in_array(basename($configFileName), [
             '001_client_address_fixed.json', '003_client_address_many.json',
         ])) {
             // avoid the line noise from the skipped test
-            //$this->markTestSkipped('Can not test a client_address match when running the proxy on a unix socket');
+            //$this->markTestSkipped('Can not test a client_address match when running the waf on a unix socket');
             $this->assertSame(0, 0);
             return;
         }
@@ -117,14 +117,14 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName, 'X-WAFCORE-Force-Accept-Encoding' => 'identity'] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
             $this->assertResponseHasStatusCode(200, $response, $failureMessage);
             $this->assertResponseHasKnownArrayBody($response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -134,19 +134,19 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('failingGetRulesDataProvider')]
-    public function testFailingGetRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testFailingGetRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName, 'X-WAFCORE-Force-Accept-Encoding' => 'identity'] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -158,7 +158,7 @@ class CA_MatchingTest extends ProxyTestCase
 /// @todo... add test cases sending requests which populate $_POST, and check for that in the returned data
 /// @todo... add test cases sending requests which populate file uploads, and check for that in the returned data
     #[DataProvider('passingPostRulesDataProvider')]
-    public function testPassingPostRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPassingPostRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         /// @todo move the request body to a config file
@@ -173,7 +173,7 @@ class CA_MatchingTest extends ProxyTestCase
             ],
             'POST',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
             $failureMessage = $this->getTestDetails($response);
@@ -182,7 +182,7 @@ class CA_MatchingTest extends ProxyTestCase
             $this->assertSame(TestServer::DEFAULT_RESPONSE['result'], $data['result'], $failureMessage);
             $this->assertSame(['test' => 'localhost'], $data['requestBody'], $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -193,7 +193,7 @@ class CA_MatchingTest extends ProxyTestCase
 
 /// @todo... add test cases sending requests which populate $_POST, $_FILES
     #[DataProvider('failingPostRulesDataProvider')]
-    public function testFailingPostRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testFailingPostRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         /// @todo move the request body to a config file
@@ -208,12 +208,12 @@ class CA_MatchingTest extends ProxyTestCase
             ],
             'POST',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
@@ -223,12 +223,12 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testPortMatcher(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPortMatcher(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         // skip test cases which are bound to fail with given configs
         /// @todo use a custom DataProvider
-        if ($proxyScheme === 'unix') {
+        if ($wafScheme === 'unix') {
             $this->assertSame(0, 0);
             return;
         }
@@ -238,7 +238,7 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -246,17 +246,17 @@ class CA_MatchingTest extends ProxyTestCase
             $this->assertResponseHasStatusCode(200, $response, $failureMessage);
             $this->assertResponseHasKnownArrayBody($response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testPortMatcherFail(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPortMatcherFail(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         // skip test cases which are bound to fail with given configs
         /// @todo use a custom DataProvider
-        if ($proxyScheme === 'unix') {
+        if ($wafScheme === 'unix') {
             $this->assertSame(0, 0);
             return;
         }
@@ -266,18 +266,18 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testPathMatcher(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPathMatcher(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $rule = [['url_path/no_wildcards' => $_ENV['HTTPSERVER_PATH']]];
@@ -285,7 +285,7 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -293,7 +293,7 @@ class CA_MatchingTest extends ProxyTestCase
             $this->assertResponseHasStatusCode(200, $response, $failureMessage);
             $this->assertResponseHasKnownArrayBody($response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
 
         $rule = [['url_path/no_wildcards' => $_ENV['HTTPSERVER_PATH'] . '/yolo']];
@@ -301,18 +301,18 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testPathMatcherFail(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPathMatcherFail(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $rule = [['url_path/no_wildcards' => $_ENV['HTTPSERVER_PATH'] . '/yolo']];
@@ -320,18 +320,18 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config' => json_encode($rule)] + $this->getCommonRequestHeaders()],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
-            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testClientPortMatcher(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testClientPortMatcher(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         if (isset($_SERVER['GITHUB_ACTIONS'])) {
@@ -340,7 +340,7 @@ class CA_MatchingTest extends ProxyTestCase
 
         // skip test cases which are bound to fail with given configs
         /// @todo use a custom DataProvider
-        if ($proxyScheme === 'unix' || $clientType === 'native') {
+        if ($wafScheme === 'unix' || $clientType === 'native') {
             $this->assertSame(0, 0);
             return;
         }
@@ -356,7 +356,7 @@ class CA_MatchingTest extends ProxyTestCase
 ///          This "might be happening" only when the underlying http client in use is curl (as used by both Guzzle and Symfony),
 ///          and seems hard to trace - as far as the php script of the upstream server is concerned, there is no
 ///          Transfer-Encoding in the headers it receives from the webserver... We should use a proper sniffer such
-///          as Wireshark to figure out if the issue lies in the proxy client code, in curl, between the proxy php code and
+///          as Wireshark to figure out if the issue lies in the waf client code, in curl, between the waf php code and
 ///          nginx, within nginx, or between nginx and fpm
 
         $rule = [['client_port' => self::$clientPort]];
@@ -367,7 +367,7 @@ class CA_MatchingTest extends ProxyTestCase
             ],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -375,17 +375,17 @@ class CA_MatchingTest extends ProxyTestCase
             $this->assertResponseHasStatusCode(200, $response, $failureMessage);
             $this->assertResponseHasKnownArrayBody($response, $failureMessage);
         } catch (ExceptionInterface $e) {
-            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
+            $this->assertSame(200, null, 'Exception thrown by the test client while communicating to the waf: ' . $e->getMessage());
         }
     }
 
     #[DataProvider('getCommonDataProviderOptions')]
-    public function testClientPortMatcherFail(string|null $clientType = null, string $proxyScheme = 'http',
+    public function testClientPortMatcherFail(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         // skip test cases which are bound to fail with given configs
         /// @todo use a custom DataProvider
-        if ($proxyScheme === 'unix' || $clientType === 'native') {
+        if ($wafScheme === 'unix' || $clientType === 'native') {
             $this->assertSame(0, 0);
             return;
         }
@@ -398,25 +398,25 @@ class CA_MatchingTest extends ProxyTestCase
             ],
             'GET',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
             $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
     }
 
     #[DataProvider('passingHeadRulesDataProvider')]
-    public function testPassingHeadRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPassingHeadRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'HEAD',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -436,14 +436,14 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('failingHeadRulesDataProvider')]
-    public function testFailingHeadRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testFailingHeadRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'HEAD',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -460,14 +460,14 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('passingOptionsRulesDataProvider')]
-    public function testPassingOptionsRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPassingOptionsRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
          string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'OPTIONS',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -485,18 +485,18 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('failingOptionsRulesDataProvider')]
-    public function testFailingOptionsRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testFailingOptionsRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
          string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         $response = $this->request(
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'OPTIONS',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
             $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }
@@ -509,7 +509,7 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('passingTraceRulesDataProvider')]
-    public function testPassingTraceRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testPassingTraceRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         if ($_ENV['SERVER_TYPE'] !== 'frankenphp') {
@@ -521,7 +521,7 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'TRACE',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
@@ -541,7 +541,7 @@ class CA_MatchingTest extends ProxyTestCase
     }
 
     #[DataProvider('failingTraceRulesDataProvider')]
-    public function testFailingTraceRules(string $configFileName, string|null $clientType = null, string $proxyScheme = 'http',
+    public function testFailingTraceRules(string $configFileName, string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
         if ($_ENV['SERVER_TYPE'] !== 'frankenphp') {
@@ -553,11 +553,11 @@ class CA_MatchingTest extends ProxyTestCase
             ['headers' => ['X-WAFCORE-Config-File' => $configFileName] + $this->getCommonRequestHeaders()],
             'TRACE',
             static::getServerPath() . '?' . $this->getCommonQueryString(),
-            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $proxyScheme, 'server_scheme' => $serverScheme]
+            ['client_type' => $clientType, 'upstream_client_type' => $upstreamClientType, 'proxy_scheme' => $wafScheme, 'server_scheme' => $serverScheme]
         );
 
         try {
-            $this->assertResponseIsProxyDenial($response, $this->getTestDetails($response));
+            $this->assertResponseIsWAFDenial($response, $this->getTestDetails($response));
         } catch (ExceptionInterface $e) {
             $this->assertSame(TestWAF::ACCESS_DENIED_STATUS_CODE, null, 'Exception thrown by the test client while communicating to the proxy: ' . $e->getMessage());
         }

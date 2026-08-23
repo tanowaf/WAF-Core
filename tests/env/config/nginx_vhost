@@ -4,7 +4,7 @@ log_format extended '$remote_addr - $remote_user [$time_local] '
                     '"$http_referer" "$http_user_agent" $server_port "$http_host"';
 
 # @todo should we split the access log file in many separate ones?
-#       A single log file is nice to see the timin/interleaving of client requests to the proxy with proxy requests to the server.
+#       A single log file is nice to see the timing/interleaving of client requests to the waf with waf requests to the server.
 #       Otoh it makes it slightly harder to tell apart requests received on the various ports/sockets...
 
 # enable compression for application/json and other common response types we might produce (similar to Apache stock config)
@@ -32,7 +32,7 @@ server {
 
     index index.php;
 
-    # try to avoid mixing up access to the proxy and the server
+    # try to avoid mixing up access to the waf and the server
     location /waf.php {
         return 418 "I'm an upstream server";
     }
@@ -63,7 +63,7 @@ server {
     }
 }
 
-# Proxy
+# WAF
 server {
 
     set $tests_root_dir /var/www/tests/public;
@@ -134,7 +134,7 @@ server {
 
     index index.php;
 
-    # try to avoid mixing up access to the proxy and the server
+    # try to avoid mixing up access to the waf and the server
     location ^~ /waf.php {
         return 418 "I'm an upstream server";
     }
@@ -165,7 +165,7 @@ server {
     }
 }
 
-# Proxy
+# WAF
 server {
 
     set $tests_root_dir /var/www/tests/public;
@@ -233,7 +233,7 @@ server {
 
     index index.php;
 
-    # try to avoid mixing up access to the proxy and the server
+    # try to avoid mixing up access to the waf and the server
     location ^~ /waf.php {
         return 418 "I'm an upstream server";
     }
@@ -264,14 +264,14 @@ server {
     }
 }
 
-# Proxy
+# WAF
 server {
 
     set $tests_root_dir /var/www/tests/public;
     # eg: '127.0.0.1:9000' or 'unix:/run/php/php8.5-fpm.sock'
     set $php_fpm_socket unix:/run/php/php8.5-fpm.sock;
 
-    listen unix:/run/nginx.proxy.sock default_server;
+    listen unix:/run/nginx.waf.sock default_server;
 
     access_log /var/log/nginx/access.log extended;
     error_log /var/log/nginx/error.log info;

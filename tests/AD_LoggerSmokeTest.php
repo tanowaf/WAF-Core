@@ -9,7 +9,7 @@ use TanoWAF\WAFCore\Logger\LoggerChain;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Tests Loggers, without going through the proxy.
+ * Tests Loggers, without going through the waf.
  */
 class AD_LoggerSmokeTest extends TestCase
 {

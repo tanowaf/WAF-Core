@@ -11,7 +11,7 @@ use TanoWAF\WAFCore\Http\HeaderSpec;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Tests the HeaderParser class - without going through the proxy.
+ * Tests the HeaderParser class - without going through the waf.
  */
 class BB_HeaderNormalizationTest extends TestCase
 {

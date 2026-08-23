@@ -8,7 +8,7 @@ use TanoWAF\WAFCore\Http\UnixCompressor;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Tests the code dealing with compression, without going through the proxy.
+ * Tests the code dealing with compression, without going through the waf.
  */
 class AC_CompressSmokeTest extends TestCase
 {
