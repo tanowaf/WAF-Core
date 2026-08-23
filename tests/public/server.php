@@ -8,12 +8,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Symfony\Component\Dotenv\Dotenv;
+use TanoWAF\WAFCore\Tests\DotConf;
 use TanoWAF\WAFCore\Tests\TestServer;
 
-// NB: atm this, unlike waf.php, will not load env vars from server-specific config files .env.nginx and co...
-$dotenv = new Dotenv();
-$dotenv->loadEnv(__DIR__.'/../.env');
+//$dotConf = new DotConf();
+//$dotConf->loadEnv();
 
 $server = new TestServer();
 

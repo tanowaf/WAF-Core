@@ -1,0 +1,46 @@
+{
+    "apache": {
+        "HTTPSERVER_HOST": "localhost",
+        "HTTPSERVER_PORT": "81",
+        "HTTPSERVER_PATH": "/server.php",
+        "HTTPSERVER_SOCKET": "",
+
+        "WAF_HOST": "127.0.0.1",
+        "WAF_PORT": "8081",
+        "WAF_PATH": "/waf.php",
+        "WAF_SOCKET": ""
+    },
+    "frankenphp": {
+        "HTTPSERVER_HOST": "localhost",
+        "HTTPSERVER_PORT": "1082",
+        "HTTPSERVER_PATH": "/server.php",
+        "HTTPSERVER_SOCKET": "/run/frankenphp/caddy.server.sock",
+
+        "WAF_HOST": "127.0.0.1",
+        "WAF_PORT": "8082",
+        "WAF_PATH": "/waf.php",
+        "WAF_SOCKET": "/run/frankenphp/caddy.proxy.sock"
+    },
+    "nginx": {
+        "HTTPSERVER_HOST": "localhost",
+        "HTTPSERVER_PORT": "",
+        "HTTPSERVER_PATH": "/server.php",
+        "HTTPSERVER_SOCKET": "/run/nginx.server.sock",
+
+        "WAF_HOST": "127.0.0.1",
+        "WAF_PORT": "8080",
+        "WAF_PATH": "/waf.php",
+        "WAF_SOCKET": "/run/nginx.proxy.sock"
+    },
+    "swoole": {
+        "HTTPSERVER_HOST": "localhost",
+        "HTTPSERVER_PORT": "1084",
+        "HTTPSERVER_PATH": "/server_swoole.php",
+        "HTTPSERVER_SOCKET": "",
+
+        "WAF_HOST": "127.0.0.1",
+        "WAF_PORT": "8084",
+        "WAF_PATH": "/waf_swoole.php",
+        "WAF_SOCKET": ""
+    }
+}

@@ -109,7 +109,7 @@ abstract class ServerTestCase extends TestCase
             'proxy' => static::getProxyBaseUri(),
         ];
         if (@$testOptions['proxy_scheme'] === 'unix') {
-            $clientOptions['bindto'] = 'unix:' . $_ENV['PROXY_SOCKET'];
+            $clientOptions['bindto'] = 'unix:' . $_ENV['WAF_SOCKET'];
         }
         if (@$testOptions['upstream_client_type'] !== null) {
             $clientOptions['headers'] = ['X-WAFCORE-Upstream-Client-Type' => $testOptions['upstream_client_type']] + ($clientOptions['headers'] ?? []);

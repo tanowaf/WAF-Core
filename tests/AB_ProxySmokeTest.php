@@ -18,7 +18,7 @@ class AB_ProxySmokeTest extends ProxyTestCase
     {
         $clientOptions = ['base_uri' => static::getProxyBaseUri()];
         if ($proxyScheme === 'unix') {
-            $clientOptions['bindto'] = $_ENV['PROXY_SOCKET'];
+            $clientOptions['bindto'] = $_ENV['WAF_SOCKET'];
         }
         $client = $this->getClient($clientOptions, ['client_type' => $clientType]);
         $response = $client->request('GET', static::getProxyPath());
@@ -35,7 +35,7 @@ class AB_ProxySmokeTest extends ProxyTestCase
     {
         $clientOptions = ['base_uri' => static::getProxyBaseUri()];
         if ($proxyScheme === 'unix') {
-            $clientOptions['bindto'] = $_ENV['PROXY_SOCKET'];
+            $clientOptions['bindto'] = $_ENV['WAF_SOCKET'];
         }
         // NB: we do _not_ want to use $this->getTestClient here
         $client = ServerTestCase::getTestClient($clientOptions, ['client_type' => $clientType]);

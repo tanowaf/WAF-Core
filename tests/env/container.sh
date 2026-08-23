@@ -79,7 +79,8 @@ Environment variables:
     CONTAINER_IMAGE_PREFIX default value: 'tw-wafcore'. Change if you build/run many containers in parallel
     CONTAINER_NAME_PREFIX  default value: 'tw_wafcore_'. Change if you build/run many containers in parallel
   used by the 'runtests' and 'runcoverage' actions:
-    TEST_WEBSERVER         default value: nginx. Can be set to apache, frankenphp
+    TEST_WEBSERVER         default value: nginx. Can be set to apache, frankenphp, swoole
+    TEST_WAF               when null, the same value as TEST_WEBSERVER is used
 "
 }
 
@@ -238,6 +239,9 @@ runtests() {
     if [ -n "$TEST_WEBSERVER" ]; then
         ENV_VAR_INJECTION="$ENV_VAR_INJECTION SERVER_TYPE=$TEST_WEBSERVER"
     fi
+    if [ -n "$TEST_WAF" ]; then
+            ENV_VAR_INJECTION="$ENV_VAR_INJECTION WAF_TYPE=$TEST_WAF"
+        fi
     lock
     trap unlock INT
     RETCODE=0

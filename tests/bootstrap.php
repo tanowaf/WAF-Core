@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Symfony\Component\Dotenv\Dotenv;
+use TanoWAF\WAFCore\Tests\DotConf;
 
-$dotenv = new Dotenv();
-$dotenv->loadEnv(__DIR__.'/.env', 'SERVER_TYPE');
+$dotConf = new DotConf();
+$dotConf->loadEnv($_ENV['SERVER_TYPE'], $_ENV['WAF_TYPE'] ?? '');

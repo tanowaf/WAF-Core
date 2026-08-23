@@ -34,7 +34,7 @@ abstract class ProxyTestCase extends ServerTestCase
             'proxy' => static::getProxyBaseUri(),
         ] + $clientOptions;
         if (@$testOptions['proxy_scheme'] === 'unix') {
-            $clientOptions['bindto'] = $_ENV['PROXY_SOCKET'];
+            $clientOptions['bindto'] = $_ENV['WAF_SOCKET'];
         }
         if (@$testOptions['upstream_client_type'] !== null) {
             $clientOptions['headers'] = ['X-WAFCORE-Upstream-Client-Type' => $testOptions['upstream_client_type']] + ($clientOptions['headers'] ?? []);
@@ -73,11 +73,11 @@ abstract class ProxyTestCase extends ServerTestCase
             case 'https':
                 return static::buildUrl([
                     'scheme' => $scheme,
-                    'host' => $_ENV['PROXY_HOST'],
-                    'port' => $_ENV['PROXY_PORT'],
+                    'host' => $_ENV['WAF_HOST'],
+                    'port' => $_ENV['WAF_PORT'],
                 ]);
             //case 'unix':
-            //    return 'unix:' . $_ENV['PROXY_SOCKET'];
+            //    return 'unix:' . $_ENV['WAF_SOCKET'];
             default:
                 throw new \InvalidArgumentException("Unsupported proxy scheme: $scheme");
         }
@@ -88,7 +88,7 @@ abstract class ProxyTestCase extends ServerTestCase
      */
     protected static function getProxyPath(): string
     {
-        return $_ENV['PROXY_PATH'];
+        return $_ENV['WAF_PATH'];
     }
 
     /// @todo can we find a better name?
@@ -118,10 +118,10 @@ abstract class ProxyTestCase extends ServerTestCase
     protected static function getSupportedProxySchemes(): array
     {
         $schemes = [];
-        if (isset($_ENV['PROXY_HOST']) && trim($_ENV['PROXY_HOST']) !== '') {
+        if (isset($_ENV['WAF_HOST']) && trim($_ENV['WAF_HOST']) !== '') {
             $schemes[] = 'http';
         }
-        if (isset($_ENV['PROXY_SOCKET']) && trim($_ENV['PROXY_SOCKET']) !== '') {
+        if (isset($_ENV['WAF_SOCKET']) && trim($_ENV['WAF_SOCKET']) !== '') {
             $schemes[] = 'unix';
         }
         return $schemes;

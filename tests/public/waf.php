@@ -13,7 +13,6 @@ use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use Symfony\Component\Dotenv\Dotenv;
 use TanoWAF\WAFCore\Filter\Bidirectional\Tracer;
 use TanoWAF\WAFCore\Filter\Bidirectional\ForceAcceptEncoding;
 use TanoWAF\WAFCore\Filter\Bidirectional\RemoveAcceptEncoding;
@@ -27,6 +26,7 @@ use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
 use TanoWAF\WAFCore\Response\Psr7\ResponseFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr17\ServerRequestFactory;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
+use TanoWAF\WAFCore\Tests\DotConf;
 use TanoWAF\WAFCore\Tests\TestWAF;
 use TanoWAF\WAFCore\UpstreamClient\MiddlewareAware as MiddlewareAwareClient;
 
@@ -75,13 +75,8 @@ class WAFPage
         }
 
         // Allow the caller to pick a set of configs which differ based on the upstream webserver in use
-        // @todo make sure to allow usage of a proxy running on webserver X and upstream running on webserver Y
-        $dotenv = new Dotenv();
-        $_ENV['SERVER_TYPE'] = 'nginx';
-        if (isset($_SERVER['HTTP_X_WAFCORE_SERVER_TYPE']) && in_array($_SERVER['HTTP_X_WAFCORE_SERVER_TYPE'], ['apache', 'frankenphp'])) {
-            $_ENV['SERVER_TYPE'] = $_SERVER['HTTP_X_WAFCORE_SERVER_TYPE'];
-        }
-        $dotenv->loadEnv(__DIR__.'/../.env', 'SERVER_TYPE');
+        $dotConf = new DotConf();
+        $dotConf->loadEnv($_SERVER['HTTP_X_WAFCORE_SERVER_TYPE'] ?? 'nginx', $_SERVER['HTTP_X_WAFCORE_WAF_TYPE'] ?? '');
 
         // set up a logger whose output can be inspected by the caller
         $logger = null;
