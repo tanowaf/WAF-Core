@@ -203,6 +203,8 @@ class HeaderParser implements HeaderParserInterface
         //   values for http headers are gotten from $_SERVER['HTTP_***'], meaning that for each http header there
         //   will be _only 1 value_, not many. Which, in turn, means that the webserver is extremely likely to
         //   concatenate together multiple values using the comma rule.
+        // - the exception to this being Swoole, which does provide us with proper multi-valued headers instead of a single
+        //   string for each one (except for `Cookie`, which we handle with custom code in the RequestFactory)
         //
         // This means that, given header "X-Custom", defined as singleton, it is factually impossible for php to tell
         // apart these 2 cases:

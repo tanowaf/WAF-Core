@@ -84,6 +84,11 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
             $cases[] = ["Custom: hey\r\n\tyou", 'Custom', 'hey you'];
         }
 
+        if ($_ENV['SERVER_TYPE'] === 'swoole') {
+            // All servers but swoole do reject http headers with an underscore in their name (we test that below)
+            $cases[] = ['Cus_tom: hey', 'Cus_Tom', 'hey'];
+        }
+
         return self::mergeCommonDataProviderOptions($cases);
     }
 
@@ -249,12 +254,9 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
 
     public static function droppedHttpHeaderDataProvider(): array
     {
+        //$cases[] = [];
         $cases = [
             ['Custom:', false],
-
-            /// @todo figure out why this one does get dropped or refused by all servers (educated guess: to avoid confusion
-            ///       with security-related headers with a dash in their name?)
-            ['Cus_tom: hey', false],
 
             // (),/:;<=>?@[\\]{}
             ['Cus(tom: hey', true],
@@ -275,6 +277,12 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
             ['Cus{tom: hey', true],
             ['Cus}tom: hey', true],
         ];
+
+        if ($_ENV['SERVER_TYPE'] !== 'swoole') {
+            /// @todo figure out why this one does get dropped or refused by all servers but Swoole (educated guess:
+            ///       to avoid confusion with security-related headers with a dash in their name?)
+            $cases[] = ['Cus_tom: hey', false];
+        }
 
         // NB: FrankenPHP, as of 2026/7/21 at least, _does_ allow these chars in header names !!
         if ($_ENV['SERVER_TYPE'] !== 'frankenphp') {
@@ -389,6 +397,10 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
             /// @todo are there more known _always unsupported_ chars (ie. triggering a 4xx/5xx) in header name, header value?
             ///       we should probably add single \r and \n
         ];
+
+        // header length over any reasonable buffer (100K)
+        $cases[] = ['Custom: '. str_repeat('1234567890', 10000)];
+        $cases[] = ['Cookie: x='. str_repeat('1234567890', 10000)];
 
         return self::mergeCommonDataProviderOptions($cases);
     }

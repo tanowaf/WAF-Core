@@ -73,6 +73,10 @@ class ServerRequestFactory extends BaseServerRequestFactory
     {
         $headers = [];
         foreach ($request->header as $k => $v) {
+            // all servers but Swoole do drop these headers...
+            if ($v === '') {
+                continue;
+            }
             // try to keep as close as possible to Stdlib::getHeadersFromServer
             $headers[\ucwords((string)$k, "-_")] = $v;
             // no need, atm this is already done by called code
@@ -89,9 +93,9 @@ class ServerRequestFactory extends BaseServerRequestFactory
             }
             $headers['Cookie'] = implode('; ', $cookies);*/
 
-            /// @todo... speed-up and harden this header parser against eg. overlong headers (then use it for all headers?)
+            /// @todo... speed-up and harden this header parser
             ///          - avoid doing data copies with substr
-            ///          - set a limit on header line length (check if swoole does that on its own)
+            ///          - set a limit on header line length? (swoole does that on its own, eg. 100K chars headers are rejected with a 40x)
             ///          take a look at eg. the QBix server header parser
             $payload = $request->getData();
             $pos = strpos($payload, "\r\n\r\n");
