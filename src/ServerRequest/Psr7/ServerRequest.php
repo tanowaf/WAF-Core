@@ -142,6 +142,7 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
     /**
      * NB: this does _not_ produce the same values as found in $_COOKIE - see details in CookieParser::parseCookies.
      * Notably, the values of the returned array can be arrays!
+     * @todo... allow retrieving the errors
      */
     public function getCookieParams(): array
     {
@@ -417,7 +418,7 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
         }
     }
 
-    public function validateHeaderValue(string $headerName): bool
+    public function validateHeaderValue(string $headerName, array|null &$errorsFound = []): bool
     {
 /// @todo... add a caching layer
         /// @todo is it worth checking if $this->headerParser is null and throw a clearer error?

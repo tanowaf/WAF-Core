@@ -5,7 +5,7 @@ namespace TanoWAF\WAFCore\Http;
 
 interface HeaderParsingCapableInterface
 {
-    public function validateHeaderValue(string $headerName): bool;
+    public function validateHeaderValue(string $headerName, array|null &$errorsFound = []): bool;
 
     /**
      * @return string[]

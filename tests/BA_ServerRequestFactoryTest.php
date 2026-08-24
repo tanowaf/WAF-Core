@@ -156,7 +156,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         }
         $cases[] = ['Cookie: withquotes="xx-YY"', 'Cookie', 'withquotes="xx-YY"'];
 
-        // swoole does in fact preserve multi-valued headers!
+        // swoole does in fact preserve multi-valued headers
         if ($_ENV['SERVER_TYPE'] === 'swoole') {
             foreach ($cases as $i => &$v) {
                 if (is_string($v[2])) {
