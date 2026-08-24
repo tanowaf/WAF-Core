@@ -5,6 +5,7 @@ namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpClient\Internal\Dechunker;
+use TanoWAF\WAFCore\Http\MessageParser;
 
 /**
  * Tests the ServerRequestFactory class for all kind of weird http input.
@@ -236,14 +237,14 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
      * Test http headers which cause all (tested) servers to either drop them or return a 400 error
      */
     #[DataProvider('droppedHttpHeaderDataProvider')]
-    public function testDroppedHttpHeader(string $headers, bool $allow404s = true, string $httpVersion = '1.0', string $serverScheme = 'http'): void
+    public function testDroppedHttpHeader(string $headers, bool $expect400s = false, string $httpVersion = '1.0', string $serverScheme = 'http'): void
     {
         $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
         // Different webservers react differently to this test - some drop the header, some reject the request.
-        // Allow the test data to specify if 404s should be acceptable
-        if ($allow404s && preg_match('#^HTTP/1.(0|1) 400 #', $response)) {
-            $this->assertEquals(1, 1);
+        // Allow the test data to specify if 400s should be expected
+        if ($expect400s) {
+            $this->assertStatusCode(400, $response, $failureMessage);
             return;
         }
         $data = $this->getDecodedBody($response);
@@ -254,28 +255,30 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
 
     public static function droppedHttpHeaderDataProvider(): array
     {
+        $expect400 = ($_ENV['SERVER_TYPE'] !== 'nginx');
+
         //$cases[] = [];
         $cases = [
             ['Custom:', false],
 
             // (),/:;<=>?@[\\]{}
-            ['Cus(tom: hey', true],
-            ['Cus)tom: hey', true],
-            ['Cus,tom: hey', true],
-            ['Cus/tom: hey', true],
+            ['Cus(tom: hey', $expect400],
+            ['Cus)tom: hey', $expect400],
+            ['Cus,tom: hey', $expect400],
+            ['Cus/tom: hey', $expect400],
             // this one results not in a dropped header but in a different header name and value (tested above)
-            //['Cus:tom: hey', true],
-            ['Cus;tom: hey', true],
-            ['Cus<tom: hey', true],
-            ['Cus=tom: hey', true],
-            ['Cus>tom: hey', true],
-            ['Cus?tom: hey', true],
-            ['Cus@tom: hey', true],
-            ['Cus[tom: hey', true],
-            ['Cus]tom: hey', true],
-            ['Cus\\tom: hey', true],
-            ['Cus{tom: hey', true],
-            ['Cus}tom: hey', true],
+            //['Cus:tom: hey', $expect400],
+            ['Cus;tom: hey', $expect400],
+            ['Cus<tom: hey', $expect400],
+            ['Cus=tom: hey', $expect400],
+            ['Cus>tom: hey', $expect400],
+            ['Cus?tom: hey', $expect400],
+            ['Cus@tom: hey', $expect400],
+            ['Cus[tom: hey', $expect400],
+            ['Cus]tom: hey', $expect400],
+            ['Cus\\tom: hey', $expect400],
+            ['Cus{tom: hey', $expect400],
+            ['Cus}tom: hey', $expect400],
         ];
 
         if ($_ENV['SERVER_TYPE'] !== 'swoole') {
@@ -288,19 +291,19 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         if ($_ENV['SERVER_TYPE'] !== 'frankenphp') {
             $cases = $cases + [
                 // !#$%&\'*+.^_`|~
-                ['Cus!tom: hey', true],
-                ['Cus#tom: hey', true],
-                ['Cus$tom: hey', true],
-                ['Cus%tom: hey', true],
-                ['Cus&tom: hey', true],
-                ['Cus\'tom: hey', true],
-                ['Cus*tom: hey', true],
-                ['Cus+tom: hey', true],
-                ['Cus.tom: hey', true],
-                ['Cus^tom: hey', true],
-                ['Cus`tom: hey', true],
-                ['Cus|tom: hey', true],
-                ['Cus~tom: hey', true],
+                ['Cus!tom: hey', $expect400],
+                ['Cus#tom: hey', $expect400],
+                ['Cus$tom: hey', $expect400],
+                ['Cus%tom: hey', $expect400],
+                ['Cus&tom: hey', $expect400],
+                ['Cus\'tom: hey', $expect400],
+                ['Cus*tom: hey', $expect400],
+                ['Cus+tom: hey', $expect400],
+                ['Cus.tom: hey', $expect400],
+                ['Cus^tom: hey', $expect400],
+                ['Cus`tom: hey', $expect400],
+                ['Cus|tom: hey', $expect400],
+                ['Cus~tom: hey', $expect400],
             ];
         }
 
@@ -315,7 +318,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
     {
         $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
-        $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
+        $this->assertStatusCode(400, $response, $failureMessage);
     }
 
     public static function rejectedHttpHeaderDataProvider(): array
@@ -416,8 +419,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
     {
         $response = $this->customRequest($prefix . 'GET', '', '', '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
-        //$this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 200 #', $response, $failureMessage);
-        $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
+        $this->assertStatusCode(400, $response, $failureMessage);
     }
 
     public static function requestPrefixDataProvider(): array
@@ -438,7 +440,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
     {
         $response = $this->customRequest($method, '', '', '', $httpVersion, $serverScheme);
         $failureMessage = $this->getRespDetails($response);
-        $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
+        $this->assertStatusCode(400, $response, $failureMessage);
     }
 
     public static function funkyHttpMethodsDataProvider(): array
@@ -460,7 +462,6 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         //$phpParameters = $data['_GET'];
         $parameters = $data['serverRequest']['queryParams'];
         $this->assertSame($expectedParameters, $parameters, $failureMessage);
-        //$this->assertMatchesRegularExpression('#^HTTP/1.(0|1) 400 #', $response, $failureMessage);
     }
 
     public static function queryStringParametersDataProvider(): array
@@ -607,12 +608,11 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         return new SimpleHttpClient($clientOptions);
     }
 
-    protected function getDecodedBody(string $response, $retCode = '200'): array
+    protected function getDecodedBody(string $response, int|string|null $retCode = '200'): array
     {
-        /// @todo "In the interest of robustness, a server that is expecting to receive and parse a request-line SHOULD
-        ///       ignore at least one empty line (CRLF) received prior to the request-line" - not that any webserver
-        ///       we are testing does support that...
-        $this->assertMatchesRegularExpression('#^HTTP/1.(0|1) ' . preg_quote($retCode, '#') . ' #', $response);
+        if ($retCode != '') {
+            $this->assertStatusCode($retCode, $response);
+        }
         $body = $this->extractBody($response);
         $data = @json_decode($body, true);
         // support application/php-serialized+base64
@@ -628,30 +628,42 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
 
     /**
      * Really simple separator of body from headers
+     * @todo move this functionality into the MessageParser
      */
     protected function extractBody(string $response, bool $dechunk = true): string
     {
-        /// @todo accept single \n as line terminators: "Although the line terminator for the start-line and fields is
-        ///        the sequence CRLF, a recipient MAY recognize a single LF as a line terminator and ignore any preceding CR"
-        $pos = strpos($response, "\r\n\r\n");
-        if ($pos !== false) {
-            $body = substr($response, $pos + 4);
-            if ($dechunk) {
-                $headers = substr($response, 0, $pos);
-                foreach (explode("\r\n", $headers) as $header) {
-                    if (str_starts_with(strtolower($header), 'transfer-encoding:') && trim(substr($header, 18), " \t") == 'chunked') {
-                        $dechunker = new Dechunker();
-                        $body = $dechunker->dechunk($body);
-                    }
+        $messageParser = new MessageParser();
+        list ($startLine, $headers, $body) = $messageParser->splitMessage($response);
+        if ($body !== '' && $dechunk) {
+            foreach ($headers as $header) {
+                if (str_starts_with(strtolower($header), 'transfer-encoding:') && trim(substr($header, 18), " \t") == 'chunked') {
+                    $dechunker = new Dechunker();
+                    $body = $dechunker->dechunk($body);
+                    break;
                 }
             }
-            return $body;
         }
-        return '';
+        return $body;
+    }
+
+    protected function extractStartLine(string $response): string
+    {
+        $messageParser = new MessageParser();
+        list ($startLine, $headers, $body) = $messageParser->splitMessage($response);
+        return $startLine;
     }
 
     protected function getRespDetails(string $response): string
     {
         return "Server response:\n$response\n";
+    }
+
+    protected function assertStatusCode(int|string $retCode, string $response, string $message = ''): void
+    {
+        $this->assertMatchesRegularExpression(
+            '#^HTTP/1\\.(0|1) ' . preg_quote((string)$retCode, '#') . ' #',
+            $this->extractStartLine($response),
+            $message
+        );
     }
 }
