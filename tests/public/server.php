@@ -11,10 +11,15 @@ require __DIR__ . '/../../vendor/autoload.php';
 use TanoWAF\WAFCore\Tests\DotConf;
 use TanoWAF\WAFCore\Tests\TestServer;
 
+// Make errors always visible
+ini_set('display_errors', true);
+error_reporting(E_ALL);
+
 //$dotConf = new DotConf();
 //$dotConf->loadEnv();
 
-$server = new TestServer();
+$testServer = new TestServer();
 
-$server->preflight();
-$server->respond(@$_SERVER['REQUEST_METHOD'] ?? 'GET', @$_GET['action'] ?? 'info', @$_GET['action_args'] ? (array)$_GET['action_args'] : []);
+if ($testServer->preFlight()) {
+    $testServer->respond(@$_SERVER['REQUEST_METHOD'] ?? 'GET', @$_GET['action'] ?? 'info', @$_GET['action_args'] ? (array)$_GET['action_args'] : []);
+}

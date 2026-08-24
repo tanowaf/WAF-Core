@@ -20,14 +20,14 @@ class TestServer
         'getHeadersFromServer' => [], 'requestBody' => null, 'serverRequest' => null];
 
     use RequestTracerTrait;
+    use SwooleAwareTrait;
 
     protected string $requestPrefix = '';
 
-    protected null|\OpenSwoole\Http\Response|\Swoole\Http\Response $swooleResponse = null;
-    protected null|\OpenSwoole\Http\Request|\Swoole\Http\Request $swooleRequest = null;
-
-    public function preflight(): void
+    public function preFlight(): bool
     {
+        $this->envFromSwooleRequest();
+
 /// @todo... enable this after we add support for the PHPUNIT_RANDOM_TEST_ID cookie in the direct-access tests
 /*
         // In case this file is made available on an open-access server, avoid it being useable by anyone who can not
@@ -37,13 +37,13 @@ class TestServer
         $randId = $_COOKIE['PHPUNIT_RANDOM_TEST_ID'] ?? '';
         $fileId = file_exists($idFile) ? file_get_contents($idFile) : '';
         if ($randId == '' || $fileId == '' || $fileId !== $randId) {
-            header('HTTP/1.1 400 Bad Request');
-            die('This url can only be accessed by the test suite');
+            $this->http_response_code(400);
+            $this->echo('This url can only be accessed by the test suite');
+            return false;
         }
 */
-        // Make errors always visible
-        ini_set('display_errors', true);
-        error_reporting(E_ALL);
+
+        return true;
     }
 
     public function respond(string $requestMethod = 'GET', string $action = 'info', array $actionArgs = []): void
@@ -75,16 +75,6 @@ class TestServer
             default:
                 $this->displayInfoResponse($actionArgs[0] ?? 'wafcore');
         }
-    }
-
-    public function setSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request|null $request)
-    {
-        $this->swooleRequest = $request;
-    }
-
-    public function setSwooleResponse(\OpenSwoole\Http\Response|\Swoole\Http\Response|null $response)
-    {
-        $this->swooleResponse = $response;
     }
 
     /**
@@ -290,32 +280,5 @@ class TestServer
         }
 
         return $body;
-    }
-
-    protected function header(string $name, string $value): void
-    {
-        if ($this->swooleResponse === null) {
-            header("$name: $value");
-        } else {
-            $this->swooleResponse->header($name, $value);
-        }
-    }
-
-    protected function http_response_code(int $statusCode): void
-    {
-        if ($this->swooleResponse === null) {
-            http_response_code($statusCode);
-        } else {
-            $this->swooleResponse->status($statusCode);
-        }
-    }
-
-    protected function echo(string $content): void
-    {
-        if ($this->swooleResponse === null) {
-            echo $content;
-        } else {
-            $this->swooleResponse->write($content);
-        }
     }
 }
