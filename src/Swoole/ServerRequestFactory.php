@@ -104,7 +104,8 @@ class ServerRequestFactory extends BaseServerRequestFactory
                         $headers['Cookie'][] = trim(substr($headerLine, 7), " \t");
                     }
                 }
-                $headers['Cookie'] = implode('; ', $headers['Cookie']);
+                // we allow the layers above to deal with this
+                //$headers['Cookie'] = implode('; ', $headers['Cookie']);
             }
         }
 

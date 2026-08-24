@@ -146,9 +146,11 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         $cases[] = ["Set-Cookie: lang=en-US; Expires=Wed\r\nSet-Cookie: 09 Jun 2021 10:18:14 GMT", 'Set-Cookie', 'lang=en-US; Expires=Wed, 09 Jun 2021 10:18:14 GMT'];
 
         // one more test case where different webservers behave differently :-(
-        // Nginx recognizes Cookie and treats it specifically, Apache and FrankenPHP do not
-        if ($_ENV['SERVER_TYPE'] === 'nginx' || $_ENV['SERVER_TYPE'] === 'swoole') {
+        // Nginx and Swoole recognize Cookie and treats it specifically, Apache and FrankenPHP do not
+        if ($_ENV['SERVER_TYPE'] === 'nginx') {
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", 'Cookie', 'lang1=xx-YY; lang2=en-US; lang3=fr-FR'];
+        } elseif ($_ENV['SERVER_TYPE'] === 'swoole') {
+            $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", 'Cookie', ['lang1=xx-YY; lang2=en-US', 'lang3=fr-FR']];
         } else {
             $cases[] = ["Cookie: lang1=xx-YY; lang2=en-US\r\nCookie: lang3=fr-FR", 'Cookie', 'lang1=xx-YY; lang2=en-US, lang3=fr-FR'];
         }
@@ -157,7 +159,9 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         // swoole does in fact preserve multi-valued headers!
         if ($_ENV['SERVER_TYPE'] === 'swoole') {
             foreach ($cases as $i => &$v) {
-                $v[2] = explode(', ', $v[2]);
+                if (is_string($v[2])) {
+                    $v[2] = explode(', ', $v[2]);
+                }
             }
         }
 

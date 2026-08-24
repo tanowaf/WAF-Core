@@ -147,18 +147,18 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
     {
         if ($this->cookieParams === null) {
             if (is_array($this->cookieHeader) && $this->cookieHeader) {
-                // we allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1,
-                // so we handle that differently in that case.
+                // We allow multiple Cookie headers, as per the http2 spec. Note that those are not valid in http 1.1,
+                // so we set an error in $errorsFound in that case.
+                // Note that so far the only webserver which allows us to get split cookie headers is swoole, and that
+                // nginx concatenates them with ';' while apache and frankenphp concatenate them with ','
                 /// @todo Check how php handles that by default
                 /// @todo see also the discussion at https://github.com/httpwg/http-extensions/issues/2541 and https://github.com/cloudflare/pingora/issues/892
                 ///       (we should concatenate the multiple cookies headers into one when forwarding the request upstream...)
                 if (count($this->cookieHeader) > 1) {
-                    if ((float)$this->protocol >= 2) {
-                        /// @todo is it worth checking if $this->cookieParser is null and throw a clearer error?
-                        $this->cookieParams = $this->cookieParser->parseCookies(implode('; ', $this->cookieHeader), $errorsFound);
-                    } else {
-/// @todo... throw / log an error
-                        $this->cookieParams = [];
+                    /// @todo is it worth checking if $this->cookieParser is null and throw a clearer error?
+                    $this->cookieParams = $this->cookieParser->parseCookies(implode('; ', $this->cookieHeader), $errorsFound);
+                    if ((float)$this->protocol < 2) {
+                        $errorsFound[] = "Found two or more Cookie header lines, which is not allowed";
                     }
                 } else {
                     /// @todo is it worth checking if $this->cookieParser is null and throw a clearer error?
@@ -185,6 +185,7 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
         return $new;
     }
 
+    /// @todo... allow retrieving the errors
     public function getQueryParams(): array
     {
         if ($this->queryParams === null) {
@@ -192,7 +193,7 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
                 $this->queryParams = [];
             } else {
                 /// @todo is it worth checking if $this->queryStringParser is null and throw a clearer error?
-                $this->queryParams = $this->queryStringParser->parseQueryString($this->queryString);
+                $this->queryParams = $this->queryStringParser->parseQueryString($this->queryString, $errorsFound);
             }
         }
         return $this->queryParams;
