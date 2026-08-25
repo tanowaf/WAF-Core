@@ -222,7 +222,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface, ServerReque
         $requestAttributes = new Attributes();
 
         $parsedBody = null;
-        if ('POST' === $method /*$serverParams['REQUEST_METHOD']*/) {
+        if ('POST' === $method) {
             foreach ($headers as $headerName => $headerValue) {
                 if (true === \is_int($headerName) || 'content-type' !== \strtolower($headerName)) {
                     continue;

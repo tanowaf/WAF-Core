@@ -13,11 +13,18 @@ class ServerRequestFactory extends BaseServerRequestFactory
     /// @see https://github.com/imefisto/psr-swoole-native/
     public function fromSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request $request): ServerRequest
     {
-/// @todo... check that uppercased $server is what we expect in createUriFromArray and fromArrays, ie. the $_SERVER format
+        // Vars that we get in $request->server (tested on swoole 6.2.2):
+        //   master_time, path_info, query_string, remote_addr, remote_port, request_method, request_time, request_time_float,
+        //   request_uri, server_addr, server_port, server_protocol
+        // Vars missing:
+        //   https, request_scheme, server_name
         $server = [];
         foreach ($request->server as $k => $v) {
             $server[strtoupper($k)] = $v;
         };
+        if (isset($request->header['host'])) {
+            $server['HTTP_HOST'] = $request->header['host'];
+        }
 
         $requestAttributes = new Attributes();
 
