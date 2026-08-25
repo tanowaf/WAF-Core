@@ -48,7 +48,9 @@ trait SwooleAwareTrait
     protected function envFromSwooleRequest(): void
     {
         if ($this->swooleRequest !== null) {
-            $_COOKIE = $this->swooleRequest->cookie;
+            if ($this->swooleRequest->cookie !== null) {
+                $_COOKIE = $this->swooleRequest->cookie;
+            }
             if ($this->swooleRequest->get !== null) {
                 $_GET = $this->swooleRequest->get;
             }
@@ -59,7 +61,7 @@ trait SwooleAwareTrait
                 $_FILES = $this->swooleRequest->files;
             }
             foreach ($this->swooleRequest->header as $h => $v) {
-                $_SERVER['HTTP_' . strtoupper(str_replace('-', '_', $h))] = $v;
+                $_SERVER['HTTP_' . strtoupper(str_replace('-', '_', (string)$h))] = $v;
             }
         }
     }

@@ -556,10 +556,11 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
     {
         $baseUri = $this->getServerBaseUri();
         $targetAddress = $this->getServerAddress();
+        $uri = $this->getServerPath() . $urlSuffix;
+        $host = preg_replace('#^https?://#', '', $baseUri);
 
-        $payload = "$method " . $this->getServerPath() . $urlSuffix . " HTTP/$httpVersion\r\n";
-
-        $payload .= 'Host: ' . preg_replace('#^https?://#', '', $baseUri) . "\r\n";
+        $payload = "$method $uri HTTP/$httpVersion\r\n" .
+            "Host: $host\r\n";
 
 /// @todo... inject a cookie header with values for PHPUNIT_RANDOM_TEST_ID, PHPUNIT_SELENIUM_TEST_ID
         $headers = rtrim($headers, "\r\n");
@@ -574,7 +575,11 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         $payload .= "\r\n" . $body;
 
         $client = $this->getSimpleClient([], ['server_scheme' => $serverScheme]);
-        return $client->sendPayload($targetAddress, $payload);
+        $response = $client->sendPayload($targetAddress, $payload);
+
+        $this->assertNotEquals('', $response, "Empty http reply on $method request to $uri (host: $host)");
+
+        return $response;
     }
 
     protected function getServerAddress(): string
