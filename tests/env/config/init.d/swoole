@@ -43,7 +43,6 @@ DESC="Swoole web server"
 NAME=swoole
 DAEMON=/usr/bin/swoole
 PREPEND_FILE=/etc/swoole/prepend.php
-STOP_SCHEDULE=INT/5/QUIT/5/KILL/5
 SWOOLE_EXTENSION=swoole
 VERBOSE=no
 VHOST=server
@@ -94,7 +93,7 @@ fi
 #       to build the command line used here. We could maybe use jq to achieve that, but it seems hackish...
 D_OPTS=''
 if [ -n "$PREPEND_FILE" ]; then
-    D_OPTS="-dauto_prepend_file=$PREPEND_FILE "
+    D_OPTS="-d auto_prepend_file=$PREPEND_FILE "
 fi
 DAEMON_OPTS="$D_OPTS-f $WORKER_SCRIPT_DIR/$WORKER_SCRIPT $DAEMON_OPTS -- $WORKER_ARGS"
 
@@ -148,7 +147,7 @@ do_start() {
     if "$DAEMON" -m 2>/dev/null | fgrep -q swoole 2>/dev/null; then
         PHP_OPTS="$DAEMON_OPTS"
     else
-        PHP_OPTS="-dextension=$SWOOLE_EXTENSION $DAEMON_OPTS"
+        PHP_OPTS="-d extension=$SWOOLE_EXTENSION $DAEMON_OPTS"
     fi
 
     if pidofproc -p $PIDFILE "$DAEMON" > /dev/null 2>&1 ; then
@@ -166,6 +165,7 @@ do_start() {
         || return 2
 }
 
+# NB: this does not seem to reliably force Swoole to pick up code changes from disk...
 # Returns:
 #   0 if config was reloaded
 #   1 if config could not be reloaded because daemon not started
@@ -187,7 +187,7 @@ do_reload() {
 #   2 if daemon could not be stopped
 do_stop() {
     # removed `--name $NAME`, as there can be many `swoole` processes running at any given time
-    start-stop-daemon --stop --retry="$STOP_SCHEDULE" --quiet --remove-pidfile --pidfile $PIDFILE
+    start-stop-daemon --stop --signal TERM --quiet --remove-pidfile --pidfile $PIDFILE
 }
 
 case "$1" in

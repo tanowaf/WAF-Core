@@ -249,8 +249,8 @@ runtests() {
         ${DOCKER_CMD} exec $USE_TTY "${CONTAINER_NAME}" /root/setup/setup_app.sh "${CONTAINER_WORKSPACE_DIR}"
         if [ "$TEST_WEBSERVER" = swoole ] || [ "$TEST_WAF" = swoole ]; then
             # reload the swoole workers, in case this is a dev env and code was recently changed
-            ${DOCKER_CMD} exec $USE_TTY "${CONTAINER_NAME}" /etc/init.d/swoole_server reload
-            ${DOCKER_CMD} exec $USE_TTY "${CONTAINER_NAME}" /etc/init.d/swoole_waf reload
+            ${DOCKER_CMD} exec $USE_TTY "${CONTAINER_NAME}" /etc/init.d/swoole_server restart
+            ${DOCKER_CMD} exec $USE_TTY "${CONTAINER_NAME}" /etc/init.d/swoole_waf restart
         fi
         ${DOCKER_CMD} exec -i $USE_TTY \
             "${CONTAINER_NAME}" su "${CONTAINER_USER}" -c "$ENV_VAR_INJECTION ./vendor/bin/phpunit --log-junit ./tests/env/var/test-results.xml $TESTSUITE"

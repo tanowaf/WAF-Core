@@ -219,7 +219,8 @@ if [ "$START_WEBSERVER" = roadrunner ] || [ "$START_WEBSERVER" = all ]; then
 fi
 if [ "$START_WEBSERVER" = swoole ] || [ "$START_WEBSERVER" = all ]; then
     if [ -f /etc/init.d/swoole ]; then
-        service swoole start
+        service swoole_server start
+        service swoole_waf start
     else
         if [ "$START_WEBSERVER" = swoole ]; then
             echo "Can not start swoole: it was not installed in this container" >&2
