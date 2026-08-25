@@ -27,6 +27,7 @@ if (!is_file($configFile) ) {
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+use TanoWAF\WAFCore\Swoole\ServerFactory;
 use TanoWAF\WAFCore\Tests\TestWAFPage;
 
 // Make errors always visible
@@ -36,21 +37,8 @@ error_reporting(E_ALL);
 $testWAFPage = new TestWAFPage();
 
 $serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
-
-if (class_exists('\Swoole\Http\Server')) {
-    $serverClass = '\Swoole\Http\Server';
-} else if (class_exists('\OpenSwoole\Http\Server')) {
-    $serverClass = '\OpenSwoole\Http\Server';
-} else {
-    throw new \Exception("This should never happen");
-}
-
-$server = new $serverClass($serverConfig['listen_ip'], (int)$serverConfig['listen_port']);
-unset($serverConfig['listen_ip'], $serverConfig['listen_port']);
-
-/// @see https://wiki.swoole.com/en/#/http_server?id=configuration-options
-/// @see https://openswoole.com/docs/modules/swoole-server/configuration
-$server->set($serverConfig);
+$serverFactory = new ServerFactory();
+$server = $serverFactory->fromConfig($serverConfig);
 
 $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($testWAFPage)
 {

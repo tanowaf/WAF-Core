@@ -27,6 +27,7 @@ use TanoWAF\WAFCore\Http\QueryStringParserFactory;
 use TanoWAF\WAFCore\Proxy\FixedUpstreamProxy;
 use TanoWAF\WAFCore\Response\Psr7\ResponseFactory;
 use TanoWAF\WAFCore\Swoole\Emitter;
+use TanoWAF\WAFCore\Swoole\ServerFactory;
 use TanoWAF\WAFCore\Swoole\ServerRequestFactory;
 use TanoWAF\WAFCore\Tests\LoadTestWAF;
 use TanoWAF\WAFCore\Tests\MockUpstreamClient;
@@ -65,21 +66,8 @@ $emitter = new Emitter();
 // 2. Build the (Open)Swoole server
 
 $serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
-
-if (class_exists('\Swoole\Http\Server')) {
-    $serverClass = '\Swoole\Http\Server';
-} else if (class_exists('\OpenSwoole\Http\Server')) {
-    $serverClass = '\OpenSwoole\Http\Server';
-} else {
-    throw new \Exception("This should never happen");
-}
-
-$server = new $serverClass($serverConfig['listen_ip'], (int)$serverConfig['listen_port']);
-unset($serverConfig['listen_ip'], $serverConfig['listen_port']);
-
-/// @see https://wiki.swoole.com/en/#/http_server?id=configuration-options
-/// @see https://openswoole.com/docs/modules/swoole-server/configuration
-$server->set($serverConfig);
+$serverFactory = new ServerFactory();
+$server = $serverFactory->fromConfig($serverConfig);
 
 // 3. Loop
 

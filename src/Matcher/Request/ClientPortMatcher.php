@@ -33,7 +33,7 @@ class ClientPortMatcher extends BaseMatcher
         /// @todo... log a warning if we are not passed the attributes bag or this specific attribute
         $clientPort = $request->getAttribute(Attributes::class)?->get(Attributes::REMOTE_PORT) ?? '';
 
-        return $this->matchesRegexp($clientPort);
+        return $this->matchesRegexp((string)$clientPort);
     }
 
     protected function normalizeMatchingRegexp(string $value): string
