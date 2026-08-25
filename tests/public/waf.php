@@ -14,6 +14,9 @@ use TanoWAF\WAFCore\Tests\TestWAFPage;
 // Make errors always visible
 ini_set('display_errors', true);
 error_reporting(E_ALL);
+// Avoid php interfering with the waf sending out compressed responses - we leave it to the webserver to compress them
+// (we do this here as it generates a php warning if called after a php error/warning message has been generated)
+ini_set('zlib.output_compression', 0);
 
 $testWAFPage = new TestWAFPage();
 

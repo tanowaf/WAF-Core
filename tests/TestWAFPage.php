@@ -28,7 +28,7 @@ class TestWAFPage
     use SwooleAwareTrait;
 
     protected LoggerInterface|null $logger;
-    protected string|null $phpunitSeleniumTestId;
+    protected string|null $phpunitSeleniumTestId = null;
 
     public function preFlight(): bool
     {
@@ -124,9 +124,6 @@ class TestWAFPage
             // in case these are set, they might interfere with the configuration of the Client that gets built
             // NB: HTTP_PROXY uppercase should not be used by any clients, as it can be spoofed by an http header from clients...
             unset($_SERVER['http_proxy'], $_SERVER['HTTP_PROXY'], $_SERVER['https_proxy'], $_SERVER['HTTPS_PROXY'], $_SERVER['no_proxy'], $_SERVER['NO_PROXY']);
-
-            // avoid php interfering with the waf sending out compressed responses
-            ini_set('zlib.output_compression', 0);
 
             $psr17Factory = new Psr17Factory();
             $cookieParserFactory = new CookieParserFactory();

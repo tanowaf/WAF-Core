@@ -33,6 +33,9 @@ use TanoWAF\WAFCore\Tests\TestWAFPage;
 // Make errors always visible
 ini_set('swoole.display_errors', true);
 error_reporting(E_ALL);
+// Avoid php interfering with the waf sending out compressed responses - we leave it to the webserver to compress them
+// (we do this here as it generates a php warning if called after a php error/warning message has been generated)
+ini_set('zlib.output_compression', 0);
 
 $testWAFPage = new TestWAFPage();
 
@@ -48,7 +51,9 @@ $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $r
     if ($testWAFPage->preFlight()) {
         $testWAFPage->handleRequest();
     }
-    $response->end();
+    if ($response->isWritable()) {
+        $response->end();
+    }
 
     $testWAFPage->postFlight();
 });

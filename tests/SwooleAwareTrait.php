@@ -5,8 +5,8 @@ namespace TanoWAF\WAFCore\Tests;
 
 trait SwooleAwareTrait
 {
-    protected null|\OpenSwoole\Http\Response|\Swoole\Http\Response $swooleResponse = null;
     protected null|\OpenSwoole\Http\Request|\Swoole\Http\Request $swooleRequest = null;
+    protected null|\OpenSwoole\Http\Response|\Swoole\Http\Response $swooleResponse = null;
 
     public function setSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request|null $request): void
     {
@@ -41,6 +41,8 @@ trait SwooleAwareTrait
         if ($this->swooleResponse === null) {
             echo $content;
         } else {
+            // note: according to the docs, using separate write() calls disables support for resp. compression and
+            // triggers chunked encoding...
             $this->swooleResponse->write($content);
         }
     }

@@ -27,7 +27,7 @@ $server = $serverFactory->fromConfig($serverConfig);
 // The main HTTP server request callback event, entry point for all incoming HTTP requests
 $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response)
 {
-    $response->end('');
+    $response->end();
 });
 
 $server->start();

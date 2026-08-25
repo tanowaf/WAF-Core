@@ -3,5 +3,9 @@
     "listen_port": 1084,
 
     "worker_num": 2,
-    "backlog": 128
+    "backlog": 128,
+
+    "http_compression": true,
+    "http_compression_level": 6,
+    "compression_min_length": 20
 }

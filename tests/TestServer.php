@@ -66,10 +66,6 @@ class TestServer
 
     public function respond(string $requestMethod = 'GET', string $action = 'info', array $actionArgs = []): void
     {
-        // avoid php interfering with the server sending out compressed responses, just in case (but we allow the
-        // webserver to do the same...)
-        ini_set('zlib.output_compression', 0);
-
         switch ($requestMethod) {
             case 'OPTIONS':
                 $this->displayOptionsResponse();
