@@ -99,10 +99,12 @@ class ServerRequestFactory extends BaseServerRequestFactory
             }
             $headers['Cookie'] = implode('; ', $cookies);*/
 
-            /// @todo... speed-up and harden this header parser
+            /// @todo... speed-up and harden this header parser + move it to Http/MessageParser
             ///          - avoid doing data copies with substr
             ///          - set a limit on header line length? (swoole does that on its own, eg. 100K chars headers are rejected with a 40x)
-            ///          take a look at eg. the QBix server header parser
+            ///          take a look at eg.
+            ///          - the QBix server header parser
+            ///          - thw workerman message parser (https://github.com/walkor/workerman/blob/master/src/Protocols/Http.php)
             $payload = $request->getData();
             $pos = strpos($payload, "\r\n\r\n");
             if ($pos !== false) {

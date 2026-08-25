@@ -56,7 +56,8 @@
   - add http client adapters for php-http/curl-client (see https://docs.php-http.org/en/latest/clients/curl-client.html)
     and other "well known" psr-18 http clients (there are eg. a plethora of them in httplug's client-common package,
     including the PluginClient, which allows to add further processing to the request before it hits upstream, but that
-    one does not allow access to its wrapped client in any way, so we can not push down options to it...)
+    one does not allow access to its wrapped client in any way, so we can not push down options to it...), as well
+    as async http clients from swoole/openswoole/amphp/workerman
 
 - Docs
   - document all the supported matchers
@@ -73,12 +74,9 @@
   - see all the tests run by https://www.http-probe.com/
   - on GH, run tests on a matrix of all supported php, ubuntu but also webserver versions
     - add one test using frankenphp worker mode
-    - test also against: apache+mod_php, php-http-server, lighttpd, openlitespeed, roadrunner, swoole
+    - test also against: apache+mod_php, php-http-server, lighttpd, openlitespeed, roadrunner, openswoole, workerman
       - use a cloud-based platform that provides those ready-built, rather than installing each one by ourselves?
         Either that, or move to a multi-container setup for testing...
-      - we will give a strong preference to how frankenphp sets up $_SERVER, as that will be the default way to
-        deploy a WAF based on this code (in the downstream YaWAF and YaDSP projects)
-      - swoole has built-in support for psr-15 (mapping an \OpenSwoole\HTTP\Request to a psr one, see https://github.com/openswoole/openswoole/blob/master/core/src/Helper.php)
   - add tests which make use of middleware from other projects, eg. rate-limiting and caching
 
 - Misc
@@ -88,7 +86,7 @@
   - perf: save decompressed version of message bodies for reuse in further filters/matchers
 
 - Maybe?
-  - create our own implementation of the psr-compliant http upstream client used by the proxy (based on eg. phpxmlrpc),
+  - create our own implementation of a psr-compliant http upstream client used by the proxy,
     as that might lead to easier-to-debug-and-maintain code than Sf and Guzzle...
   - create our own webserver as stand-alone php cli app, as that gives absolute control on how http headers are parsed
-    (see Qbix and AppserverIo for examples of reasonably performing and complete implementations)
+    (see Qbix, AppserverIo, Workerman for examples of reasonably performing and complete implementations)
