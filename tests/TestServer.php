@@ -149,10 +149,13 @@ class TestServer
     protected function displayInfoResponse(string $serverRequestLibrary = 'wafcore'): void
     {
         $serverRequest = $this->buildServerRequest($serverRequestLibrary);
+
         if ($this->swooleRequest === null) {
             $requestHeaders = ServerRequestFactory::getHeadersFromServer($_SERVER);
+            $requestBody = file_get_contents('php://input');
         } else {
             $requestHeaders = ServerRequestFactory::getHeadersFromSwooleRequest($this->swooleRequest);
+            $requestBody = (string)$this->swooleRequest->getContent();
         }
 
         $response = array_merge(
@@ -165,7 +168,7 @@ class TestServer
                 /// @todo what about $_FILES?
                 'getHeadersFromServer' => $requestHeaders,
                 /// @todo limit the length of the body / throw if too big
-                'requestBody' => $this->decodeRequestBody(file_get_contents('php://input'), $requestHeaders),
+                'requestBody' => $this->decodeRequestBody($requestBody, $requestHeaders),
                 'serverRequest' => [
                     'method' => $serverRequest->getMethod(),
                     'protocolversion' => $serverRequest->getProtocolVersion(),
@@ -209,6 +212,8 @@ class TestServer
             // (note that this is allowed as per RFC 9110)
             $this->header('Content-Length', (string)strlen($payload));
         } else {
+            /// @todo test: would setting a CL header help avoiding using chunked-encoding when answering to http 1.0
+            ///       requests with Swoole?
             $this->echo($payload);
         }
     }

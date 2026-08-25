@@ -93,31 +93,6 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
         }
     }
 
-    /**
-     * "transforms" an instance of ServerRequestInterface into a ServerRequest.
-     * @return ServerRequest (was: NB: if the $request passed in is a ServerRequest, the original instance itself is returned)
-     * @todo drop this, in favour of ServerRequestFactory::fromRequest
-     */
-    public static function fromRequest(ServerRequestInterface $request): static
-    {
-        /// @todo should we do this?
-        //if ($request instanceof ServerRequest) {
-        //    return $request;
-        //}
-
-        $serverRequest = new static($request->getMethod(), $request->getUri(), $request->getHeaders(), $request->getBody(), $request->getProtocolVersion());
-
-        //$serverRequest->setCookieParser($this->cookieParser)
-        //    ->setHeaderParser($this->headerParser)
-        //    ->setQueryStringParser($this->queryStringParser);
-
-        $serverRequest = $serverRequest
-            ->withParsedBody($request->getParsedBody())
-            ->withUploadedFiles($request->getUploadedFiles());
-
-        return $serverRequest;
-    }
-
     public function getServerParams(): array
     {
         return $this->serverParams;

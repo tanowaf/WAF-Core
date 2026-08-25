@@ -27,7 +27,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
 
         $headers = static::getHeadersFromSwooleRequest($request);
 
-        /// @todo use instead a Stream?
+        /// @todo can we grab instead a Stream?
         $body = $request->getContent();
         if ($body === false) {
             $body = null;
@@ -71,7 +71,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
     {
         $headers = [];
         foreach ($request->header as $k => $v) {
-            // all servers but Swoole do drop these headers...
+            // all webservers but Swoole do drop these headers, let's stick with the common pattern...
             if ($v === '') {
                 continue;
             }
@@ -82,6 +82,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
         };
 
         // retrieve the cookie header, since swoole removes it from $request->header
+        /// @todo openswoole at least also has a `rawcookie` property. check if it could be used instead of this...
         if ($request->cookie && !array_key_exists('Cookie', $headers)) {
 
             // sadly this does not give us access to the original cookie header line(s)

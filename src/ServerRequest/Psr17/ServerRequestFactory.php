@@ -260,7 +260,9 @@ class ServerRequestFactory implements ServerRequestFactoryInterface, ServerReque
 ///          About point 1: see fe. https://github.com/symfony/symfony/blob/8.1/src/Symfony/Component/HttpFoundation/HeaderUtils.php#L201C62-L201C75
 ///          About point 2: see https://stackoverflow.com/questions/1746507/authoritative-position-of-duplicate-http-get-query-keys
 
-        $serverRequest = new ServerRequest($method, $uri, $headers, null, $protocol, $server);
+        // waf-core change: avoid one useless clone call in handling $body
+
+        $serverRequest = new ServerRequest($method, $uri, $headers, $body, $protocol, $server);
 
         $serverRequest->setCookieParser($this->cookieParser)
             ->setHeaderParser($this->headerParser)
@@ -289,19 +291,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface, ServerReque
         // waf-core change: add an attribute bag to the request
         $serverRequest = $serverRequest->withAttribute(Attributes::class, $requestAttributes);
 
-        if (null === $body) {
-            return $serverRequest;
-        }
-
-        if (\is_resource($body)) {
-            $body = $this->streamFactory->createStreamFromResource($body);
-        } elseif (\is_string($body)) {
-            $body = $this->streamFactory->createStream($body);
-        } elseif (!$body instanceof StreamInterface) {
-            throw new \InvalidArgumentException('The $body parameter to ServerRequestFactory::fromArrays must be string, resource or StreamInterface');
-        }
-
-        return $serverRequest->withBody($body);
+        return $serverRequest;
     }
 
     /**

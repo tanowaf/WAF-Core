@@ -264,7 +264,28 @@ class TestWAFPage
 
             return $requestFactory->fromGlobals();
         } else {
-            /// @todo clean up cookies and http headers
+/// @todo... clean up cookies and http headers
+            $headers = $this->swooleRequest->header;
+            if ($headers !== null) {
+                foreach ($headers as $name => $value) {
+                    if (str_starts_with($name, 'X-Wafcore-')) {
+                        unset($headers[$name]);
+                    }
+                }
+                $this->swooleRequest->header = $headers;
+            }
+
+            $cookies = $this->swooleRequest->cookie;
+            if ($cookies !== null) {
+                foreach ($cookies as $name => $value) {
+                    if (str_starts_with($name, 'PHPUNIT_') && $name !== 'PHPUNIT_RANDOM_TEST_ID') {
+                        unset($cookies[$name]);
+                        /// @todo should we remove the cookie from $_COOKIE and $_SERVER['HTTP_COOKIE'] too ?
+                        //$this->removeCookieFromEnv($name);
+                    }
+                }
+                $this->swooleRequest->cookie = $cookies;
+            }
 
             return $requestFactory->fromSwooleRequest($this->swooleRequest);
         }

@@ -22,7 +22,10 @@ class Emitter
             if ($response->getBody()->isSeekable()) {
                 $response->getBody()->rewind();
             }
-            $swooleResponse->write($body->getContents());
+            $body = $body->getContents();
+            if ($body !== '') {
+                $swooleResponse->write($body);
+            }
         }
 
         $swooleResponse->end();
