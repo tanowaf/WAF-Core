@@ -37,7 +37,8 @@ fi
 # Curl is not required atm to run tests, but it is a good tool to run manual tests on the command-line.
 # It can query a unix socket too, via option `--unix-socket`
 # Alternatives would be netcat, socat
+# Libevent is used by the php 'event' extension (w: do we need the `t64` version?)
 apt-get install -y \
-    curl git ncompress sudo unzip wrk
+    curl git libevent-core-2.1-7 ncompress sudo unzip wrk
 
 echo "Done installing base software packages"

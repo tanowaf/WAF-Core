@@ -12,11 +12,11 @@ COPY --chmod=755 setup/build_pie_extensions.sh setup/setup_php.sh setup/setup_pi
 # - https://packagist.org/packages/swoole/swoole
 # - https://packagist.org/packages/openswoole/ext-openswoole
 # As of 2026/8/20, we have to work around ext-openswoole issue #397: the only way to get it installed is to specify dev-master version
-# @todo see https://github.com/openswoole/ext-openswoole#1-install-via-pie-php-installer-for-extensions : we might need
+# @todo see https://github.com/openswoole/ext-openswoole#1-install-via-pie-php-installer-for-extensions: we might need
 #       to pass in extra flags for the full installation of ext-openswoole
 RUN DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y unzip && \
-    /root/setup/build_pie_extensions.sh 'kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master swoole/swoole'
+    DEBIAN_FRONTEND=noninteractive apt-get install -y libevent-dev unzip && \
+    /root/setup/build_pie_extensions.sh 'kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master osmanov/pecl-event swoole/swoole'
 
 ARG UBUNTU_VERSION=resolute
 FROM ubuntu:${UBUNTU_VERSION}

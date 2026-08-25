@@ -25,8 +25,11 @@
         "laminas/laminas-httphandlerrunner": "^2.13.0",
         "phpunit/phpunit": "^11.5.55|^12.5.29|^13.2.1",
         "spiral/roadrunner-http": "^4.1.0",
+        "swoole/ide-helper": "^6.2.2",
         "symfony/http-client": "^7.0.10",
+        "symfony/yaml": "^7.4.12",
         "symfony/psr-http-message-bridge": "^v7.4.8|^8.0.8|^8.10",
+        "workerman/workerman": "^5.2.2",
         "yoast/phpunit-polyfills": "^4.0"
     },
     "conflict": {
@@ -37,8 +40,12 @@
     "suggest": {
         "ext-curl": "Required (atm at least) for connecting to unix-socket based upstreams and many other nice http features",
         "ext-brotli": "Necessary to be able to inspect and modify received brotli-compressed message bodies",
+        "ext-event": "Recommended (either this or Swoole) to build WAFs running on Workerman instead of php-fpm/frankenphp/mod_php",
         "ext-mbstring": "Recommended for juggling between charsets in case not every request and response is utf8",
+        "ext-openswoole": "Necessary to build WAFs running on OpenSwoole instead of php-fpm/frankenphp/mod_php",
+        "ext-swoole": "Necessary to build WAFs running on Swoole instead of php-fpm/frankenphp/mod_php",
         "ext-zstd": "Necessary to be able to inspect and modify received zstd-compressed message bodies",
+        "openswoole/ide-helper": "To grok the classes and constants from OpenSwoole (replaces swoole/ide-helper)",
         "symfony/http-client": "Either this or guzzlehttp/guzzle are required",
         "guzzlehttp/guzzle": "Either this or symfony/http-client are required"
     },
