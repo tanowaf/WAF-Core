@@ -172,7 +172,7 @@ class TestWAFPage
             $configFile = array_key_exists('HTTP_X_WAFCORE_CONFIG_FILE', $_SERVER) ? trim($_SERVER['HTTP_X_WAFCORE_CONFIG_FILE']) : '';
             if ($configFile !== '') {
                 if ($config !== '') {
-                    throw new \Exception("Can not use at the same time headers X-WAFCORE-CONFIG and X-WAFCORE-CONFIG-FILE");
+                    throw new \Exception("Can not use at the same time headers X-WAFCORE-Config and X-WAFCORE-Config-File");
                 }
                 if (!$this->fileIsInTestsDir('configs/' . $configFile)) {
                     throw new \Exception("Can not use config file defined in header WAFCORE-CONFIG-FILE: outside tests root");
@@ -180,7 +180,7 @@ class TestWAFPage
                 $firewall = $firewallFactory->fromConfigFile(__DIR__ . '/configs/' . $configFile);
             } else {
                 if ($config !== '') {
-                    $this->logger->info('Loading firewall configuration from string received as header X-WAFCORE-CONFIG');
+                    $this->logger->info('Loading firewall configuration from string received as header X-WAFCORE-Config');
                 }
                 $firewall = $firewallFactory->fromConfigString($config);
             }
@@ -271,7 +271,7 @@ class TestWAFPage
             $headers = $this->swooleRequest->header;
             if ($headers !== null) {
                 foreach ($headers as $name => $value) {
-                    if (str_starts_with($name, 'X-Wafcore-')) {
+                    if (str_starts_with($name, 'x-wafcore-')) {
                         unset($headers[$name]);
                     }
                 }
