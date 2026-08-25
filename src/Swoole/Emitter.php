@@ -11,7 +11,7 @@ class Emitter
         $swooleResponse->status($response->getStatusCode());
 
 /// @todo... handle correctly the known cases of headers requiring different glueing
-///          NB: swoole 6.2.2 accepts array values besides strings. Test if openswoole does too. In case, do not glue stuff!
+///          NB: swoole 6.2.2 accepts array values besides strings. Test if openswoole does too. In case, do not glue stuff
         foreach ($response->getHeaders() as $key => $headerArray) {
             $swooleResponse->header($key, implode('; ', $headerArray));
         }
@@ -29,9 +29,8 @@ class Emitter
             $body = $body->getContents();
         }
 
-        /// @todo according to the docs, using separate write() calls disables support for resp. compression and triggers
-        ///       chunked encoding... Can we do without?
-        $swooleResponse->write($body);
-        $swooleResponse->end();
+        // note: according to the docs, using separate write() calls disables support for resp. compression and triggers
+        // chunked encoding...
+        $swooleResponse->end($body);
     }
 }

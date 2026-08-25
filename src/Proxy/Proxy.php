@@ -172,6 +172,9 @@ class Proxy implements ProxyInterface, LoggerAwareInterface
 
     protected function filterResponse(ResponseInterface $response, ServerRequestInterface $request): ResponseInterface
     {
+        /// @todo... are there any other headers we should remove?
+        $response = $response->withoutHeader('Transfer-Encoding');
+
         return $response;
     }
 

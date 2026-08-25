@@ -20,6 +20,9 @@ use TanoWAF\WAFCore\Exception\UnsupportedMediaType;
  */
 trait BodyCompressorTrait
 {
+    /**
+     * NB: checks header 'Content-Encoding' but not 'Transfer-Encoding'
+     */
     protected function messageBodyIsCompressed(MessageInterface $message): bool
     {
         if ($message->hasHeader('Content-Encoding')) {
@@ -29,12 +32,23 @@ trait BodyCompressorTrait
                 }
             }
         }
+
+
         return false;
     }
 
-    protected function messageBodyIsChunked(MessageInterface $message): bool
+    protected function messageBodyIsTransferEncoded(MessageInterface $message): bool
     {
-        return $message->hasHeader('Transfer-Encoding');
+        // @see https://www.iana.org/assignments/http-parameters#transfer-coding
+        // we support 'identity', even if it is withdrawn
+        if ($message->hasHeader('Transfer-Encoding')) {
+            foreach ($message->getHeader('Transfer-Encoding') as $encoding) {
+                if (strtolower($encoding) !== 'identity') {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     protected function compressMessageBody(MessageInterface $message, array $contentEncodings, string &$actualEncoding): string
@@ -158,6 +172,7 @@ trait BodyCompressorTrait
     /**
      * @throws RequestBodyCantBeDecompressed
      * @throws ResponseBodyCantBeDecompressed
+     * @todo do we need the 2nd arg?
      */
     protected function decompressMessageBody(MessageInterface $message, null|array $contentEncodings = null): string|false
     {
@@ -165,15 +180,16 @@ trait BodyCompressorTrait
             $contentEncodings = $message->getHeader('Content-encoding');
         }
 
-        /// @todo... verify - is this ever unnecessary?
-        //$body = $this->dechunkMessageBody($message);
+        /// @todo... verify - is it ever necessary to remove transfer-encoding on our own?
+        //$transferEncodings = $message->getHeader('Transfer-Encoding');
+        $transferEncodings = [];
 
         /// @todo implement streaming decompression - see f.e. Guzzle's Psr7\InflateStream
         $stream = $message->getBody();
         $stream->rewind();
         $body = $stream->getContents();
 
-        $body = $this->decompressPayload($body, $contentEncodings, $errorMessage);
+        $body = $this->decompressPayload($body, $contentEncodings, $transferEncodings, $errorMessage);
         if ($body === false) {
             if ($message instanceof RequestInterface) {
                 throw new RequestBodyCantBeDecompressed($errorMessage);
@@ -186,17 +202,24 @@ trait BodyCompressorTrait
 
     /**
      * @param string[] $contentEncodings
+     * @param string[] $transferEncodings you generally should pass in an empty array, as transfer-encoding is taken
+     *                                    care of automatically
      * @todo allow streams for $body
      */
-    protected function decompressPayload(string $body, array $contentEncodings, string|null &$errorMessage): string|false
+    protected function decompressPayload(string $body, array $contentEncodings, array $transferEncodings, string|null &$errorMessage): string|false
     {
-        /// @todo... verify - is this ever unnecessary?
-        //$body = $this->dechunkMessageBody($message);
+        $encodings = array_reverse(array_merge($contentEncodings, $transferEncodings));
+        $teCount = count($transferEncodings);
 
-        foreach (array_reverse($contentEncodings) as $contentEncoding) {
-            $contentEncoding = strtolower($contentEncoding);
+        foreach ($encodings as $i => $encoding) {
+            $encoding = strtolower($encoding);
             $errorMessage = null;
-            switch ($contentEncoding) {
+            if ($i < $teCount) {
+                $type = 'transfer';
+            } else {
+                $type = 'content';
+            }
+            switch ($encoding) {
                 /// @todo add support for dcb, dcz
                 case 'br':
                 //case 'dcb':
@@ -204,37 +227,51 @@ trait BodyCompressorTrait
                     if (function_exists('brotli_uncompress')) {
                         $body = @brotli_uncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $contentEncoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body";
                         }
                     } else {
-                        $errorMessage = "Unsupported content-encoding: '$contentEncoding' (missing php function: brotli_uncompress)";
+                        $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: brotli_uncompress)";
                     }
                     break;
                 /// @todo enable this after we finish the UnixCompressor
                 /*case 'compress':
                     $body = UnixCompressor::uncompress($body);
                     if ($body === false) {
-                        $errorMessage = "Failed decompressing " . $contentEncoding . " body";
+                        $errorMessage = "Failed decompressing " . $encoding . " body";
                     }
                     break;*/
+                /// @todo enable this in case there is need to de-chunk (remove transfer-encoding) on our own
+                /*
+                case 'chunked':
+                    if ($type == 'transfer') {
+                        $dechunker = new Dechunker();
+                        $body = $dechunker->dechunk($body);
+                        if ($body === false) {
+                            $errorMessage = "Failed decompressing " . $encoding . " body";
+                        }
+                    } else {
+                        $errorMessage = "Unsupported $type-encoding: '$encoding'";
+                    }
+                    break;
+                */
                 case 'deflate':
                     if (function_exists('gzuncompress')) {
                         $body = @gzuncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $contentEncoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body";
                         }
                     } else {
-                        $errorMessage = "Unsupported content-encoding: '$contentEncoding' (missing php function: gzuncompress)";
+                        $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzuncompress)";
                     }
                     break;
                 case 'gzip':
                     if (function_exists('gzinflate')) {
                         $body = @gzinflate(substr($body, 10, -8));
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $contentEncoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body";
                         }
                     } else {
-                        $errorMessage = "Unsupported content-encoding: '$contentEncoding' (missing php function: gzinflate)";
+                        $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzinflate)";
                     }
                     break;
                 case 'identity':
@@ -243,14 +280,14 @@ trait BodyCompressorTrait
                     if (function_exists('zstd_uncompress')) {
                         $body = @zstd_uncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $contentEncoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body";
                         }
                     } else {
-                        $errorMessage = "Unsupported content-encoding: '$contentEncoding' (missing php function: zstd_uncompress)";
+                        $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: zstd_uncompress)";
                     }
                     break;
                 default:
-                    $errorMessage = "Unsupported content-encoding: '$contentEncoding'";
+                    $errorMessage = "Unsupported $type-encoding: '$encoding'";
             }
             if ($errorMessage !== null) {
                 return false;
@@ -284,6 +321,7 @@ trait BodyCompressorTrait
      * @throws ResponseBodyCantBeDecompressed
      * @throws ResponseBodyCantBeCompressed
      * @throws UnsupportedMediaType
+     * @todo do we need the 3rd argument?
      */
     protected function transcodeResponseBody(ResponseInterface $response, array $acceptedEncodings, null|array $contentEncodings = null): ResponseInterface
     {
@@ -325,8 +363,6 @@ trait BodyCompressorTrait
         if ($tryEncodings && !$noIdentityEncoding) {
             $tryEncodings[] = 'identity';
         }
-
-/// @todo... save the uncompressed response body so that it can be used by body matchers/filters
 
         $body = $this->decompressMessageBody($response, $contentEncodings);
 
@@ -422,84 +458,4 @@ trait BodyCompressorTrait
         }
         return array_keys($out);
     }
-
-/*
-    protected function dechunkMessageBody(MessageInterface $message, null|array $transferEncodings = null): string
-    {
-        if ($transferEncodings === null) {
-            $transferEncodings = $message->getHeader('Transfer-Encoding');
-        }
-
-        $stream = $message->getBody();
-        $stream->rewind();
-        $body = $stream->getContents();
-        foreach (array_reverse($transferEncodings) as $transferEncoding) {
-            $transferEncoding = strtolower($transferEncoding);
-            $errorMessage = null;
-            switch ($transferEncoding) {
-                /// @todo add support for compress, deflate, gzip (even though those seem exceedingly rare...)
-                case 'chunked':
-                    $body = $this->decodeChunked($body);
-                    break;
-                default:
-                    $errorMessage = "Unsupported transfer-encoding: '$transferEncoding'";
-            }
-            if ($errorMessage !== null) {
-                if ($message instanceof RequestInterface) {
-                    throw new RequestBodyCantBeDecompressed($errorMessage);
-                } else {
-                    throw new ResponseBodyCantBeDecompressed($errorMessage);
-                }
-            }
-        }
-
-        return $body;
-    }
-
-    /// @see HttpClientTrait::dechunk for a better implementation
-    protected static function decodeChunked(string $buffer): string
-    {
-        // length := 0
-        //$length = 0;
-        $new = '';
-
-        // read chunk-size, chunk-extension (if any) and crlf
-        // get the position of the linebreak
-        $chunkEnd = strpos($buffer, "\r\n") + 2;
-        $temp = substr($buffer, 0, $chunkEnd);
-        $chunkSize = hexdec(trim($temp));
-        $chunkStart = $chunkEnd;
-        while ($chunkSize > 0) {
-            $chunkEnd = strpos($buffer, "\r\n", $chunkStart + $chunkSize);
-
-            // just in case we got a broken connection
-            if ($chunkEnd == false) {
-                $chunk = substr($buffer, $chunkStart);
-                // append chunk-data to entity-body
-                $new .= $chunk;
-                //$length += strlen($chunk);
-                break;
-            }
-
-            // read chunk-data and crlf
-            $chunk = substr($buffer, $chunkStart, $chunkEnd - $chunkStart);
-            // append chunk-data to entity-body
-            $new .= $chunk;
-            // length := length + chunk-size
-            //$length += strlen($chunk);
-            // read chunk-size and crlf
-            $chunkStart = $chunkEnd + 2;
-
-            $chunkEnd = strpos($buffer, "\r\n", $chunkStart) + 2;
-            if ($chunkEnd == false) {
-                break; // just in case we got a broken connection
-            }
-            $temp = substr($buffer, $chunkStart, $chunkEnd - $chunkStart);
-            $chunkSize = hexdec(trim($temp));
-            $chunkStart = $chunkEnd;
-        }
-
-        return $new;
-    }
-*/
 }

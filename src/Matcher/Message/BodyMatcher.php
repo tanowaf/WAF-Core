@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace TanoWAF\WAFCore\Matcher\Message;
 
-use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use TanoWAF\WAFCore\Http\BodyCompressorTrait;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
@@ -26,11 +27,10 @@ class BodyMatcher extends BaseMatcher
      * @throws \TanoWAF\WAFCore\Exception\RequestBodyCantBeDecompressed
      * @throws \TanoWAF\WAFCore\Exception\ResponseBodyCantBeDecompressed
      */
-    public function matchesMessage(MessageInterface $message): bool
+    public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
-/// @todo... inject/save the inflated message body for further reuse: when $message is a ServerRequestInterface using an attribute,
-///          when it's a RequestInterface wrap it in a custom descendant class which adds set/getAttributes
-        if ($this->messageBodyIsCompressed($message) /*|| $this->messageBodyIsChunked($message)*/) {
+/// @todo... move body decompression (and dechunking if needed) to our own Req/resp
+        if ($this->messageBodyIsCompressed($message)) {
             $body = $this->decompressMessageBody($message);
         } else {
             $stream = $message->getBody();

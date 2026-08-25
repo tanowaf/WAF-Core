@@ -636,7 +636,7 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
     }
 
     /**
-     * Really simple separator of body from headers
+     * Really simple separator of body from headers. Supports chunked transfer encoding
      * @todo move this functionality into the MessageParser
      */
     protected function extractBody(string $response, bool $dechunk = true): string
