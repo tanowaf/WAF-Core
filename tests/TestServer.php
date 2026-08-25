@@ -43,6 +43,16 @@ class TestServer
         }
 */
 
+        // respond with 404 answers as a "normal" webserver would do
+        if ($this->swooleRequest !== null) {
+            $uri = $this->swooleRequest->server['request_uri'];
+            /// @todo be more strict and only answer to known urls?
+            if ($uri === '/no_such_page') {
+                $this->http_response_code(404);
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -119,19 +129,27 @@ class TestServer
 
     protected function displaySlowResponse($duration = 30): void
     {
-        if ($this->swooleResponse !== null) {
-            throw new \Exception("Slow responses are not supported with (Open)Swoole");
-        }
-        if ($duration < 0 || $duration > ini_get('max_execution_time')) {
-            throw new \InvalidArgumentException("Unsupported duration for returning a slow response");
+        if ($duration < 0 || ($duration > ini_get('max_execution_time') && ini_get('max_execution_time') > 0)) {
+            throw new \InvalidArgumentException("Unsupported duration for returning a slow response: $duration vs. " . ini_get('max_execution_time'));
         }
         $end = microtime(true) + $duration;
         while (microtime(true) < $end) {
-            echo '.';
-            flush();
-            usleep(500000);
+            if ($this->swooleResponse === null) {
+                echo '.';
+                flush();
+                usleep(500000);
+            } else {
+                /// @todo... this does not seem to flush the partial response the the client, despite doing the same as
+                ///          documented at https://openswoole.com/docs/modules/swoole-http-response
+                $this->swooleResponse->write('.');
+                if (class_exists('\Swoole\Coroutine\System')) {
+                    \Swoole\Coroutine\System::sleep(1);
+                } else {
+                    \OpenSwoole\Coroutine\System::sleep(1);
+                }
+            }
         }
-        echo ":-)";
+        $this->echo(":-)");
     }
 
     /**
