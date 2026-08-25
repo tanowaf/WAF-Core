@@ -19,5 +19,5 @@ $testWAFPage = new TestWAFPage();
 
 if ($testWAFPage->preFlight()) {
     $testWAFPage->handleRequest();
-    $testWAFPage->postFlight();
 }
+$testWAFPage->postFlight();

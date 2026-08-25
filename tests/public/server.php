@@ -23,3 +23,4 @@ $testServer = new TestServer();
 if ($testServer->preFlight()) {
     $testServer->respond(@$_SERVER['REQUEST_METHOD'] ?? 'GET', @$_GET['action'] ?? 'info', @$_GET['action_args'] ? (array)$_GET['action_args'] : []);
 }
+$testServer->postFlight();

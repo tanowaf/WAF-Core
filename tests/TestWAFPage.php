@@ -105,6 +105,9 @@ class TestWAFPage
         }
 
         $this->cleanUpEnv();
+
+        $this->setSwooleRequest(null);
+        $this->setSwooleResponse(null);
     }
 
     public function handleRequest(): void

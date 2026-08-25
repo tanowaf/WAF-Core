@@ -56,6 +56,14 @@ class TestServer
         return true;
     }
 
+    public function postFlight(): void
+    {
+        $this->cleanUpEnv();
+
+        $this->setSwooleRequest(null);
+        $this->setSwooleResponse(null);
+    }
+
     public function respond(string $requestMethod = 'GET', string $action = 'info', array $actionArgs = []): void
     {
         // avoid php interfering with the server sending out compressed responses, just in case (but we allow the

@@ -47,12 +47,10 @@ $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $r
 
     if ($testWAFPage->preFlight()) {
         $testWAFPage->handleRequest();
-        $testWAFPage->postFlight();
     }
-
     $response->end();
-    $testWAFPage->setSwooleRequest(null);
-    $testWAFPage->setSwooleResponse(null);
+
+    $testWAFPage->postFlight();
 });
 
 $server->start();
