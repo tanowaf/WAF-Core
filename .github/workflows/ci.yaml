@@ -21,7 +21,7 @@ jobs:
                         code-coverage: true
                     -   php: '8.3' # native on ubuntu-24
                         operating-system: ubuntu-24.04
-                        webserver: apache
+                        webserver: swoole
                     -   php: '8.2'
                         operating-system: ubuntu-22.04
                         # NB: the test suite is known to fail with the nginx version from ubuntu 22
@@ -29,7 +29,7 @@ jobs:
 
         steps:
             -    name: checkout code
-                 uses: actions/checkout@v6
+                 uses: actions/checkout@v7
 
             # Although this action is quite nice, we prefer to use the same script to set up php that we use for the
             # docker image used for local testing. This allows us to make sure that script is always in good shape
@@ -70,7 +70,7 @@ jobs:
                         sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_waf
                     fi
                     if [ '${{ matrix.webserver }}' = 'swoole' ]; then
-                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh openswoole/ext-openswoole:dev-master
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh swoole/swoole
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
                     fi
 
