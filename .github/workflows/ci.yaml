@@ -89,7 +89,7 @@ jobs:
                     #elif [ '${{ matrix.webserver }}' = 'roadrunner' ]; then
                     #    ...
                     elif [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
-                        sudo ./tests/env/config/init.d/swoole_server start || find . -name swoole_server
+                        sudo "${PWD}/tests/env/config/init.d/swoole_server" start || ls -laF "${PWD}/tests/env/config/init.d"
                         sudo ./tests/env/config/init.d/swoole_waf start
                     else
                         sudo service '${{ matrix.webserver }}' start
