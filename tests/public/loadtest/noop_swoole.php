@@ -25,6 +25,7 @@ $serverFactory = new ServerFactory();
 $server = $serverFactory->fromConfig($serverConfig);
 
 // The main HTTP server request callback event, entry point for all incoming HTTP requests
+/** @phpstan-ignore class.notFound */
 $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response)
 {
     $response->end();

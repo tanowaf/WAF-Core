@@ -7,6 +7,7 @@ class ServerFactory
     /**
      * @see https://wiki.swoole.com/en/#/http_server?id=configuration-options
      * @see https://openswoole.com/docs/modules/swoole-server/configuration
+     * @phpstan-ignore class.notFound
      */
     public function fromConfig(array $config): \Swoole\Http\Server|\OpenSwoole\Http\Server
     {

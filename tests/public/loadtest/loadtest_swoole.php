@@ -71,15 +71,15 @@ $server = $serverFactory->fromConfig($serverConfig);
 
 // 3. Loop
 
-// *** Method A - the most automated - sadly it does not work, as we get back an empty `$request->getUri()`. See https://github.com/openswoole/ext-openswoole/issues/403
+// Method A - the most automated - sadly it does not work, as we get back an empty `$request->getUri()`.
+// Also, it is only available in OpenSwoole
+// See https://github.com/openswoole/ext-openswoole/issues/403
 
 //$server->setHandler($waf);
 
-// *** Method B - useful to debug the Request
-
-/// @todo... more testing for the Swoole parsing of cookies, QS and co...
-
 if (method_exists($server, 'handle')) {
+
+    // Method B - only available on OpenSwoole and not necessarily faster/better
 
     // OpenSwoole supports ("almost" compliant) PSR  handlers
     $server->handle(function (ServerRequestInterface $request) use ($waf, $requestFactory) {
@@ -88,6 +88,8 @@ if (method_exists($server, 'handle')) {
     });
 
 } else {
+
+    // Method C - the default
 
     $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($requestFactory, $waf, $emitter)
     {
