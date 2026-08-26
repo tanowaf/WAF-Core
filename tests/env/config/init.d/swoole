@@ -48,6 +48,8 @@ VERBOSE=no
 VHOST=server
 WORKER_SCRIPT_DIR=/var/www/tests/public
 
+# @todo initialize VHOST to an empty string, and allow it to be passed in as 2nd argument, to allow usage without
+#       the need for symlinks
 INIT_SCRIPT_NAME="$0"
 if echo "$INIT_SCRIPT_NAME" | grep -F -q '_'; then
     # @todo split on 1st underscore, not last

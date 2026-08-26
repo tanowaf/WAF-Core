@@ -59,23 +59,33 @@ install_native() {
         PHP_PACKAGES="$PHP_PACKAGES php${PHPSUFFIX}-${EXT}"
     done
 
+    echo "Php packages to install: ${PHP_PACKAGES}..."
     apt-get install -y ${PHP_PACKAGES}
 }
 
 install_ondrej() {
     echo "Using PHP packages from ondrej/php..."
 
-    # @todo... if ubuntu is version is 26 or greater, the installation instructions are different. See: https://codeberg.org/oerdnj/deb.sury.org/issues/91
-
-    apt-get install -y language-pack-en-base software-properties-common
-    LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
-    apt-get update --allow-releaseinfo-change
+    # if ubuntu is version is 26 or greater, the installation instructions are different. See: https://codeberg.org/oerdnj/deb.sury.org/issues/91
+    if [ "${DEBIAN_VERSION}" = 'resolute' ]; then
+        apt-get install -y lsb-release ca-certificates curl
+        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
+        dpkg -i /tmp/debsuryorg-archive-keyring.deb
+        echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+        apt-get update --allow-releaseinfo-change
+        rm /tmp/debsuryorg-archive-keyring.deb
+    else
+        apt-get install -y language-pack-en-base software-properties-common
+        LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
+        apt-get update --allow-releaseinfo-change
+    fi
 
     PHP_PACKAGES="php${PHP_VERSION}"
     for EXT in $PHP_EXTENSIONS; do
         PHP_PACKAGES="$PHP_PACKAGES php${PHP_VERSION}-${EXT}"
     done
 
+    echo "Php packages to install: ${PHP_PACKAGES}..."
     apt-get install -y ${PHP_PACKAGES}
 
     update-alternatives --set php "/usr/bin/php${PHP_VERSION}"
@@ -84,6 +94,8 @@ install_ondrej() {
 # @todo... allow setting up a php.ini file for cli, now that we run cli-based daemons such as swoole
 
 configure_php_ini() {
+    echo "Configuring php.ini..."
+
     # note: these settings are not required for cli config
     if [ -f "$SCRIPT_DIR/../config/php.append.ini" ]; then
         cat "$SCRIPT_DIR/../config/php.append.ini" >> "$1"
@@ -189,6 +201,9 @@ if [ -z "${DEBIAN_VERSION}" ]; then
     # VERSION="8 (jessie)"
     DEBIAN_VERSION=$(grep 'VERSION=' /etc/os-release | grep 'VERSION=' | sed 's/VERSION=//' | sed 's/"[0-9.]\+ *(\?//' | sed 's/)\?"//' | tr '[:upper:]' '[:lower:]' | sed 's/lts, *//' | sed 's/ \+tahr//')
 fi
+
+# Eg. 24.04
+DEBIAN_VERSION_NR=$(grep 'VERSION_ID=' /etc/os-release | sed 's/VERSION_ID=//' | tr -d '"')
 
 DEFAULT_PHP_VERSION=
 if [ "${DEBIAN_VERSION}" = 'precise' ]; then

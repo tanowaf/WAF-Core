@@ -37,7 +37,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get update --allow-releaseinfo-change
 
-./setup_php.sh "$PHP_VERSION" -e "cli dev"
+./setup_php.sh -e "cli dev" "$PHP_VERSION"
 
 EXTDIR=$(php -r 'echo ini_get("extension_dir");')
 BUILTIN_EXTS="$(ls $EXTDIR/*.so | tr '\n' ' ')"
