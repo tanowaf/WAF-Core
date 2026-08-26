@@ -226,9 +226,10 @@ trait BodyCompressorTrait
                 //case 'dcb':
                 //case 'dcz':
                     if (function_exists('brotli_uncompress')) {
+                        /** @phpstan-ignore function.notFound */
                         $body = @brotli_uncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $encoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: brotli_uncompress)";
@@ -257,9 +258,10 @@ trait BodyCompressorTrait
                 */
                 case 'deflate':
                     if (function_exists('gzuncompress')) {
+                        /** @phpstan-ignore function.notFound */
                         $body = @gzuncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $encoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzuncompress)";
@@ -267,9 +269,10 @@ trait BodyCompressorTrait
                     break;
                 case 'gzip':
                     if (function_exists('gzinflate')) {
+                        /** @phpstan-ignore function.notFound */
                         $body = @gzinflate(substr($body, 10, -8));
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $encoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzinflate)";
@@ -282,7 +285,7 @@ trait BodyCompressorTrait
                         /** @phpstan-ignore function.notFound */
                         $body = @zstd_uncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $encoding . " body";
+                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: zstd_uncompress)";
