@@ -81,6 +81,8 @@ install_ondrej() {
     update-alternatives --set php "/usr/bin/php${PHP_VERSION}"
 }
 
+# @todo... allow setting up a php.ini file for cli, now that we run cli-based daemons such as swoole
+
 configure_php_ini() {
     # note: these settings are not required for cli config
     if [ -f "$SCRIPT_DIR/../config/php.append.ini" ]; then

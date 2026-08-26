@@ -55,6 +55,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
             // NB: for this to work, the target webserver has to be set up to serve gzip-compressed responses
             if ($wafAcceptEncoding === 'gzip' && in_array($clientAcceptEncoding, ['', '*', 'gzip'])) {
 /// @todo... figure out why this does not work with the current nginx setup (funnily enough, 403 responses do get compressed by it...)
+/// @todo... figure out why this does not work with the current swoole setup
                 if ($_ENV['SERVER_TYPE'] !== 'nginx' && $_ENV['SERVER_TYPE'] !== 'swoole') {
                     $this->assertGreaterThan(0, count($ceHeader), $failureMessage);
                     $this->assertSame('gzip', $ceHeader[0], $failureMessage);
