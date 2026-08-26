@@ -112,7 +112,7 @@ jobs:
                     fi
 
             -   name: start swoole
-                if: ${{ matrix.webserver == swoole || matrix.webserver == openswoole }}
+                if: ${{ matrix.webserver == 'swoole' || matrix.webserver == 'openswoole' }}
                 run: |
                     sudo ./tests/env/config/init.d/swoole_server start
                     sudo ./tests/env/config/init.d/swoole_waf start
