@@ -18,6 +18,8 @@ class ServerRequestFactory extends BaseServerRequestFactory
         //   request_uri, server_addr, server_port, server_protocol
         // Vars missing:
         //   https, request_scheme, server_name
+        /// @todo optimization creep: only uppercase the vars we know are used in createUriFromArray + fromArrays
+        /// @todo optimization creep: is strtr faster than strtoupper?
         $server = [];
         foreach ($request->server as $k => $v) {
             $server[strtoupper($k)] = $v;
