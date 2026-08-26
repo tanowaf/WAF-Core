@@ -50,7 +50,7 @@ if [ "$WEBSERVER_TYPE" = swoole ] || [ "$WEBSERVER_TYPE" = all ]; then
 fi
 
 # @todo... find what causes the need for this and fix it! (also, move this to setup_php.sh in the meantime?)
-chmod 755 /usr/lib/php && chmod 755 /usr/lib/php/20250925
+chmod 755 /usr/lib/php && chmod 755 "$(php -r "echo ini_get('extension_dir');")"
 
 apt-get -y autoremove && apt-get -y autoclean && apt-get -y clean
 
