@@ -47,7 +47,7 @@ if [ ! -d /var/log/swoole ]; then
 fi
 # Allow non-owner/root to list swoole log files, same as it is possible for nginx
 chmod 755 /var/log/swoole
-chown "$SWOOLE_USER:adm" /var/log/roadrunner
+chown "$SWOOLE_USER:adm" /var/log/swoole
 if [ ! -d /run/swoole ]; then
     mkdir /run/swoole
 fi
