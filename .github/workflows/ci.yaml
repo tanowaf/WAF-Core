@@ -91,8 +91,7 @@ jobs:
                     #    ...
                     elif [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
                         sudo service php-fpm stop || true
-                        sudo ./tests/env/config/init.d/swoole_server start
-                        sudo ./tests/env/config/init.d/swoole_waf start
+                        # we can not try to start swoole yet - we need to have composer deps set up first...
                     else
                         sudo service '${{ matrix.webserver }}' start
                     fi
@@ -111,6 +110,12 @@ jobs:
                     if [ '${{ matrix.webserver }}' = 'openswoole' ]; then
                         composer require --no-interaction --no-progress --optimize-autoloader openswoole/core
                     fi
+
+            -   name: start swoole
+                if: ${{ matrix.webserver == swoole || matrix.webserver == openswoole }}
+                run: |
+                    sudo ./tests/env/config/init.d/swoole_server start
+                    sudo ./tests/env/config/init.d/swoole_waf start
 
             -   name: run tests and upload coverage info if needed
                 run: |
