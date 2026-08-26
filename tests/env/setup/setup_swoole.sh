@@ -19,7 +19,7 @@ SWOOLE_GROUP=swoole
 ln "$(readlink -f /usr/bin/php)" /usr/bin/swoole
 
 # @todo check first if the user already exists
-./create_user.sh "$SWOOLE_USER" 2002 2002
+"${SCRIPT_DIR}/create_user.sh" "$SWOOLE_USER" 2002 2002
 
 if [ ! -d /var/lib/swoole ]; then
     mkdir /var/lib/swoole

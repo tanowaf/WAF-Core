@@ -12,7 +12,7 @@ ROADRUNNER_USER=roadrunner
 ROADRUNNER_GROUP=roadrunner
 
 # @todo check first if the user already exists
-./create_user.sh "$ROADRUNNER_USER" 2001 2001
+"${SCRIPT_DIR}/create_user.sh" "$ROADRUNNER_USER" 2001 2001
 
 if [ ! -d /etc/roadrunner ]; then
     mkdir /etc/roadrunner
