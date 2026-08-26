@@ -58,7 +58,7 @@ if [ -n "${GITHUB_ACTIONS}" ]; then
     TESTS_ROOT_DIR="$(pwd)"
     echo "WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public" > /etc/default/swoole_server
     echo "WORKER_SCRIPT_DIR=${TESTS_ROOT_DIR}/tests/public" > /etc/default/swoole_waf
-    SWOOLE_SVC_SCRIPT_DIR="$(realpath "$SCRIPT_DIR/../config/init.d/")"
+    SWOOLE_SVC_SCRIPT_DIR="$(realpath "$SCRIPT_DIR/../config/init.d")"
 else
     cp "$SCRIPT_DIR/../config/init.d/swoole" /etc/init.d/swoole && chmod 755 /etc/init.d/swoole
     SWOOLE_SVC_SCRIPT_DIR=/etc/init.d
