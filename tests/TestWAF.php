@@ -54,6 +54,7 @@ class TestWAF extends MiddlewareAware
         return new Response(
             self::ERROR_STATUS_CODE,
             ['content-type' => 'application/json'],
+            // NB: never do this in production servers! You would be giving to callers information valuable for hacking your server.
             json_encode(self::ERROR_RESPONSE + ($e !== null ? ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()] : []))
         );
     }
