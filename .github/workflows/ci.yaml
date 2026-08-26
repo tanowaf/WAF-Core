@@ -82,14 +82,16 @@ jobs:
                     if [ '${{ matrix.webserver }}' = 'apache' ]; then
                         sudo service apache2 start
                     elif [ '${{ matrix.webserver }}' = 'frankenphp' ]; then
+                        sudo service php-fpm stop || true
                         # There is apparently an issue with the systemd FP config, so we use our own script...
                         sudo service '${{ matrix.webserver }}' stop || true
                         # @todo figure out why `frankenphp start` works but exits with code 1...
-                        sudo "${PWD}/tests/env/config/init.d/frankenphp" start || true
+                        sudo ./tests/env/config/init.d/frankenphp start || true
                     #elif [ '${{ matrix.webserver }}' = 'roadrunner' ]; then
                     #    ...
                     elif [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
-                        sudo ./tests/env/config/init.d/swoole_server start || ls -laF "${PWD}/tests/env/config/init.d"
+                        sudo service php-fpm stop || true
+                        sudo ./tests/env/config/init.d/swoole_server start
                         sudo ./tests/env/config/init.d/swoole_waf start
                     else
                         sudo service '${{ matrix.webserver }}' start
@@ -168,6 +170,11 @@ jobs:
                     #if [ -d /var/log/frankenphp/ ]; then sudo ls -la /var/log/frankenphp/; fi
                     #if [ -d /run/frankenphp/ ]; then sudo ls -la /run/frankenphp/; fi
                     #if [ -f /etc/frankenphp/Caddyfile ]; then echo "FrankenPHP config:" && sudo cat /etc/frankenphp/Caddyfile; fi
+
+                    if [ -d /var/log/swoole/ ]; then sudo ls -la /var/log/swoole/; fi
+                    if [ -d /run/swoole/ ]; then sudo ls -la /run/swoole/; fi
+                    if [ -f /var/log/swoole/server.log ]; then echo "Swoole server log:" && sudo cat /var/log/swoole/server.log; fi
+                    if [ -f /var/log/swoole/waf.log ]; then echo "Swoole waf log:" && sudo cat /var/log/swoole/waf.log; fi
 
                     echo "PHP logs:"
                     sudo cat /var/log/php*.log
