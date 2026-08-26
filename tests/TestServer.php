@@ -282,6 +282,7 @@ class TestServer
             if (isset($requestHeaders['Content-Encoding'])) {
                 switch ($requestHeaders['Content-Encoding']) {
                     case 'br':
+                        /** @phpstan-ignore function.notFound */
                         $body = @brotli_uncompress($body);
                         break;
                     case 'deflate':
@@ -291,6 +292,7 @@ class TestServer
                         $body = @gzinflate(substr($body, 10, -8));
                         break;
                     case 'zstd':
+                        /** @phpstan-ignore function.notFound */
                         $body = @zstd_uncompress($body);
                         break;
                     /// @todo handle default case with at least a warning

@@ -6,7 +6,6 @@ namespace TanoWAF\WAFCore\ServerRequest\Psr17;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriFactoryInterface;
@@ -17,7 +16,6 @@ use TanoWAF\WAFCore\Http\QueryStringParserInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\Attributes;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequestConverterInterface;
-use TanoWAF\WAFCore\Stdlib;
 
 /**
  * A ServerRequestFactory which

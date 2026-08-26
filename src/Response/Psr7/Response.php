@@ -30,7 +30,7 @@ class Response implements HeaderParsingCapableResponseInterface
     ];
 
     /** @var string */
-    private $reasonPhrase = '';
+    private $reasonPhrase;
 
     /** @var int */
     private $statusCode;

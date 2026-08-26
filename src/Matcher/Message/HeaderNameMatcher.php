@@ -89,7 +89,7 @@ class HeaderNameMatcher extends BaseMatcher
                 foreach ($this->headerNames as $headerName) {
                     if (!$message->hasHeader($headerName)) {
                         return false;
-                    };
+                    }
                 }
                 return true;
             }

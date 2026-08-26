@@ -147,6 +147,7 @@ trait BodyCompressorTrait
                     return $body;
                 case 'zstd':
                     if (function_exists('zstd_compress')) {
+                        /** @phpstan-ignore function.notFound */
                         $compressed = @zstd_compress($body);
                         if ($compressed !== false) {
                             $actualEncoding = $contentEncoding;
@@ -278,6 +279,7 @@ trait BodyCompressorTrait
                     break;
                 case 'zstd':
                     if (function_exists('zstd_uncompress')) {
+                        /** @phpstan-ignore function.notFound */
                         $body = @zstd_uncompress($body);
                         if ($body === false) {
                             $errorMessage = "Failed decompressing " . $encoding . " body";

@@ -53,7 +53,7 @@ trait RegExpListMatcherTrait
 
     protected function matchesRegexp(string $value): bool
     {
-        return $this->matchesAnything === true || (bool)preg_match($this->regexp, $value);
+        return $this->matchesAnything === true || preg_match($this->regexp, $value);
     }
 
     /**

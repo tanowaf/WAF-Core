@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use TanoWAF\WAFCore\Tests\DotConf;
+//use TanoWAF\WAFCore\Tests\DotConf;
 use TanoWAF\WAFCore\Tests\TestServer;
 
 // Make errors always visible

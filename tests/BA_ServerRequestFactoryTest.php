@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace TanoWAF\WAFCore\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use Symfony\Component\HttpClient\Internal\Dechunker;
+use TanoWAF\WAFCore\Http\Dechunker;
 use TanoWAF\WAFCore\Http\MessageParser;
 
 /**

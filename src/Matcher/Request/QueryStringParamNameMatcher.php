@@ -43,9 +43,9 @@ class QueryStringParamNameMatcher extends BaseMatcher
         }
     }
 
-    public function matchesRequest(RequestInterface $message): bool
+    public function matchesRequest(RequestInterface $request): bool
     {
-        $queryParams = $message->getQueryParams();
+        $queryParams = $request->getQueryParams();
 
         /// @todo optimize: would it be faster to do `$queryParams = array_keys($queryParams)` then use php array functions?
 
@@ -54,7 +54,7 @@ class QueryStringParamNameMatcher extends BaseMatcher
                 foreach ($queryParams as $parameterName => $value) {
                     $found = false;
                     foreach ($this->parameterNames as $parameterNameRegex) {
-                        /// @todo the casting should happen when creating $message
+                        /// @todo the casting should happen when creating $request
                         if (preg_match($parameterNameRegex, (string)$parameterName)) {
                             $found = true;
                             break;

@@ -21,7 +21,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
         $server = [];
         foreach ($request->server as $k => $v) {
             $server[strtoupper($k)] = $v;
-        };
+        }
         if (isset($request->header['host'])) {
             $server['HTTP_HOST'] = $request->header['host'];
         }
@@ -86,7 +86,7 @@ class ServerRequestFactory extends BaseServerRequestFactory
             $headers[\ucwords((string)$k, "-_")] = $v;
             // no need, atm this is already done by called code
             //array_map(fn($value) => is_array($value) ? $value : [$value], $request->header)
-        };
+        }
 
         // retrieve the cookie header, since swoole removes it from $request->header
         /// @todo openswoole at least also has a `rawcookie` property. check if it could be used instead of this...

@@ -68,7 +68,7 @@ trait SwooleAwareTrait
         }
     }
 
-    protected function cleanUpEnv()
+    protected function cleanUpEnv(): void
     {
         if ($this->swooleRequest !== null) {
             $_COOKIE = [];

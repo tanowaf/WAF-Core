@@ -24,7 +24,7 @@ class AndMatcher implements RequestMatcherInterface, ResponseMatcherInterface
         }
     }
 
-    public function addMatcher(MatcherInterface $matcher)
+    public function addMatcher(MatcherInterface $matcher): void
     {
         $this->matchers[] = $matcher;
     }

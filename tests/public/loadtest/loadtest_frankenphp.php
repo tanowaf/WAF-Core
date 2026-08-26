@@ -64,6 +64,7 @@ try {
         // NB: `set_exception_handler` is called only when the worker script ends,
         // which may be unexpected, so we could (should?) catch and handle exceptions inside $handler
 
+        /** @phpstan-ignore function.notFound */
         $keepRunning = \frankenphp_handle_request($requestHandler);
 
         // Call the garbage collector to reduce the chances of it being triggered in the middle of a page generation

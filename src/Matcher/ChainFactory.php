@@ -24,7 +24,7 @@ class ChainFactory implements MatcherFactoryInterface
         }
     }
 
-    public function addFactory(MatcherFactoryInterface $factory)
+    public function addFactory(MatcherFactoryInterface $factory): void
     {
         $this->factories[] = $factory;
     }

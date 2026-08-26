@@ -35,7 +35,7 @@ class CD_HTTPRedirects extends WAFTestCase
             /// @todo check for presence of a `Location` header
 
         } catch (ExceptionInterface $e) {
-            $this->assertSame($redirectCode, null, 'Exception thrown by client while communicating to the waf: ' . $e->getMessage());
+            $this->assertSame(null, $redirectCode, 'Exception thrown by client while communicating to the waf: ' . $e->getMessage());
         }
     }
 }

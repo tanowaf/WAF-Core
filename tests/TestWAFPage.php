@@ -299,7 +299,7 @@ class TestWAFPage
         return str_starts_with($filePath, realpath(__DIR__));
     }
 
-    protected function removeCookieFromEnv($cookieName)
+    protected function removeCookieFromEnv($cookieName): void
     {
         unset($_COOKIE[$cookieName]);
 /// @todo... patch as well $_SERVER['HTTP_COOKIE'], as that is what is going to be used instead of $_COOKIE
