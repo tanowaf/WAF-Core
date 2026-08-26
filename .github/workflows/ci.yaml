@@ -85,11 +85,11 @@ jobs:
                         # There is apparently an issue with the systemd FP config, so we use our own script...
                         sudo service '${{ matrix.webserver }}' stop || true
                         # @todo figure out why `frankenphp start` works but exits with code 1...
-                        sudo ./tests/env/config/init.d/frankenphp start || true
+                        sudo "${PWD}/tests/env/config/init.d/frankenphp" start || true
                     #elif [ '${{ matrix.webserver }}' = 'roadrunner' ]; then
                     #    ...
                     elif [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
-                        sudo "${PWD}/tests/env/config/init.d/swoole_server" start || ls -laF "${PWD}/tests/env/config/init.d"
+                        sudo ./tests/env/config/init.d/swoole_server start || ls -laF "${PWD}/tests/env/config/init.d"
                         sudo ./tests/env/config/init.d/swoole_waf start
                     else
                         sudo service '${{ matrix.webserver }}' start
