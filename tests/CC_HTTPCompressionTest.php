@@ -44,7 +44,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
                 // https://github.com/symfony/symfony/issues/64869)
                 ($clientAcceptEncoding !== '' || $ceHeader[0] !== 'gzip')) {
                 $body = $this->decompressPayload($response->getContent(false), $ceHeader, [], $errorMessage);
-                $this->assertIsString($body, (string)$errorMessage);
+                $this->assertIsString($body, (string)$errorMessage . "\n" . $failureMessage);
                 /// @todo add support for application/php-serialized+base64
                 $result = json_decode($body, true);
             } else {
@@ -109,7 +109,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
                 // https://github.com/symfony/symfony/issues/64869)
                 ($clientAcceptEncoding !== '' || $responseHeaders['content-encoding'][0] !== 'gzip')) {
                 $body = $this->decompressPayload($response->getContent(false), $responseHeaders['content-encoding'], [], $errorMessage);
-                $this->assertIsString($body, (string)$errorMessage);
+                $this->assertIsString($body, (string)$errorMessage . "\n" . $failureMessage);
                 /// @todo add support for application/php-serialized+base64
                 $result = json_decode($body, true);
             } else {

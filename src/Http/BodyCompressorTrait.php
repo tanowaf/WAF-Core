@@ -242,8 +242,6 @@ trait BodyCompressorTrait
                         $errorMessage = "Failed decompressing " . $encoding . " body";
                     }
                     break;*/
-                /// @todo enable this in case there is need to de-chunk (remove transfer-encoding) on our own
-                /*
                 case 'chunked':
                     if ($type == 'transfer') {
                         $dechunker = new Dechunker();
@@ -255,16 +253,14 @@ trait BodyCompressorTrait
                         $errorMessage = "Unsupported $type-encoding: '$encoding'";
                     }
                     break;
-                */
                 case 'deflate':
                     if (function_exists('gzuncompress')) {
+                        //$orig = $body;
                         /** @phpstan-ignore function.notFound */
-                        $orig = $body;
                         $body = @gzuncompress($body);
                         if ($body === false) {
-/// @todo!!! remove debug code
-                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']) .
-                                ' length: ' . strlen($orig) . ' bytes: ' . substr(base64_encode($orig), 0, 1024);
+                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
+                                // . ' length: ' . strlen($orig) . ' bytes: ' . substr(base64_encode($orig), 0, 1024);
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzuncompress)";
