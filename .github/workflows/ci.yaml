@@ -171,15 +171,20 @@ jobs:
                     if [ -f /var/log/nginx/access.log ]; then echo "Nginx access log:" &&  sudo cat /var/log/nginx/access.log; fi
 
                     if [ -f /var/log/frankenphp/frankenphp.log ]; then echo "FrankenPHP log:" && sudo cat /var/log/frankenphp/frankenphp.log; fi
-
                     #if [ -d /var/log/frankenphp/ ]; then sudo ls -la /var/log/frankenphp/; fi
                     #if [ -d /run/frankenphp/ ]; then sudo ls -la /run/frankenphp/; fi
                     #if [ -f /etc/frankenphp/Caddyfile ]; then echo "FrankenPHP config:" && sudo cat /etc/frankenphp/Caddyfile; fi
 
-                    if [ -d /var/log/swoole/ ]; then sudo ls -la /var/log/swoole/; fi
-                    if [ -d /run/swoole/ ]; then sudo ls -la /run/swoole/; fi
+                    #if [ -d /var/log/swoole/ ]; then sudo ls -la /var/log/swoole/; fi
+                    #if [ -d /run/swoole/ ]; then sudo ls -la /run/swoole/; fi
                     if [ -f /var/log/swoole/server.log ]; then echo "Swoole server log:" && sudo cat /var/log/swoole/server.log; fi
                     if [ -f /var/log/swoole/waf.log ]; then echo "Swoole waf log:" && sudo cat /var/log/swoole/waf.log; fi
 
                     echo "PHP logs:"
                     sudo cat /var/log/php*.log
+
+                    if [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
+                        cat /etc/os-release
+                        uname -a
+                        php -i
+                    fi
