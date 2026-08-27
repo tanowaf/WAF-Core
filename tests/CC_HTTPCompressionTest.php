@@ -55,7 +55,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
             // NB: for this to work, the target webserver has to be set up to serve gzip-compressed responses
             if ($wafAcceptEncoding === 'gzip' && in_array($clientAcceptEncoding, ['', '*', 'gzip'])) {
 /// @todo... figure out why this does not work with the current nginx setup (funnily enough, 403 responses do get compressed by it...)
-/// @todo... figure out why this does not work with the current swoole setup
+/// @todo... figure out why this does not always work with the current swoole setup ($clientAcceptEncoding=* + $wafAcceptEncoding=gzip)
                 if ($_ENV['SERVER_TYPE'] !== 'nginx' && $_ENV['SERVER_TYPE'] !== 'swoole') {
                     $this->assertGreaterThan(0, count($ceHeader), $failureMessage);
                     $this->assertSame('gzip', $ceHeader[0], $failureMessage);
@@ -270,6 +270,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
                 $schemes[] = 'zstd';
             }
         }
+
         return $schemes;
     }
 
@@ -283,9 +284,16 @@ class CC_HTTPCompressionTest extends WAFTestCase
         // @see https://www.iana.org/assignments/http-parameters/http-parameters.xhtml
         // We might as well drop 'deflate', as that is not supported by Apache, because of flaky support by browsers
         // and most likely also neither by Nginx nor FrankenPHP (see https://zlib.net/zlib_faq.html#faq39)
-        /// @todo add 'compress', br, dcb, dcz (brotli), zstd if the relevant php extensions are available (ideally check both
-        ///       client-side and waf-side)
-        return ['', '*', 'identity', 'gzip', 'deflate'];
+        /// @todo add 'compress', dcb, dcz (brotli) too
+        $schemes = ['', '*', 'identity', 'gzip', 'deflate'];
+        if (function_exists('brotli_uncompress')) {
+            $schemes[] = 'br';
+        }
+        if (function_exists('zstd_uncompress')) {
+            $schemes[] = 'zstd';
+        }
+
+        return $schemes;
     }
 
     /**
@@ -304,6 +312,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
                 $schemes[] = 'zstd';
             }
         }
+
         return $schemes;
     }
 

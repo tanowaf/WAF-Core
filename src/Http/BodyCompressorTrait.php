@@ -254,16 +254,22 @@ trait BodyCompressorTrait
                     }
                     break;
                 case 'deflate':
-                    if (function_exists('gzuncompress')) {
+                    if (function_exists('zlib_decode')) {
                         //$orig = $body;
                         /** @phpstan-ignore function.notFound */
-                        $body = @gzuncompress($body);
+                        // NB: as per the spec, the `deflate` encoding means that the payload uses the zlib format,
+                        // which has a header and an Adler32 checksum, and can be decompressed by using the php
+                        // `gzuncompress` function. However, some servers do send back payloads using `raw deflate`
+                        // format, which is the same without header and crc - see a good discussion of this at
+                        // https://devtoys.pro/blog/gzip-deflate-zlib-formats.
+                        // The `zlib_decode` function decodes both zlib and raw deflate - but also gzip, which we
+                        // should not really tolerate...
+                        $body = @zlib_decode($body);
                         if ($body === false) {
                             $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
-                                // . ' length: ' . strlen($orig) . ' bytes: ' . substr(base64_encode($orig), 0, 1024);
                         }
                     } else {
-                        $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzuncompress)";
+                        $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: zlib_decode)";
                     }
                     break;
                 case 'gzip':
