@@ -15,7 +15,7 @@ COPY --chmod=755 setup/build_pie_extensions.sh setup/setup_php.sh setup/setup_pi
 # @todo see https://github.com/openswoole/ext-openswoole#1-install-via-pie-php-installer-for-extensions: we might need
 #       to pass in extra flags for the full installation of ext-openswoole
 RUN DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf make libevent-dev pkg-config unzip && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf make libevent-dev pkg-config unzip zlib1g-dev && \
     /root/setup/build_pie_extensions.sh 'kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master osmanov/pecl-event swoole/swoole'
 
 ARG UBUNTU_VERSION=resolute

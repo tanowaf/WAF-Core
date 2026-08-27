@@ -183,14 +183,18 @@ jobs:
                     echo "PHP logs:"
                     sudo cat /var/log/php*.log
 
-                    if [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
+                    if [ '${{ matrix.webserver }}' = 'swoole' ]; then
                         #cat /etc/os-release
                         #echo
                         #uname -a
                         #echo
                         #php -i
+                        #echo
+                        #curl -H 'accept-encoding: deflate' -v http://127.0.0.1:1084/xxx.php
 
                         php -dextension=swoole --ri swoole
-                        echo
-                        curl -H 'accept-encoding: deflate' -v http://127.0.0.1:1084/xxx.php
+                    fi
+
+                    if [ '${{ matrix.webserver }}' = 'openswoole' ]; then
+                        php -dextension=openswoole --ri openswoole
                     fi

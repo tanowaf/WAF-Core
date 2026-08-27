@@ -191,7 +191,7 @@ setup_pie_exts() {
 }
 
 disable_exts() {
-    echo "Disabling php extensions not required..."
+    echo "Disabling php extensions not required: $DISABLE_EXTENSIONS"
 
     for EXT in $DISABLE_EXTENSIONS; do
         phpdismod "$EXT" || true
@@ -276,6 +276,10 @@ else
     if [ -n "$PIE_EXTENSIONS" ]; then
         echo "There were no extensions built with PIE, can not enable $PIE_EXTENSIONS" >&2
     fi
+fi
+
+if [ -n "$DISABLE_EXTENSIONS" ]; then
+    disable_exts
 fi
 
 if [ "$INSTALL_FPM" = true ]; then
