@@ -17,6 +17,7 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
+# assumes curl is already installed
 curl "https://pkg.henderkes.com/api/packages/${VERSION}/debian/repository.key" -o "/etc/apt/keyrings/static-php${VERSION}.asc"
 echo "deb [signed-by=/etc/apt/keyrings/static-php${VERSION}.asc] http://pkg.henderkes.com/api/packages/${VERSION}/debian php-zts main" > /etc/apt/sources.list.d/static-php${VERSION}.list
 apt-get update --allow-releaseinfo-change

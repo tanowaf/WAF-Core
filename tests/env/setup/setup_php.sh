@@ -72,7 +72,8 @@ install_ondrej() {
 
     # if ubuntu is version is 26 or greater, the installation instructions are different. See: https://codeberg.org/oerdnj/deb.sury.org/issues/91
     if [ "${DEBIAN_VERSION}" = 'resolute' ]; then
-        apt-get install -y lsb-release ca-certificates curl
+        apt-get install -y lsb-release ca-certificates
+        # assumes curl is already installed
         curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
         dpkg -i /tmp/debsuryorg-archive-keyring.deb
         echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list

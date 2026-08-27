@@ -5,7 +5,8 @@
 set -e
 
 # @todo g++ is needed for building openswoole - apparently it is not pulled in by pie. Only pull it in if needed...
-apt-get install -y curl g++
+# assumes curl is already installed
+apt-get install -y g++
 
 # @todo install the github cli to verify the pie download (see f.e. https://linuxcapable.com/how-to-install-github-cli-on-ubuntu-linux/)
 #  && gh attestation verify --owner php /tmp/pie.phar \
