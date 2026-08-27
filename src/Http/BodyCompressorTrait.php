@@ -264,7 +264,7 @@ trait BodyCompressorTrait
                         if ($body === false) {
 /// @todo!!! remove debug code
                             $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']) .
-                                ' length: ' . strlen($orig) . ' bytes: ' . substr($orig, 0, 10) . '...';
+                                ' length: ' . strlen($orig) . ' bytes: ' . substr(base64_encode($orig), 0, 1024);
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzuncompress)";
