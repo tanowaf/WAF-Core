@@ -36,8 +36,9 @@ if [ "$WEBSERVER_TYPE" = frankenphp ] || [ "$WEBSERVER_TYPE" = all ]; then
     ./setup_frankenphp.sh "${FP_VERSION}";
 fi
 
-# @todo move the list of php extensions to a cli option / env var
-./setup_php.sh -p 'brotli zstd protobuf' -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo pdo_dblib pdo_firebird pdo_mysql pdo_odbc pdo_pgsql pdo_sqlite pgsql pspell readline redis snmp soap sqlite3 tidy zmq' "${PHP_VERSION}"
+# @todo move the lists of php extensions to a cli option / env var
+# note: swoole 6.2 requires pdo (at least at build time, possibly also at runtime?)
+./setup_php.sh -p 'brotli zstd protobuf' -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo_dblib pdo_firebird pdo_mysql pdo_odbc pdo_pgsql pdo_sqlite pgsql pspell readline redis snmp soap sqlite3 tidy zmq' "${PHP_VERSION}"
 
 ./setup_composer.sh
 

@@ -7,6 +7,9 @@
 
 set -e
 
+# other extensions required by php packages listed in require/require-dev and their dependencies:
+# ctype, filter, iconv, json, libxml, phar, sockets, tokenizer, xmlwriter, zlib
+# swoole requires pdo and suggests: curl, openssl, pdo_mysql, pdo_pgsql, posix
 PHP_EXTENSIONS="${PHP_EXTENSIONS:-cli curl dom fpm mbstring xdebug}"
 PIE_EXTENSIONS=''
 DISABLE_EXTENSIONS=''

@@ -60,7 +60,8 @@ jobs:
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_roadrunner.sh
                     fi
 
-                    sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php.sh -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo pdo_dblib pdo_firebird pdo_mysql pdo_odbc pdo_pgsql pdo_sqlite pgsql pspell readline redis snmp soap sqlite3 tidy zmq' ${{ matrix.php }}
+                    # note: swoole 6.2 requires pdo (at least at build time, possibly also at runtime?)
+                    sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php.sh -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo_dblib pdo_firebird pdo_mysql pdo_odbc pdo_pgsql pdo_sqlite pgsql pspell readline redis snmp soap sqlite3 tidy zmq' ${{ matrix.php }}
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_composer.sh
 
                     if [ '${{ matrix.webserver }}' = 'openswoole' ]; then

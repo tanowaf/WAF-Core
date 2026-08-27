@@ -1,7 +1,7 @@
 {
     "name": "tanowaf/waf-core",
     "description": "A php library for building Web Application Firewalls",
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-or-later",
     "keywords": [ "waf", "http", "api", "firewall", "proxy", "security", "middleware", "psr-7", "psr-15", "psr-18" ],
     "require": {
         "php": "^8.2",

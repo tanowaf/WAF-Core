@@ -25,6 +25,7 @@ class ForceAcceptEncoding extends RequestHeaderAdder
         if ($response->hasHeader('Content-Encoding') && isset($this->overriddenHeaders['Accept-Encoding'])) {
             $response = $this->transcodeResponseBody($response, $this->overriddenHeaders['Accept-Encoding']);
 
+/// @todo... use normalized header values to check for the presence of Accept-Encoding
             if (!$response->hasHeader('Vary') || !in_array('Accept-Encoding', $response->getHeader('Vary'))) {
                 $response = $response->withAddedHeader('Vary', 'Accept-Encoding');
             }

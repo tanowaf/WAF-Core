@@ -16,5 +16,6 @@ curl -fL --output /tmp/pie.phar https://github.com/php/pie/releases/latest/downl
 
 for EXTENSION in "$@"; do
     # @todo allow passing in optional args, eg. for openswoole: --enable-openssl  --enable-sockets --enable-http2 --enable-hook-curl
+    #       for swoole: [--enable-brotli] [--enable-cares] [--enable-iouring] [--enable-openssl] [--enable-sockets] [--enable-swoole-curl] [--enable-swoole-thread] [--enable-zstd]
     pie install --auto-install-build-tools --auto-install-system-dependencies --no-interaction "$EXTENSION"
 done
