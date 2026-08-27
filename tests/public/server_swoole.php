@@ -14,14 +14,14 @@ if (!isset($_SERVER['SWOOLE_WORKER']) || (int)$_SERVER['SWOOLE_WORKER'] === 0 ||
 
 // (Open)Swoole worker mode
 
-$configFile = @$argv[1];
+$configFile = @$_SERVER['argv'][1];
 if (!is_file($configFile) ) {
     throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
 }
 
 /// @todo we could set the process name using `cli_set_process_title`, to make it easier for daemon management tools -
 ///       but take care that doing that by default removes the command line args
-//$vhostName = @$argv[2];
+//$vhostName = @$_SERVER['argv'][2];
 //cli_set_process_title("swoole_$vhostName $configFile");
 
 require __DIR__ . '/../../vendor/autoload.php';

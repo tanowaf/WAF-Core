@@ -185,6 +185,8 @@ jobs:
 
                     if [ '${{ matrix.webserver }}' = 'swoole' ] || [ '${{ matrix.webserver }}' = 'openswoole' ]; then
                         cat /etc/os-release
+                        echo
                         uname -a
+                        echo
                         php -i
                     fi

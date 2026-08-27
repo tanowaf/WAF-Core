@@ -259,9 +259,12 @@ trait BodyCompressorTrait
                 case 'deflate':
                     if (function_exists('gzuncompress')) {
                         /** @phpstan-ignore function.notFound */
+                        $orig = $body;
                         $body = @gzuncompress($body);
                         if ($body === false) {
-                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']);
+/// @todo!!! remove debug code
+                            $errorMessage = "Failed decompressing " . $encoding . " body: " . (error_get_last()['message']) .
+                                ' length: ' . strlen($orig) . ' bytes: ' . substr($orig, 0, 10) . '...';
                         }
                     } else {
                         $errorMessage = "Unsupported $type-encoding: '$encoding' (missing php function: gzuncompress)";

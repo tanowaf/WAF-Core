@@ -11,7 +11,7 @@ if (!isset($_SERVER['SWOOLE_WORKER']) || (int)$_SERVER['SWOOLE_WORKER'] === 0 ||
 
 // (Open)Swoole worker mode
 
-$configFile = @$argv[1];
+$configFile = @$_SERVER['argv'][1];
 if (!is_file($configFile) ) {
     throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
 }
