@@ -37,7 +37,7 @@ if [ "$WEBSERVER_TYPE" = frankenphp ] || [ "$WEBSERVER_TYPE" = all ]; then
 fi
 
 # @todo move the list of php extensions to a cli option / env var
-./setup_php.sh -p 'brotli zstd protobuf' "${PHP_VERSION}"
+./setup_php.sh -p 'brotli zstd protobuf' -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo pgsql pspell readline redis snmp soap sqlite3 tidy zmq' "${PHP_VERSION}"
 
 ./setup_composer.sh
 

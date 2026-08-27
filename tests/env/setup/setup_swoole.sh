@@ -7,7 +7,7 @@
 
 set -e
 
-echo "Installing (Open)Swoole..."
+echo "Installing (Open)Swoole as a service..."
 
 SCRIPT_DIR="$(dirname -- "$(readlink -f "$0")")"
 

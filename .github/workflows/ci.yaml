@@ -60,7 +60,7 @@ jobs:
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_roadrunner.sh
                     fi
 
-                    sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php.sh ${{ matrix.php }}
+                    sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php.sh -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo pgsql pspell readline redis snmp soap sqlite3 tidy zmq' ${{ matrix.php }}
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_composer.sh
 
                     if [ '${{ matrix.webserver }}' = 'openswoole' ]; then

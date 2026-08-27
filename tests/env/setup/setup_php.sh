@@ -9,12 +9,16 @@ set -e
 
 PHP_EXTENSIONS="${PHP_EXTENSIONS:-cli curl dom fpm mbstring xdebug}"
 PIE_EXTENSIONS=''
+DISABLE_EXTENSIONS=''
 INSTALL_FPM=false
 INSTALL_XDEBUG=false
 
-while getopts ":e:p:" opt
+while getopts ":d:e:p:" opt
 do
     case $opt in
+        d)
+            DISABLE_EXTENSIONS="$OPTARG"
+            ;;
         e)
             PHP_EXTENSIONS="$OPTARG"
             ;;
@@ -146,16 +150,16 @@ configure_php_fpm() {
 
     service php-fpm start
 
-    # reconfigure apache (if installed). Sadly, php will switch on mod-php and mpm_prefork at install time...
-    # @todo... allow having both mod-php and fpm running at the same time, on different vhosts...
     if [ -n "$(dpkg --list | grep apache)" ]; then
         configure_apache
     fi
 }
 
+# reconfigure apache (if installed). Sadly, php will switch on mod-php and mpm_prefork at install time...
 configure_apache() {
     echo "Reconfiguring Apache..."
 
+    # @todo... allow having both mod-php and fpm running at the same time, on different vhosts...
     if [ -n "$(ls /etc/apache2/mods-enabled/php* 2>/dev/null)" ]; then
         rm /etc/apache2/mods-enabled/php*
     fi
@@ -176,12 +180,21 @@ setup_pie_exts() {
         EXTDIR=$(php -r 'echo ini_get("extension_dir");')
         mv "$EXT" "$EXTDIR"
         echo "extension=$FILENAME" > "/etc/php/$PHPVER/mods-available/${EXTNAME}.ini"
+        # @todo support enabling extensions without having phpenmod
         case " $PIE_EXTENSIONS " in
             *" ${EXTNAME} "*)
                 phpenmod "$EXTNAME"
                 ;;
             *) . ;;
         esac
+    done
+}
+
+disable_exts() {
+    echo "Disabling php extensions not required..."
+
+    for EXT in $DISABLE_EXTENSIONS; do
+        phpdismod "$EXT" || true
     done
 }
 
