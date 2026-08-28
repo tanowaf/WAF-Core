@@ -29,7 +29,7 @@ use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
  * @todo... verify if we should reimplement withRequestTarget so that it always throws, as that would allow having a
  *          request-target that is not in sync with $this->uri
  */
-class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInterface, BodyUncompressingCapableInterface
+class ServerRequest implements HeaderParsingCapableServerRequestInterface, BodyUncompressingCapableInterface
 {
     use MessageTrait;
     use RequestTrait;
