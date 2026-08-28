@@ -27,6 +27,7 @@ if (!is_file($configFile) ) {
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+use Symfony\Component\Yaml\Yaml;
 use TanoWAF\WAFCore\Swoole\ServerFactory;
 use TanoWAF\WAFCore\Tests\TestWAFPage;
 
@@ -39,7 +40,7 @@ ini_set('zlib.output_compression', 0);
 
 $testWAFPage = new TestWAFPage();
 
-$serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
+$serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], Yaml::parseFile($configFile));
 $serverFactory = new ServerFactory();
 $server = $serverFactory->fromConfig($serverConfig);
 

@@ -20,6 +20,7 @@ require __DIR__ . '/../../../vendor/autoload.php';
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\Yaml\Yaml;
 use TanoWAF\WAFCore\Firewall\FirewallFactory;
 use TanoWAF\WAFCore\Http\CookieParserFactory;
 use TanoWAF\WAFCore\Http\HeaderParserFactory;
@@ -65,9 +66,20 @@ $emitter = new Emitter();
 
 // 2. Build the (Open)Swoole server
 
-$serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
+$serverConfig = array_replace_recursive(['listen' => ['listen_ip' => '0.0.0.0', 'listen_port' => 8084]], Yaml::parseFile($configFile));
 $serverFactory = new ServerFactory();
 $server = $serverFactory->fromConfig($serverConfig);
+
+if (isset($serverConfig['coroutine_settings']) && is_array($serverConfig['coroutine_settings']) && $serverConfig['coroutine_settings']) {
+/// @todo... the coroutine settings seem to only be needed by openswoole. Swoole otoh might need a `swoole_async_set` call
+    if (class_exists('\Swoole\Coroutine')) {
+        \Swoole\Coroutine::set($serverConfig['coroutine_settings']);
+    } else if (class_exists('\OpenSwoole\Coroutine')) {
+        \OpenSwoole\Coroutine::set($serverConfig['coroutine_settings']);
+    } else {
+        throw new \Exception("Either the Swoole or OpenSwoole php extension must be active");
+    }
+}
 
 // 3. Loop
 

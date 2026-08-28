@@ -3,7 +3,7 @@
 # Configure the system for either Swoole or OpenSwoole
 # Has to be run as root
 #
-# NB: expects PHP and the (Open)Swoole extension to be already installed (we build it using PIE, using build_pie_extensions.sh)
+# NB: expects PHP and the (Open)Swoole extension to be already installed (we build it using PIE, using build_php_extensions.sh)
 
 set -e
 
@@ -69,8 +69,8 @@ ln -s "${SWOOLE_SVC_SCRIPT_DIR}/swoole" "${SWOOLE_SVC_SCRIPT_DIR}/swoole_waf"
 if [ ! -d /etc/swoole ]; then
     mkdir /etc/swoole
 fi
-cp "$SCRIPT_DIR/../config/swoole_waf.json" /etc/swoole/
-cp "$SCRIPT_DIR/../config/swoole_server.json" /etc/swoole/
+cp "$SCRIPT_DIR/../config/swoole_waf.yaml" /etc/swoole/
+cp "$SCRIPT_DIR/../config/swoole_server.yaml" /etc/swoole/
 cp "$SCRIPT_DIR/../config/swoole_prepend.php" /etc/swoole/prepend.php
 
 echo "Done installing (Open)Swoole"

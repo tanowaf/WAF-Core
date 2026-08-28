@@ -9,7 +9,7 @@ set -e
 # this list does not include the libraries needed at runtime by the php extensions we are building - we leave it to
 # install_packages.sh to install them. Only "-dev" libs are listed here
 # @todo which extensions require zlib1g-dev?
-PACKAGES='autoconf make pkg-config zlib1g-dev unzip'
+PACKAGES='autoconf curl make pkg-config zlib1g-dev unzip'
 for EXTENSION in "$@"; do
     # @todo allow passing in optional packages instead of hardcoding them
     case "$EXTENSION" in
@@ -35,7 +35,6 @@ for EXTENSION in "$@"; do
     esac
 done
 
-# assumes curl is already installed
 apt-get install -y $PACKAGES
 
 # @todo install the github cli to verify the pie download (see f.e. https://linuxcapable.com/how-to-install-github-cli-on-ubuntu-linux/)

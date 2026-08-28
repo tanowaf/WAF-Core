@@ -19,6 +19,9 @@ if [ -z "$PHP_VERSION" ]; then
     exit 1
 fi
 
+# @todo allow this to be specified via an existing env var
+TARGET_DIRECTORY=/usr/lib/php/pie/
+
 # @todo see https://github.com/protocolbuffers/protobuf/issues/21808 - the PIE name of the protobuf extension might change soon...
 # NB: for Swoole, there are 2 extensions we can use:
 # - https://packagist.org/packages/swoole/swoole
@@ -53,6 +56,6 @@ mkdir /usr/lib/php/pie
 for EXT in $EXTDIR/*.so; do
     case " $BUILTIN_EXTS " in
         *" $EXT "*) . ;;
-        *) mv "$EXT" /usr/lib/php/pie/ ;;
+        *) mv "$EXT" "$TARGET_DIRECTORY" ;;
     esac
 done

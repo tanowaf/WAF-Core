@@ -19,7 +19,7 @@
 #
 # That will automatically drive all further config: the `/etc/default/swoole_<vhost>` file which can optionally be used
 # to alter configs, the name of the php script that swoole will run, defaulting to <vhost>_swoole.php
-# and the json file used to set configs for the Swoole server instance: /etc/swoole/swoole_<vhost>.json
+# and the yaml file used to set configs for the Swoole server instance: /etc/swoole/swoole_<vhost>.yaml
 #
 # Env vars which can be set in /etc/default/swoole_<vhost>:
 # DAEMON
@@ -86,13 +86,13 @@ if [ -z "$WORKER_SCRIPT" ]; then
     WORKER_SCRIPT="${VHOST}_${NAME}.php"
 fi
 if [ -z "$WORKER_ARGS" ]; then
-    WORKER_ARGS="/etc/${NAME}/${NAME}_${VHOST}.json ${VHOST}"
+    WORKER_ARGS="/etc/${NAME}/${NAME}_${VHOST}.yaml ${VHOST}"
 fi
 
 # we use a php auto_prepend_file to set env vars that can be used by our worker
-# @todo it would be nice to be able to have the $WORKER_SCRIPT_DIR/$WORKER_SCRIPT value be set in the json file,
+# @todo it would be nice to be able to have the $WORKER_SCRIPT_DIR/$WORKER_SCRIPT value be set in the yaml file,
 #       as we do for RoadRunner and FrankenPHP, but there is a bootstrap issue: we need to know the php script name
-#       to build the command line used here. We could maybe use jq to achieve that, but it seems hackish...
+#       to build the command line used here. We could maybe use yq to achieve that, but it seems hackish...
 D_OPTS=''
 if [ -n "$PREPEND_FILE" ]; then
     D_OPTS="-d auto_prepend_file=$PREPEND_FILE "

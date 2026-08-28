@@ -26,6 +26,7 @@ if (!is_file($configFile) ) {
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+use Symfony\Component\Yaml\Yaml;
 use TanoWAF\WAFCore\Swoole\ServerFactory;
 use TanoWAF\WAFCore\Tests\TestServer;
 
@@ -38,13 +39,12 @@ ini_set('zlib.output_compression', 0);
 
 $testServer = new TestServer();
 
-$serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
+$serverConfig = array_replace_recursive(['listen' => ['listen_ip' => '0.0.0.0', 'listen_port' => 8084]], Yaml::parseFile($configFile));
 $serverFactory = new ServerFactory();
 $server = $serverFactory->fromConfig($serverConfig);
 
 $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($testServer)
 {
-
     $testServer->setSwooleRequest($request);
     $testServer->setSwooleResponse($response);
 

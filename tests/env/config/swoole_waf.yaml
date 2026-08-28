@@ -1,0 +1,39 @@
+listen:
+    # alternative: listen_socket
+    "listen_ip": "0.0.0.0"
+    "listen_port": 8084
+
+# @see https://openswoole.com/docs/modules/swoole-coroutine-set
+coroutine_settings:
+    # the php constant names are: https://openswoole.com/docs/modules/openswoole-coroutine-reactor-type#available-reactor-types
+    # which should map to: 0=auto, 1=io_uring, 2=epoll, 3=kqueue, 4=poll, 5=select
+    reactor_type: 0
+
+# These settings will be dispatched to the Server object
+# @see https://openswoole.com/docs/modules/swoole-server/configuration for openswoole
+# @see https://wiki.swoole.com/en/#/http_server?id=configuration-options for swoole
+server_settings:
+
+    # disable these for perfs, iff we determine them not to be required
+    #http_parse_post: false
+    #http_parse_cookie: false
+
+    # there are no static files served by the server (except by /favicon.ico possibly, which is not mandatory)
+    enable_static_handler: false
+
+    "http_compression": true
+    "http_compression_level": 6
+    "compression_min_length": 20
+
+    "worker_num": 2
+    "backlog": 128
+
+    #max_request_execution_time: 30
+    #tcp_fastopen: true
+
+    # https, http2
+    #open_http2_protocol: true
+    #ssl_cert_file:
+    #ssl_key_file:
+    #ssl_protocols:
+    #ssl_verify_peer: true

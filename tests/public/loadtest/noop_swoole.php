@@ -18,9 +18,10 @@ if (!is_file($configFile) ) {
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
+use Symfony\Component\Yaml\Yaml;
 use TanoWAF\WAFCore\Swoole\ServerFactory;
 
-$serverConfig = array_merge(['listen_ip' => '0.0.0.0', 'listen_port' => 8084], json_decode(file_get_contents($configFile), true));
+$serverConfig = array_replace_recursive(['listen' => ['listen_ip' => '0.0.0.0', 'listen_port' => 8084]], Yaml::parseFile($configFile));
 $serverFactory = new ServerFactory();
 $server = $serverFactory->fromConfig($serverConfig);
 

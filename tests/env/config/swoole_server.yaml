@@ -1,0 +1,16 @@
+listen:
+    # alternative: listen_socket
+    "listen_ip": "0.0.0.0"
+    "listen_port": 1084
+
+server_settings:
+
+    # there are no static files served by the server (except by /favicon.ico possibly, which is not mandatory)
+    enable_static_handler: false
+
+    "http_compression": true
+    "http_compression_level": 6
+    "compression_min_length": 20
+
+    "worker_num": 2
+    "backlog": 128
