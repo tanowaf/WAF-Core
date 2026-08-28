@@ -36,10 +36,12 @@ fi
 
 # Curl is not required atm to run tests, but it is a good tool to run manual tests on the command-line. It is also used
 # by other setup scripts.
-# It can query a unix socket too, via option `--unix-socket`
-# Alternatives would be netcat, socat
+# It can query a unix socket too, via option `--unix-socket` (alternatives would be netcat, socat)
+#
 # Libevent is used by the php 'event' extension (w: do we need the `t64` version?) - move it to setup_php.sh or setup_pie.sh?
+# Liburing2 is used by swoole
+# @todo we should probably add libbrotli1, libzstd1
 apt-get install -y \
-    curl git libevent-core-2.1-7 ncompress sudo unzip wrk
+    curl git libevent-core-2.1-7 liburing2 ncompress sudo unzip wrk
 
 echo "Done installing base software packages"

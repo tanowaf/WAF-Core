@@ -15,6 +15,7 @@ Example use-cases:
 
 Similar software:
 - OWASP Coraza (written in Go, can be run as Caddy/Nginx/HAProxy module; uses more-standard but less-readable configuration)
+- many websites offer comparison of WAFs, such as https://wafplanet.com/
 
 ## Work In Progress
 
@@ -35,7 +36,6 @@ Main missing features:
 - HTTPS support
 - HTTP2, HTTP3 support
 - Documentation
-- support for Swoole and OpenSwoole PHP runtimes is in progress...
 
 See the [Roadmap](Roadmap.md) for a detailed list of features not yet implemented.
 
@@ -49,6 +49,7 @@ Not in scope (yet?):
 - using async requests to connect to upstream servers
 - implementing rate-limiting, caching (with own code - we should allow usage of PSR compliant external code for that)
 - rules/filters targeted at protecting the client from rogue servers' responses
+- listening on a control socket to allow live configuration changes
 
 ## Requirements:
 
@@ -59,13 +60,16 @@ Not in scope (yet?):
 
 * A webserver to run it.
 
-  If running Nginx, please use the very latest version available, ideally > 1.29.0, as it comes with improvements in parsing
-  of HTTP headers to better conform to RFC9110 (see f.e. bug #187).
+  The recommended setup is to use Swoole, version 6.2.2 or later, with io-uring support enabled (and linux kernel >= 6.9),
+  as it gives the best combination of performance and http parsing fidelity.
+
+  If running Nginx, please use the very latest version available, ideally > 1.31.4, as it comes with improvements in
+  parsing of HTTP headers to better conform to RFC9110 and co. (see f.e. bug #187).
 
   If you want to have the proxy listening on a unix socket instead of an http port, choose an http server which can do that:
   as of June 2026 Nginx and FrankenPHP can, while Apache can't.
 
-  Note that this library is tested only with the following webservers, at least for the moment: Apache, FrankenPHP and Nginx.
+  Note that this library is tested only with the following webservers, at least for the moment: Apache, FrankenPHP, Nginx and Swoole.
 
 * Either the `symfony/http-client` or `guzzlehttp/guzzle` (version 8.0 or later) php packages.
 
@@ -105,7 +109,7 @@ Which translates into:
 - using the PSR-7, PSR-15, PSR-18 interfaces means it should be easy to extend/embed the Proxy classes in other middlewares
 - avoid relying on too many, big dependencies - f.e. no Monolog, Symfony ConfigTreeBuilder
 - delegate all possible processing to a 'bootstrap' phase, so that the processing loop can be as efficient as possible
-  when used in eg. `worker` mode with FrankenPHP
+  when used in eg. `worker` mode with Swoole or FrankenPHP
 - taking care about memory leaks
 - prefer end-to-end testing to unit testing, as the specific webserver used to run php does have an impact on the
   processing by the WAF-Core code of http requests, esp. the ones which are not conforming to the http standard
@@ -122,11 +126,13 @@ the provided docker-based stack to run the test suite
 ./tests/env/container.sh stop
 ```
 
-The testsuite can be run using FrankenPHP or Apache as webserver with the following commands:
+The testsuite can be run using Apache, FrankenPHP or Swoole as webserver with the following commands:
+
+`TEST_WEBSERVER=apache ./tests/env/container.sh runtests`
 
 `TEST_WEBSERVER=frankenphp ./tests/env/container.sh runtests`
 
-`TEST_WEBSERVER=apache ./tests/env/container.sh runtests`
+`TEST_WEBSERVER=swoole ./tests/env/container.sh runtests`
 
 ## FAQ
 

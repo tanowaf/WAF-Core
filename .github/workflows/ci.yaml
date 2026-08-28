@@ -47,6 +47,7 @@ jobs:
                 run: |
                     chmod 755 ./tests/env/setup/*.sh
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/install_packages.sh
+
                     if [ '${{ matrix.webserver }}' = 'apache' ]; then
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_apache.sh
                     fi
@@ -59,6 +60,8 @@ jobs:
                     if [ '${{ matrix.webserver }}' = 'roadrunner' ]; then
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_roadrunner.sh
                     fi
+
+                    # @todo allow to install (and test) kjdev/brotli and kjdev/zstd in at least one test matrix case each
 
                     # note: swoole 6.2 requires pdo (at least at build time, possibly also at runtime?)
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php.sh -d 'amqp calendar dba enchant exif fileinfo ftp gd gettext gmp imagick intl ldap memcache memcached mongodb msgpack mysqli pdo_dblib pdo_firebird pdo_mysql pdo_odbc pdo_pgsql pdo_sqlite pgsql pspell readline redis snmp soap sqlite3 tidy zmq' ${{ matrix.php }}

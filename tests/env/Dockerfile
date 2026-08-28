@@ -6,17 +6,8 @@ FROM ubuntu:${UBUNTU_VERSION} AS pie_build
 ARG APT_PACKAGE_PROXY=none
 ARG PHP_VERSION=default
 
-COPY --chmod=755 setup/build_pie_extensions.sh setup/setup_php.sh setup/setup_pie_extensions.sh /root/setup/
-# @todo see https://github.com/protocolbuffers/protobuf/issues/21808 - the PIE name of the protobuf extension might change soon...
-# NB: for Swoole, there are 2 extensions we can use:
-# - https://packagist.org/packages/swoole/swoole
-# - https://packagist.org/packages/openswoole/ext-openswoole
-# As of 2026/8/20, we have to work around ext-openswoole issue #397: the only way to get it installed is to specify dev-master version
-# @todo see https://github.com/openswoole/ext-openswoole#1-install-via-pie-php-installer-for-extensions: we might need
-#       to pass in extra flags for the full installation of ext-openswoole
-RUN DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf make libevent-dev pkg-config unzip zlib1g-dev && \
-    /root/setup/build_pie_extensions.sh 'kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master osmanov/pecl-event swoole/swoole'
+COPY --chmod=755 setup/build_pie_extensions.sh.sh setup/setup_php.sh setup/setup_pie_extensions.sh /root/setup/
+RUN /root/setup/build_pie_extensions.sh
 
 ARG UBUNTU_VERSION=resolute
 FROM ubuntu:${UBUNTU_VERSION}

@@ -19,12 +19,17 @@ if [ -z "$PHP_VERSION" ]; then
     exit 1
 fi
 
-PIE_EXTENSIONS="$1"
+# @todo see https://github.com/protocolbuffers/protobuf/issues/21808 - the PIE name of the protobuf extension might change soon...
+# NB: for Swoole, there are 2 extensions we can use:
+# - https://packagist.org/packages/swoole/swoole
+# - https://packagist.org/packages/openswoole/ext-openswoole
+# As of 2026/8/20, we have to work around ext-openswoole issue #397: the only way to get it installed is to specify dev-master version
+PIE_EXTENSIONS='kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master osmanov/pecl-event swoole/swoole'
 
-if [ -z "$PIE_EXTENSIONS" ]; then
-    echo "PIE extensions have to be specified as 1st argument" >&2
-    exit 1
-fi
+#if [ -z "$PIE_EXTENSIONS" ]; then
+#    echo "PIE extensions have to be specified as 1st argument" >&2
+#    exit 1
+#fi
 
 # Allow the user to specify a proxy for speeding up downloading of apt packages
 if [ -n "${APT_PACKAGE_PROXY}" ] && [ "${APT_PACKAGE_PROXY}" != "none" ]; then

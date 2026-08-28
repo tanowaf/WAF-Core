@@ -36,6 +36,9 @@ CONTAINER_IMAGE_PREFIX="${CONTAINER_IMAGE_PREFIX:-tw-wafcore}"
 CONTAINER_USER=docker
 CONTAINER_WORKSPACE_DIR="/home/${CONTAINER_USER}/workspace"
 DOCKER_CMD="${DOCKER_CMD:-docker}"
+# this is required for running openswoole with io_uring
+# @todo gate this behind the presence of an env var
+DOCKER_RUN_EXTRA_OPTS='--security-opt seccomp=unconfined'
 
 IMAGE_NAME="${CONTAINER_IMAGE_PREFIX}:${UBUNTU_VERSION}-${PHP_VERSION}-${WEBSERVER_TYPE}"
 CONTAINER_NAME="${CONTAINER_NAME_PREFIX}${UBUNTU_VERSION}_${PHP_VERSION}_${WEBSERVER_TYPE}"
@@ -77,8 +80,8 @@ Environment variables:
   used by the 'start' action
     COMPOSER_INSTALL_ON_START default value: false. Set to true to run a 'composer install' on container start
     START_WEBSERVER        default value: 'all'. Can be set to apache, nginx, frankenphp
-    HOST_HTTPPORT_\$SRV     default value: 80/81/1082. Set to 'no' to disable exposing the container port to the host
-    HOST_PROXYPORT_\$SRV    default value: 8080/8081/8082. Set to 'no' to disable exposing the container port to the host
+    HOST_HTTPPORT_\$SRV     default value: 80/81/1082/1083/1084. Set to 'no' to disable exposing the container port to the host
+    HOST_PROXYPORT_\$SRV    default value: 8080/8081/8082/8083/8084. Set to 'no' to disable exposing the container port to the host
   used by both build and start:
     CONTAINER_IMAGE_PREFIX default value: 'tw-wafcore'. Change if you build/run many containers in parallel
     CONTAINER_NAME_PREFIX  default value: 'tw_wafcore_'. Change if you build/run many containers in parallel
@@ -145,43 +148,43 @@ start() {
         else
             build
 
-            PORTMAPPING=''
             # @todo improve error message and abort in case any port is not an integer or negative
             # @todo depending on the value of $START_WEBSERVER we could map fewer ports to just 80+8080
             if [ "$HOST_HTTPPORT_APACHE" != no ] && [ "$HOST_HTTPPORT_APACHE" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_HTTPPORT_APACHE-0)):81 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_HTTPPORT_APACHE-0)):81"
             fi
             if [ "$HOST_HTTPPORT_FRANKENPHP" != no ] && [ "$HOST_HTTPPORT_FRANKENPHP" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_HTTPPORT_FRANKENPHP-0)):1082 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_HTTPPORT_FRANKENPHP-0)):1082"
             fi
             if [ "$HOST_HTTPPORT_NGINX" != no ] && [ "$HOST_HTTPPORT_NGINX" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_HTTPPORT_NGINX-0)):80 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_HTTPPORT_NGINX-0)):80"
             fi
             if [ "$HOST_HTTPPORT_ROADRUNNER" != no ] && [ "$HOST_HTTPPORT_ROADRUNNER" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_HTTPPORT_ROADRUNNER-0)):1083 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_HTTPPORT_ROADRUNNER-0)):1083"
             fi
             if [ "$HOST_HTTPPORT_SWOOLE" != no ] && [ "$HOST_HTTPPORT_SWOOLE" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_HTTPPORT_SWOOLE-0)):1084 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_HTTPPORT_SWOOLE-0)):1084"
             fi
             if [ "$HOST_PROXYPORT_APACHE" != no ] && [ "$HOST_PROXYPORT_APACHE" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_PROXYPORT_APACHE-0)):8081 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_PROXYPORT_APACHE-0)):8081"
             fi
             if [ "$HOST_PROXYPORT_FRANKENPHP" != no ] && [ "$HOST_PROXYPORT_FRANKENPHP" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_PROXYPORT_FRANKENPHP-0)):8082 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_PROXYPORT_FRANKENPHP-0)):8082"
             fi
             if [ "$HOST_PROXYPORT_NGINX" != no ] && [ "$HOST_PROXYPORT_NGINX" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_PROXYPORT_NGINX-0)):8080 "
+                PORTMAPPING="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_PROXYPORT_NGINX-0)):8080"
             fi
             if [ "$HOST_PROXYPORT_ROADRUNNER" != no ] && [ "$HOST_PROXYPORT_ROADRUNNER" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_PROXYPORT_ROADRUNNER-0)):8083 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_PROXYPORT_ROADRUNNER-0)):8083"
             fi
             if [ "$HOST_PROXYPORT_SWOOLE" != no ] && [ "$HOST_PROXYPORT_SWOOLE" != '' ]; then
-                PORTMAPPING="${PORTMAPPING}-p $((HOST_PROXYPORT_SWOOLE-0)):8084 "
+                DOCKER_RUN_EXTRA_OPTS="${DOCKER_RUN_EXTRA_OPTS} -p $((HOST_PROXYPORT_SWOOLE-0)):8084"
             fi
+
             if [ ! -d "${ROOT_DIR}/tests/env/var/composer_cache" ]; then mkdir -p "${ROOT_DIR}/tests/env/var/composer_cache"; fi
 
             # shellcheck disable=SC2086
-            if ${DOCKER_CMD} run -d $PORTMAPPING \
+            if ${DOCKER_CMD} run -d \
                 --name "${CONTAINER_NAME}" \
                 --env "CONTAINER_USER_UID=$(id -u)" --env "CONTAINER_USER_GID=$(id -g)" \
                 --env "TESTS_ROOT_DIR=${CONTAINER_WORKSPACE_DIR}" \
@@ -189,6 +192,7 @@ start() {
                 --env "START_WEBSERVER=${START_WEBSERVER}" \
                 -v "${ROOT_DIR}:${CONTAINER_WORKSPACE_DIR}" \
                 -v "${ROOT_DIR}/tests/env/var/composer_cache:/home/${CONTAINER_USER}/.cache/composer" \
+                ${DOCKER_RUN_EXTRA_OPTS} \
                  "${IMAGE_NAME}"; then
                 wait_for_bootstrap
             fi
@@ -255,8 +259,8 @@ runtests() {
         ENV_VAR_INJECTION="$ENV_VAR_INJECTION SERVER_TYPE=$TEST_WEBSERVER"
     fi
     if [ -n "$TEST_WAF" ]; then
-            ENV_VAR_INJECTION="$ENV_VAR_INJECTION WAF_TYPE=$TEST_WAF"
-        fi
+        ENV_VAR_INJECTION="$ENV_VAR_INJECTION WAF_TYPE=$TEST_WAF"
+    fi
     lock
     trap unlock INT
     RETCODE=0

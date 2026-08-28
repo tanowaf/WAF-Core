@@ -26,6 +26,7 @@
     - take hints from features supported by Coraza, eg. setting resource limits (eg. on resp body size etc),
       have 'log' as rule actions, have a do-not-deny-but-log-violations mode, etc...
   - xml req./resp. body with xpath/css matchers
+  - specific matchers for soap, xmlrpc, graphql, grpc
   - allow failures of the MethodMatcher to generate a 501 response instead of the default 403?
   - API reworking:
     - clean up the `*MatcherInterface` mess: drop MatcherInterface; move Logic/* matchers to MessageInterface?
