@@ -2,6 +2,8 @@
 
 namespace TanoWAF\WAFCore\Swoole;
 
+use TanoWAF\WAFCore\Exception\ConfigurationError;
+
 class ServerFactory
 {
     /**
@@ -19,18 +21,22 @@ class ServerFactory
             throw new \Exception("Either the Swoole or OpenSwoole php extension must be active");
         }
 
-        /// @todo check with other $_SERVER vars we could/should set
-        if (array_key_exists('listen_socket', $config) && $config['listen_socket'] != '') {
-            // use integers to simplify working with both swoole and openswoole
-            $server = new $serverClass($config['listen_socket'], 0, 1, 5);
-        } else {
-            $_SERVER['SERVER_ADDR'] = $config['listen_ip'];
-            $_SERVER['SERVER_PORT'] = (int)$config['listen_port'];
-            $server = new $serverClass($config['listen_ip'], (int)$config['listen_port']);
+        if (!isset($config['listen']) || !is_array($config['listen']) || !isset($config['server_settings']) ||
+            !is_array($config['server_settings'])) {
+            throw new ConfigurationError("Swoole configuration error: missing either 'listen' or 'server_settings' top-level key");
         }
-        unset($config['listen_ip'], $config['listen_port'], $config['listen_socket']);
 
-        $server->set($config);
+        /// @todo check with other $_SERVER vars we could/should set
+        if (array_key_exists('listen_socket', $config['listen']) && $config['listen']['listen_socket'] != '') {
+            // use integers to simplify working with both swoole and openswoole
+            $server = new $serverClass($config['listen']['listen_socket'], 0, 1, 5);
+        } else {
+            $_SERVER['SERVER_ADDR'] = $config['listen']['listen_ip'];
+            $_SERVER['SERVER_PORT'] = (int)$config['listen']['listen_port'];
+            $server = new $serverClass($config['listen']['listen_ip'], (int)$config['listen']['listen_port']);
+        }
+
+        $server->set($config['server_settings']);
 
         return $server;
     }

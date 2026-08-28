@@ -11,11 +11,11 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\RequestDenied;
+use TanoWAF\WAFCore\Http\BodyUncompressingCapableInterface;
+use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
-use TanoWAF\WAFCore\Response\Psr7\HeaderParsingCapableResponseInterface;
 //use TanoWAF\WAFCore\Response\Psr7\Response;
 use TanoWAF\WAFCore\Response\Psr7\ResponseConverterInterface;
-use TanoWAF\WAFCore\ServerRequest\Psr7\HeaderParsingCapableServerRequestInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequestConverterInterface;
 use TanoWAF\WAFCore\Stdlib;
 
@@ -59,12 +59,12 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
 /// @todo... the ServerRequest that we want should be capable of parsing headers, cookies and the query string params,
-///          in case a matcher or filter needs to access them. The HeaderParsingCapableServerRequestInterface
+///          in case a matcher or filter needs to access them. The HeaderParsingCapableInterface
 ///          does not guarantee that - rename and expand it? (note that atm we are kind of abusing the
 ///          ServerRequestInterface methods `getCookieParams` and `getQueryParams` - no other class but
 ///          our own ServerRequest will use the cookieParser and queryStringParser to build the values
 ///          returned by those methods)
-        if (! $request instanceof HeaderParsingCapableServerRequestInterface) {
+        if (! $request instanceof HeaderParsingCapableInterface || ! $request instanceof BodyUncompressingCapableInterface) {
             $request = $this->requestFactory->fromServerRequest($request);
         }
 
@@ -115,14 +115,15 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
         throw new RequestDenied();
     }
 
-    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): HeaderParsingCapableResponseInterface|ResponseInterface
+    /// @todo either typehint to our own Response, or create an interface for ResponseInterface + HeaderParsingCapableInterface + BodyUncompressingCapableInterface
+    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
 
 /// @todo... the Response that we want should be capable of parsing all headers as well as set-cookie specifically,
-///          in case a matcher or filter needs to access them. The HeaderParsingCapableResponseInterface
+///          in case a matcher or filter needs to access them. The HeaderParsingCapableInterface
 ///          does not guarantee that - rename and expand it? (see similar comment above)
-        if (! $response instanceof HeaderParsingCapableResponseInterface) {
+        if (! $response instanceof HeaderParsingCapableInterface || ! $response instanceof BodyUncompressingCapableInterface) {
             $response = $this->responseFactory->fromResponse($response);
             /*$response = Response::fromResponse($response);
             if ($this->cookieParser !== null) {

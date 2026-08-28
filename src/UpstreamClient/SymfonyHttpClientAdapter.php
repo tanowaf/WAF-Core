@@ -74,10 +74,11 @@ class SymfonyHttpClientAdapter implements UpstreamClientInterface
                 $response = $this->psr18Client->sendRequest($request);
                 // We have to force reading the whole resp. body to make sure that we trigger timeouts.
 
-
                 $stream = $response->getBody();
                 $stream->getContents();
-                $stream->rewind();
+                if ($stream->isSeekable()) {
+                    $stream->rewind();
+                }
 
                 /* This is now fixed above.
                 // Also, the SF Http Client requests for gzip responses and auto-inflates responses when the original

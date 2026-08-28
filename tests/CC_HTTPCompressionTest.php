@@ -43,7 +43,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
                 // header, then decoding the response but not removing the response content-encoding header (see issue
                 // https://github.com/symfony/symfony/issues/64869)
                 ($clientAcceptEncoding !== '' || $ceHeader[0] !== 'gzip')) {
-                $body = $this->decompressPayload($response->getContent(false), $ceHeader, [], $errorMessage);
+                $body = $this->uncompressPayload($response->getContent(false), $ceHeader, [], $errorMessage);
                 $this->assertIsString($body, (string)$errorMessage . "\n" . $failureMessage);
                 /// @todo add support for application/php-serialized+base64
                 $result = json_decode($body, true);
@@ -108,7 +108,7 @@ class CC_HTTPCompressionTest extends WAFTestCase
                 // header, then decoding the response but not removing the response content-encoding header (see issue
                 // https://github.com/symfony/symfony/issues/64869)
                 ($clientAcceptEncoding !== '' || $responseHeaders['content-encoding'][0] !== 'gzip')) {
-                $body = $this->decompressPayload($response->getContent(false), $responseHeaders['content-encoding'], [], $errorMessage);
+                $body = $this->uncompressPayload($response->getContent(false), $responseHeaders['content-encoding'], [], $errorMessage);
                 $this->assertIsString($body, (string)$errorMessage . "\n" . $failureMessage);
                 /// @todo add support for application/php-serialized+base64
                 $result = json_decode($body, true);

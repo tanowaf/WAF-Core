@@ -6,12 +6,12 @@ namespace TanoWAF\WAFCore\Matcher\Message;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TanoWAF\WAFCore\Http\BodyCompressorTrait;
+use TanoWAF\WAFCore\Http\BodyUncompressingCapableInterface;
 use TanoWAF\WAFCore\Matcher\RegExpListMatcherTrait;
 
 class BodyMatcher extends BaseMatcher
 {
     use RegExpListMatcherTrait;
-    use BodyCompressorTrait;
 
     /**
      * @param string|string[] $filter
@@ -29,16 +29,11 @@ class BodyMatcher extends BaseMatcher
      */
     public function matchesMessage(RequestInterface|ResponseInterface $message): bool
     {
-/// @todo... move body decompression (and dechunking if needed) to our own Req/resp
-        if ($this->messageBodyIsCompressed($message)) {
-            $body = $this->decompressMessageBody($message);
-        } else {
-            $stream = $message->getBody();
-            $stream->rewind();
-            $body = $stream->getContents();
+        if (!$message instanceof BodyUncompressingCapableInterface) {
+            throw new \Exception("BodyMatcher needs a BodyUncompressingCapableInterface message to operate on, gotten a " . get_class($message));
         }
 
-        return $this->matchesRegexp($body);
+        return $this->matchesRegexp($message->getUncompressedMessageBody());
     }
 
     protected function normalizeMatchingRegexp(string $value): string

@@ -13,8 +13,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
+use TanoWAF\WAFCore\Http\BodyCompressorTrait;
+use TanoWAF\WAFCore\Http\BodyUncompressingCapableInterface;
 use TanoWAF\WAFCore\Http\CookieParserAwareTrait;
 use TanoWAF\WAFCore\Http\HeaderParserAwareTrait;
+use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
 
 /**
@@ -26,11 +29,12 @@ use TanoWAF\WAFCore\Http\QueryStringParserAwareTrait;
  * @todo... verify if we should reimplement withRequestTarget so that it always throws, as that would allow having a
  *          request-target that is not in sync with $this->uri
  */
-class ServerRequest implements HeaderParsingCapableServerRequestInterface
+class ServerRequest implements ServerRequestInterface, HeaderParsingCapableInterface, BodyUncompressingCapableInterface
 {
     use MessageTrait;
     use RequestTrait;
 
+    use BodyCompressorTrait;
     use CookieParserAwareTrait;
     use HeaderParserAwareTrait;
     use QueryStringParserAwareTrait;
@@ -408,5 +412,27 @@ class ServerRequest implements HeaderParsingCapableServerRequestInterface
 /// @todo... add a caching layer
         /// @todo is it worth checking if $this->headerParser is null and throw a clearer error?
         return $this->headerParser->normalizeHeaderValue($headerName, $this->getHeader($headerName), $errorsFound);
+    }
+
+    public function getUncompressedMessageBody(): string|null
+    {
+/// @todo... add a caching layer
+        if ($this->messageBodyIsCompressed($this)) {
+            $body = $this->uncompressMessageBody($this);
+        } else {
+            $stream = $this->getBody();
+            if ($stream->isSeekable()) {
+                $stream->rewind();
+            }
+            $body = $stream->getContents();
+        }
+        return $body;
+    }
+
+    /// @todo... this should most likely return a Stream
+    public function withTranscompressedMessageBody(array $acceptedEncodings): self
+    {
+/// @todo... add a caching layer
+        return $this->transCompressMessageBody($this, $acceptedEncodings);
     }
 }

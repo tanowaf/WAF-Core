@@ -67,7 +67,9 @@ class GuzzleAdapter implements UpstreamClientInterface
                 $response = $this->guzzleClient->sendRequest($request);
 /// @todo... (starting w. guzzle 8) we have to force reading the whole resp. body to make sure that we trigger timeouts
                 //$stream = $response->getBody();
-                //$stream->rewind();
+                //if ($stream->isSeekable()) {
+                //    $stream->rewind();
+                //}
                 //$body = $stream->getContents();
                 return $response;
             } else {

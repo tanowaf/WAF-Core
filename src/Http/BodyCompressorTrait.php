@@ -17,6 +17,9 @@ use TanoWAF\WAFCore\Exception\UnsupportedMediaType;
 /**
  * @todo according to https://en.wikipedia.org/wiki/HTTP_compression, there are many unofficial compression schemes
  *       in use in the wild: bzip2,lzip, lzma, peerdist, rsync, xpress and xz. Should we support those?
+ *
+ * @todo use RequestInterface|ResponseInterface for typehinting, instead of MessageInterface?
+ * @todo change the API, given that this is now implemented by ServerRequest and Response, instead of matchers/filters
  */
 trait BodyCompressorTrait
 {
@@ -26,6 +29,7 @@ trait BodyCompressorTrait
     protected function messageBodyIsCompressed(MessageInterface $message): bool
     {
         if ($message->hasHeader('Content-Encoding')) {
+/// @todo... use normalized header values
             foreach ($message->getHeader('Content-Encoding') as $encoding) {
                 if (strtolower($encoding) !== 'identity') {
                     return true;
@@ -41,6 +45,7 @@ trait BodyCompressorTrait
     {
         // @see https://www.iana.org/assignments/http-parameters#transfer-coding
         // we support 'identity', even if it is withdrawn
+/// @todo... use normalized header values
         if ($message->hasHeader('Transfer-Encoding')) {
             foreach ($message->getHeader('Transfer-Encoding') as $encoding) {
                 if (strtolower($encoding) !== 'identity') {
@@ -55,7 +60,9 @@ trait BodyCompressorTrait
     {
         /// @todo implement streaming compression - see f.e. Guzzle's Psr7\InflateStream
         $stream = $message->getBody();
-        $stream->rewind();
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
         $body = $stream->getContents();
 
         $out = $this->compressPayload($body, $contentEncodings, $actualEncoding);
@@ -175,7 +182,7 @@ trait BodyCompressorTrait
      * @throws ResponseBodyCantBeDecompressed
      * @todo do we need the 2nd arg?
      */
-    protected function decompressMessageBody(MessageInterface $message, null|array $contentEncodings = null): string|false
+    protected function uncompressMessageBody(MessageInterface $message, null|array $contentEncodings = null): string|false
     {
         if ($contentEncodings === null) {
             $contentEncodings = $message->getHeader('Content-encoding');
@@ -190,7 +197,7 @@ trait BodyCompressorTrait
         $stream->rewind();
         $body = $stream->getContents();
 
-        $body = $this->decompressPayload($body, $contentEncodings, $transferEncodings, $errorMessage);
+        $body = $this->uncompressPayload($body, $contentEncodings, $transferEncodings, $errorMessage);
         if ($body === false) {
             if ($message instanceof RequestInterface) {
                 throw new RequestBodyCantBeDecompressed($errorMessage);
@@ -207,7 +214,7 @@ trait BodyCompressorTrait
      *                                    care of automatically
      * @todo allow streams for $body
      */
-    protected function decompressPayload(string $body, array $contentEncodings, array $transferEncodings, string|null &$errorMessage): string|false
+    protected function uncompressPayload(string $body, array $contentEncodings, array $transferEncodings, string|null &$errorMessage): string|false
     {
         $encodings = array_reverse(array_merge($contentEncodings, $transferEncodings));
         $teCount = count($transferEncodings);
@@ -325,6 +332,7 @@ trait BodyCompressorTrait
         return $encodings;
     }
 
+/// @todo... rename / change API, to make it easier to cache the uncompressed body
     /**
      * @param string[] $acceptedEncodings
      * @param string[]|null $contentEncodings
@@ -333,10 +341,10 @@ trait BodyCompressorTrait
      * @throws UnsupportedMediaType
      * @todo do we need the 3rd argument?
      */
-    protected function transcodeResponseBody(ResponseInterface $response, array $acceptedEncodings, null|array $contentEncodings = null): ResponseInterface
+    protected function transCompressMessageBody(MessageInterface $message, array $acceptedEncodings, null|array $contentEncodings = null): MessageInterface
     {
         if ($contentEncodings === null) {
-            $contentEncodings = $response->getHeader('Content-Encoding');
+            $contentEncodings = $message->getHeader('Content-Encoding');
         }
 
         if ($acceptedEncodings) {
@@ -357,10 +365,10 @@ trait BodyCompressorTrait
         }
 
         if (!$mustInflate) {
-            return $response;
+            return $message;
         }
 
-        $tryEncodings = $this->tryEncodings($response, $acceptedEncodings);
+        $tryEncodings = $this->tryEncodings($message, $acceptedEncodings);
 
         /// @todo calling tryEncodings() here allows us to bail out early without decompressing the payload. Otoh it would
         ///       be nice to also be able to evaluate the choice of which encodings to use for the payload after having
@@ -374,7 +382,7 @@ trait BodyCompressorTrait
             $tryEncodings[] = 'identity';
         }
 
-        $body = $this->decompressMessageBody($response, $contentEncodings);
+        $body = $this->uncompressMessageBody($message, $contentEncodings);
 
         if ($tryEncodings) {
             $body = $this->compressPayload($body, $tryEncodings, $actualEncoding);
@@ -382,20 +390,20 @@ trait BodyCompressorTrait
                 // throw in a way that allows us to return a 415 response
                 throw new ResponseBodyCantBeCompressed("Failed compressing the response using content-encodings: '" . implode("', '", $tryEncodings) . "'");
             } else {
-                $response = $response->withBody(Stream::create($body));
+                $message = $message->withBody(Stream::create($body));
                 if ($actualEncoding === '' || $actualEncoding === 'identity') {
-                    $response = $response->withoutHeader('Content-Encoding');
+                    $message = $message->withoutHeader('Content-Encoding');
                 } else {
-                    $response = $response->withHeader('Content-Encoding', $actualEncoding);
+                    $message = $message->withHeader('Content-Encoding', $actualEncoding);
                 }
             }
         } else {
-            $response = $response
+            $message = $message
                 ->withBody(Stream::create($body))
                 ->withoutHeader('Content-Encoding');
         }
 
-        return $response;
+        return $message;
     }
 
     /**
@@ -407,7 +415,7 @@ trait BodyCompressorTrait
      * @return string[] the list of compression encodings to try to compress responses with, ordered by preference.
      *                  It should not include 'identity', as that will be tried last anyway, unless forbidden explicitly by the request
      */
-    protected function tryEncodings(ResponseInterface $response, array $acceptedEncodings): array
+    protected function tryEncodings(MessageInterface $message, array $acceptedEncodings): array
     {
 /// @todo... add a blacklist of mimetypes to never try to encode
 
@@ -420,8 +428,6 @@ trait BodyCompressorTrait
         }
         return $tryEncodings;
     }
-
-/// @todo... add protected function transcodeRequestBody(RequestInterface $request, ...): RequestInterface
 
     /**
      * @param string[] $acceptedEncodings

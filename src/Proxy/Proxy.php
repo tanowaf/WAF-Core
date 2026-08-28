@@ -141,8 +141,9 @@ class Proxy implements ProxyInterface, LoggerAwareInterface
 
 /// @todo... add x-forwarded headers and co., strip/massage _all_ hop-by-hop headers
 
-        // honour the Connection header
+        // honor the Connection header
         if ($request->hasHeader('Connection')) {
+/// @todo... use normalized header values
             foreach($request->getHeader('Connection') as $header) {
                 if ($request->hasHeader($header)) {
                     $request = $request->withoutHeader($header);
