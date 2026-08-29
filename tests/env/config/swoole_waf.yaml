@@ -1,13 +1,16 @@
-listen:
+server:
+    listen_ip: 0.0.0.0
+    listen_port: 8084
     # alternative: listen_socket
-    "listen_ip": "0.0.0.0"
-    "listen_port": 8084
 
-# @see https://openswoole.com/docs/modules/swoole-coroutine-set
-coroutine_settings:
-    # the php constant names are: https://openswoole.com/docs/modules/openswoole-coroutine-reactor-type#available-reactor-types
-    # which should map to: 0=auto, 1=io_uring, 2=epoll, 3=kqueue, 4=poll, 5=select
-    reactor_type: 0
+    # In order to enable this, swoole has to have been compiled with io-uring support, the kernel must be recent and,
+    # if running in a container, seccomp must be set to unconfined. Also, it might not give faster responses or
+    # improved throughput in all scenarios
+    enable_io-uring: false
+
+    # Disabled by default as openswoole native psr requests are not good enough for our usage
+    #openswoole:
+    #    use_native_psr_request: true
 
 # These settings will be dispatched to the Server object
 # @see https://openswoole.com/docs/modules/swoole-server/configuration for openswoole
@@ -21,12 +24,12 @@ server_settings:
     # there are no static files served by the server (except by /favicon.ico possibly, which is not mandatory)
     enable_static_handler: false
 
-    "http_compression": true
-    "http_compression_level": 6
-    "compression_min_length": 20
+    http_compression: true
+    http_compression_level: 6
+    compression_min_length: 20
 
-    "worker_num": 2
-    "backlog": 128
+    worker_num: 2
+    backlog: 128
 
     #max_request_execution_time: 30
     #tcp_fastopen: true

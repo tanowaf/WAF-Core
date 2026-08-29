@@ -1,16 +1,28 @@
-listen:
+server:
+    listen_ip: 0.0.0.0
+    listen_port: 1084
     # alternative: listen_socket
-    "listen_ip": "0.0.0.0"
-    "listen_port": 1084
 
+    # In order to enable this, swoole has to have been compiled with io-uring support, the kernel must be recent and,
+    # if running in a container, seccomp must be set to unconfined. Also, it might not give faster responses or
+    # improved throughput in all scenarios
+    enable_io-uring: false
+
+    # Disabled by default as openswoole native psr requests are not good enough for our usage
+    #openswoole:
+    #    use_native_psr_request: true
+
+# These settings will be dispatched to the Server object
+# @see https://openswoole.com/docs/modules/swoole-server/configuration for openswoole
+# @see https://wiki.swoole.com/en/#/http_server?id=configuration-options for swoole
 server_settings:
 
     # there are no static files served by the server (except by /favicon.ico possibly, which is not mandatory)
     enable_static_handler: false
 
-    "http_compression": true
-    "http_compression_level": 6
-    "compression_min_length": 20
+    http_compression: true
+    http_compression_level: 6
+    compression_min_length: 20
 
-    "worker_num": 2
-    "backlog": 128
+    worker_num: 2
+    backlog: 128

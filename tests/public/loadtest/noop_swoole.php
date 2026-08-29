@@ -13,7 +13,7 @@ if (!isset($_SERVER['SWOOLE_WORKER']) || (int)$_SERVER['SWOOLE_WORKER'] === 0 ||
 
 $configFile = @$_SERVER['argv'][1];
 if (!is_file($configFile) ) {
-    throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
+    throw new \Exception('This script has to be run passing in the yaml config filename as 1st argument');
 }
 
 require __DIR__ . '/../../../vendor/autoload.php';
@@ -21,15 +21,29 @@ require __DIR__ . '/../../../vendor/autoload.php';
 use Symfony\Component\Yaml\Yaml;
 use TanoWAF\WAFCore\Swoole\ServerFactory;
 
-$serverConfig = array_replace_recursive(['listen' => ['listen_ip' => '0.0.0.0', 'listen_port' => 8084]], Yaml::parseFile($configFile));
-$serverFactory = new ServerFactory();
-$server = $serverFactory->fromConfig($serverConfig);
+\Swoole\Runtime::setHookFlags(SWOOLE_HOOK_ALL);
 
-// The main HTTP server request callback event, entry point for all incoming HTTP requests
-/** @phpstan-ignore class.notFound */
-$server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response)
-{
-    $response->end();
-});
+$swooleConfig = Yaml::parseFile($configFile);
+$serverFactory = new ServerFactory();
+$server = $serverFactory->fromConfig($swooleConfig);
+
+if ($server instanceof \Swoole\Coroutine\Http\Server) {
+    \Swoole\Coroutine\run(function() use ($server) {
+        /** @phpstan-ignore class.notFound */
+        $server->handle('/', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response)
+        {
+            $response->end();
+        });
+
+        $server->start();
+    });
+} else {
+    // The main HTTP server request callback event, entry point for all incoming HTTP requests
+    /** @phpstan-ignore class.notFound */
+    $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response)
+    {
+        $response->end();
+    });
+}
 
 $server->start();

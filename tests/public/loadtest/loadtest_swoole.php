@@ -13,7 +13,7 @@ if (!isset($_SERVER['SWOOLE_WORKER']) || (int)$_SERVER['SWOOLE_WORKER'] === 0 ||
 
 $configFile = @$_SERVER['argv'][1];
 if (!is_file($configFile) ) {
-    throw new \Exception('This script has to be run passing in the json config filename as 1st argument');
+    throw new \Exception('This script has to be run passing in the yaml config filename as 1st argument');
 }
 
 require __DIR__ . '/../../../vendor/autoload.php';
@@ -66,20 +66,9 @@ $emitter = new Emitter();
 
 // 2. Build the (Open)Swoole server
 
-$serverConfig = array_replace_recursive(['listen' => ['listen_ip' => '0.0.0.0', 'listen_port' => 8084]], Yaml::parseFile($configFile));
+$swooleConfig = Yaml::parseFile($configFile);
 $serverFactory = new ServerFactory();
-$server = $serverFactory->fromConfig($serverConfig);
-
-if (isset($serverConfig['coroutine_settings']) && is_array($serverConfig['coroutine_settings']) && $serverConfig['coroutine_settings']) {
-/// @todo... the coroutine settings seem to only be needed by openswoole. Swoole otoh might need a `swoole_async_set` call
-    if (class_exists('\Swoole\Coroutine')) {
-        \Swoole\Coroutine::set($serverConfig['coroutine_settings']);
-    } else if (class_exists('\OpenSwoole\Coroutine')) {
-        \OpenSwoole\Coroutine::set($serverConfig['coroutine_settings']);
-    } else {
-        throw new \Exception("Either the Swoole or OpenSwoole php extension must be active");
-    }
-}
+$server = $serverFactory->fromConfig($swooleConfig);
 
 // 3. Loop
 
@@ -89,19 +78,43 @@ if (isset($serverConfig['coroutine_settings']) && is_array($serverConfig['corout
 
 //$server->setHandler($waf);
 
-if (method_exists($server, 'handle')) {
+if (extension_loaded('openswoole') && isset($swooleConfig['server']['openswoole']['use_native_psr_request']) &&
+    $swooleConfig['server']['openswoole']['use_native_psr_request']) {
 
     // Method B - only available on OpenSwoole and not necessarily faster/better
 
     // OpenSwoole supports ("almost" compliant) PSR  handlers
+    /** @var \OpenSwoole\Http\Server $server */
     $server->handle(function (ServerRequestInterface $request) use ($waf, $requestFactory) {
         $wafRequest = $requestFactory->fromOpenSwooleServerRequest($request);
         return $waf->handle($wafRequest);
     });
 
+    $server->start();
+
+} elseif ($server instanceof \Swoole\Coroutine\Http\Server) {
+
+    // Method C - used for the Swoole coroutine http server
+
+    \Swoole\Coroutine\run(function() use ($server, $requestFactory, $waf, $emitter) {
+
+        $server->handle('/', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($requestFactory, $waf, $emitter)
+        {
+            try {
+                $wafRequest = $requestFactory->fromSwooleRequest($request);
+                $wafResponse = $waf->handle($wafRequest);
+            } catch (\Throwable $e) {
+                $wafResponse = $waf::getErrorResponse();
+            }
+            $emitter->emit($wafResponse, $response);
+        });
+
+        $server->start();
+    });
+
 } else {
 
-    // Method C - the default
+    // Method D - used for the Swoole and openSwoole http servers
 
     $server->on('Request', function(\OpenSwoole\Http\Request|\Swoole\Http\Request $request, \OpenSwoole\Http\Response|\Swoole\Http\Response $response) use ($requestFactory, $waf, $emitter)
     {
@@ -114,6 +127,5 @@ if (method_exists($server, 'handle')) {
         $emitter->emit($wafResponse, $response);
     });
 
+    $server->start();
 }
-
-$server->start();
