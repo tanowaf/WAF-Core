@@ -68,7 +68,7 @@ jobs:
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_composer.sh
 
                     if [ '${{ matrix.webserver }}' = 'openswoole' ]; then
-                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh swoole/swoole
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh openswoole/ext-openswoole:dev-master
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
                         sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_server
                         sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_waf

@@ -42,6 +42,6 @@ fi
 # Liburing2 is used by swoole
 # @todo we should probably add libbrotli1, libzstd1
 apt-get install -y \
-    curl git libevent-core-2.1-7 liburing2 ncompress sudo unzip wrk
+    curl git libcurl4t64 libevent-core-2.1-7 liburing2 ncompress sudo unzip wrk
 
 echo "Done installing base software packages"
