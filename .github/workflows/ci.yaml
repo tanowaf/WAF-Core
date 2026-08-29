@@ -68,13 +68,17 @@ jobs:
                     sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_composer.sh
 
                     if [ '${{ matrix.webserver }}' = 'openswoole' ]; then
-                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh openswoole/ext-openswoole:dev-master
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php_extensions_pie.sh openswoole/ext-openswoole:dev-master
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
                         sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_server
                         sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_waf
                     fi
                     if [ '${{ matrix.webserver }}' = 'swoole' ]; then
-                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_pie_extensions.sh swoole/swoole
+                        if ! sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php_extensions_pie.sh swoole/swoole; then
+                            # debugging
+                            dpkg --list | grep curl
+                            find / -name 'libcurl*' 2>/dev/null
+                        fi
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
                     fi
 

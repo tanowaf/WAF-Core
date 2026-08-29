@@ -32,16 +32,17 @@ if [ "$UPDATE_INSTALLED" = true ]; then
     apt-get upgrade -y
 fi
 
-# @todo allow passing in the list of packages to install via an env var / cli option
+# @todo allow passing in the list of packages to install via a cli option
 
-# Curl is not required atm to run tests, but it is a good tool to run manual tests on the command-line. It is also used
-# by other setup scripts.
-# It can query a unix socket too, via option `--unix-socket` (alternatives would be netcat, socat)
+# Curl is not required atm to run tests, but it is a good tool to run manual tests on the command-line.
+# It can query a unix socket too, via option `--unix-socket` (alternatives would be netcat, socat).
+# It is also used by other setup scripts.
 #
 # Libevent is used by the php 'event' extension (w: do we need the `t64` version?) - move it to setup_php.sh or setup_pie.sh?
 # Liburing2 is used by swoole
-# @todo we should probably add libbrotli1, libzstd1
+# @todo we should probably add libcurl4/libcurl4t64 (depending on ubuntu version), libbrotli1, libzstd1
+#       also: c-ares, which can be used by swoole
 apt-get install -y \
-    curl git libcurl4t64 libevent-core-2.1-7 liburing2 ncompress sudo unzip wrk
+    curl git libevent-core-2.1-7 liburing2 ncompress sudo unzip wrk
 
 echo "Done installing base software packages"

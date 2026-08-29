@@ -13,6 +13,7 @@ if [ -n "${APT_PACKAGE_PROXY}" ] && [ "${APT_PACKAGE_PROXY}" != "none" ]; then
     printf "Acquire::http::Proxy \"${APT_PACKAGE_PROXY}\";\nAcquire::https::Proxy \"DIRECT\";\n" > /etc/apt/apt.conf.d/00proxy
 fi
 
+# @todo use the same dir as the current script instead
 cd /root/setup
 
 ./install_packages.sh

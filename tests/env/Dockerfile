@@ -6,7 +6,7 @@ FROM ubuntu:${UBUNTU_VERSION} AS pie_build
 ARG APT_PACKAGE_PROXY=none
 ARG PHP_VERSION=default
 
-COPY --chmod=755 setup/build_php_extensions.sh setup/setup_php.sh setup/setup_pie_extensions.sh /root/setup/
+COPY --chmod=755 setup/build_php_extensions.sh setup/setup_php.sh setup/setup_php_extensions_pie.sh /root/setup/
 RUN /root/setup/build_php_extensions.sh
 
 ARG UBUNTU_VERSION=resolute

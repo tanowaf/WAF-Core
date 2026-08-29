@@ -306,6 +306,7 @@ class HeaderParser implements HeaderParserInterface
      *          - the amount of whitespace after an object's key in the produced string varies - see BB_HeaderParsingTest
      *
      * @todo... save the parsed Json for later reuse
+     * @todo... use the functions from iliaal/fastjson if available
      */
     protected function normalizeJson(string $value, array &$errorsFound): string
     {

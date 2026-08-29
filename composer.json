@@ -41,6 +41,7 @@
         "ext-curl": "Required (atm at least) for connecting to unix-socket based upstreams and many other nice http features",
         "ext-brotli": "Necessary to be able to inspect and modify received brotli-compressed message bodies",
         "ext-event": "Recommended (either this or Swoole) to build WAFs running on Workerman instead of php-fpm/frankenphp/mod_php",
+        "ext-fastjson": "Recommended to improve performances for filtering json message bodies",
         "ext-mbstring": "Recommended for juggling between charsets in case not every request and response is utf8",
         "ext-openswoole": "Necessary to build WAFs running on OpenSwoole instead of php-fpm/frankenphp/mod_php",
         "ext-swoole": "Necessary to build WAFs running on Swoole instead of php-fpm/frankenphp/mod_php",

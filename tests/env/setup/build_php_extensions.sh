@@ -27,18 +27,14 @@ TARGET_DIRECTORY=/usr/lib/php/pie/
 # - https://packagist.org/packages/swoole/swoole
 # - https://packagist.org/packages/openswoole/ext-openswoole
 # As of 2026/8/20, we have to work around ext-openswoole issue #397: the only way to get it installed is to specify dev-master version
-PIE_EXTENSIONS='kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master osmanov/pecl-event swoole/swoole'
-
-#if [ -z "$PIE_EXTENSIONS" ]; then
-#    echo "PIE extensions have to be specified as 1st argument" >&2
-#    exit 1
-#fi
+PIE_EXTENSIONS='iliaal/fastjson kjdev/brotli kjdev/zstd extport/protobuf openswoole/ext-openswoole:dev-master osmanov/pecl-event swoole/swoole'
 
 # Allow the user to specify a proxy for speeding up downloading of apt packages
 if [ -n "${APT_PACKAGE_PROXY}" ] && [ "${APT_PACKAGE_PROXY}" != "none" ]; then
     printf "Acquire::http::Proxy \"${APT_PACKAGE_PROXY}\";\nAcquire::https::Proxy \"DIRECT\";\n" > /etc/apt/apt.conf.d/00proxy
 fi
 
+# @todo use the same dir as the current script instead
 cd /root/setup
 
 export DEBIAN_FRONTEND=noninteractive
@@ -50,7 +46,7 @@ apt-get update --allow-releaseinfo-change
 EXTDIR=$(php -r 'echo ini_get("extension_dir");')
 BUILTIN_EXTS="$(ls $EXTDIR/*.so | tr '\n' ' ')"
 
-./setup_pie_extensions.sh $PIE_EXTENSIONS
+./setup_php_extensions_pie.sh $PIE_EXTENSIONS
 
 mkdir /usr/lib/php/pie
 for EXT in $EXTDIR/*.so; do
