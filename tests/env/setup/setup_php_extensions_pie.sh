@@ -30,7 +30,7 @@ for EXTENSION in "$@"; do
         ;;
         swoole/swoole)
             # does this also require libcurl4-openssl-dev?
-            PACKAGES="$PACKAGES g++ liburing-dev"
+            PACKAGES="$PACKAGES g++ libcurl4-openssl-dev liburing-dev"
         ;;
     esac
 done
