@@ -74,11 +74,7 @@ jobs:
                         sudo echo 'SWOOLE_EXTENSION=openswoole' >> /etc/default/swoole_waf
                     fi
                     if [ '${{ matrix.webserver }}' = 'swoole' ]; then
-                        if ! sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php_extensions_pie.sh swoole/swoole; then
-                            # debugging
-                            dpkg --list | grep curl
-                            find / -name 'libcurl*' 2>/dev/null
-                        fi
+                        sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_php_extensions_pie.sh swoole/swoole
                         sudo --preserve-env=GITHUB_ACTIONS ./tests/env/setup/setup_swoole.sh
                     fi
 
