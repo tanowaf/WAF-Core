@@ -33,6 +33,7 @@
         "yoast/phpunit-polyfills": "^4.0"
     },
     "conflict": {
+        "ext-swoole": "<6.2.0",
         "guzzlehttp/guzzle": "<8.0.0",
         "psr/http-factory": "<1.1.0",
         "symfony/http-client": "<7.0"
