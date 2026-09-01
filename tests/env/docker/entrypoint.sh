@@ -94,7 +94,7 @@ if [ -f /etc/apache2/envvars ]; then
 
     sed -e "s|^export TESTS_ROOT_DIR=.*|export TESTS_ROOT_DIR=${TESTS_ROOT_DIR}|g" --in-place /etc/apache2/envvars
     sed -e "s|^export APACHE_RUN_USER=.*|export APACHE_RUN_USER=${USERNAME}|g" --in-place /etc/apache2/envvars
-    sed -e "s|^export APACHE_RUN_GROUP=.*|export APACHE_RUN_GROUP=${USERNAME}?g" --in-place /etc/apache2/envvars
+    sed -e "s|^export APACHE_RUN_GROUP=.*|export APACHE_RUN_GROUP=${USERNAME}|g" --in-place /etc/apache2/envvars
 fi
 
 PHPVER="$(php -r 'echo implode(".",array_slice(explode(".",PHP_VERSION),0,2));' 2>/dev/null)"
