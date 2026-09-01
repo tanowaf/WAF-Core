@@ -1,0 +1,63 @@
+user: {
+  ureq: Request
+  fail: Fail Response
+  uresp: Pass Response
+
+  label: Client
+  near: top-left
+  grid-columns: 1
+}
+
+WAF: {
+  firewall {
+    freq: Req. Filter
+    fresp: Resp. Filter
+    label: Firewall
+    grid-columns: 1
+  }
+  proxy: {
+    preq: Req. Filter
+    presp: Resp. Filter
+    label: Proxy
+    grid-columns: 1
+  }
+
+  style.fill: "#DEE1EB"
+  near: top-center
+  label.near: top-center
+}
+
+target: {
+  pad1.class: invisible
+  upstream: {
+    shape: cloud
+    label: Upstream
+    style: {
+      font-size: 24
+      bold: false
+    }
+  }
+  pad2.class: invisible
+
+  label: ''
+  style: {
+    stroke-width: 0
+    fill: transparent
+  }
+  near: top-right
+  grid-columns: 1
+}
+
+user.ureq -> WAF.firewall.freq -> WAF.proxy.preq -> target.upstream
+target.upstream -> WAF.proxy.presp -> WAF.firewall.fresp -> user.uresp
+WAF.firewall.freq -> user.fail
+WAF.proxy.preq -> user.fail
+WAF.proxy.presp -> user.fail
+WAF.firewall.fresp -> user.fail
+
+classes: {
+  invisible: {
+    style.opacity: 0
+    label: x
+  }
+}

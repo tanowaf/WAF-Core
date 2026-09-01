@@ -108,11 +108,17 @@ Which translates into:
 - using DI patterns as much as possible
 - using the PSR-7, PSR-15, PSR-18 interfaces means it should be easy to extend/embed the Proxy classes in other middlewares
 - avoid relying on too many, big dependencies - f.e. no Monolog, Symfony ConfigTreeBuilder
-- delegate all possible processing to a 'bootstrap' phase, so that the processing loop can be as efficient as possible
-  when used in eg. `worker` mode with Swoole or FrankenPHP
+- delegating all possible processing to a 'bootstrap' phase, so that the processing loop can be as efficient as possible
+  when used in "worker" mode with eg. Swoole/OpenSwoole, Workerman or FrankenPHP
+- using Swoole as preferred PHP runtime environment, as it is one of the fastest, uses the widely-tested llhttp library
+  for parsing http requests and allows access to the request payload as it was received
 - taking care about memory leaks
-- prefer end-to-end testing to unit testing, as the specific webserver used to run php does have an impact on the
+- preferring end-to-end testing to unit testing, as the specific webserver used to run php does have an impact on the
   processing by the WAF-Core code of http requests, esp. the ones which are not conforming to the http standard
+
+## Architecture
+
+See [doc/architecture.md](doc/architecture.md)
 
 ## Testing
 

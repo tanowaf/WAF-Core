@@ -51,6 +51,8 @@ if [ "$WEBSERVER_TYPE" = swoole ] || [ "$WEBSERVER_TYPE" = all ]; then
     ./setup_swoole.sh;
 fi
 
+./setup_d2.sh;
+
 # @todo... find what causes the need for this and fix it! (also, move this to setup_php.sh in the meantime?)
 chmod 755 /usr/lib/php && chmod 755 "$(php -r "echo ini_get('extension_dir');")"
 
