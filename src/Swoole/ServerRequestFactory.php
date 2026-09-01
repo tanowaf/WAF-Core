@@ -10,8 +10,11 @@ use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequest;
 
 class ServerRequestFactory extends BaseServerRequestFactory
 {
-    /// @see https://github.com/imefisto/psr-swoole-native/
-    /** @phpstan-ignore class.notFound */
+    /**
+     * @see https://github.com/imefisto/psr-swoole-native/
+     * @phpstan-ignore class.notFound
+     * @noinspection PhpUndefinedClassInspection, PhpUndefinedNamespaceInspection
+     */
     public function fromSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request $request): ServerRequest
     {
         // Vars that we get in $request->server (tested on swoole 6.2.2):
@@ -77,7 +80,10 @@ class ServerRequestFactory extends BaseServerRequestFactory
         return $serverRequest;
     }
 
-    /** @phpstan-ignore class.notFound */
+    /**
+     * @phpstan-ignore class.notFound
+     * @noinspection PhpUndefinedClassInspection, PhpUndefinedNamespaceInspection
+     */
     public static function getHeadersFromSwooleRequest(\OpenSwoole\Http\Request|\Swoole\Http\Request $request): array
     {
         $headers = [];

@@ -36,6 +36,7 @@ class ApacheLogger extends AbstractLogger
         if ($this->isHandling($level)) {
             $value = $this->formatMessage($level, $message, $context);
             /** @phpstan-ignore function.notFound */
+            /** @noinspection PhpComposerExtensionStubsInspection */
             apache_note($this->noteName, $value);
         }
     }

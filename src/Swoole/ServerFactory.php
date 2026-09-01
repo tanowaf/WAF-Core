@@ -14,8 +14,9 @@ class ServerFactory
     /**
      * @see https://wiki.swoole.com/en/#/http_server?id=configuration-options
      * @see https://openswoole.com/docs/modules/swoole-server/configuration
-     * @phpstan-ignore class.notFound
      * @throws ConfigurationError
+     * @phpstan-ignore class.notFound
+     * @noinspection PhpUndefinedClassInspection, PhpUndefinedNamespaceInspection
      */
     public function fromConfig(array $config): \Swoole\Http\Server|\Swoole\Coroutine\Http\Server|\OpenSwoole\Http\Server
     {
@@ -38,6 +39,7 @@ class ServerFactory
             if (extension_loaded('swoole')) {
                 $serverClass = '\Swoole\Coroutine\Http\Server';
             } else if (extension_loaded('openswoole')) {
+                /** @noinspection PhpUndefinedConstantInspection */
                 /** @phpstan-ignore constant.notFound */
                 \OpenSwoole\Coroutine::set(['reactor_type' => OPENSWOOLE_IO_URING]);
             }

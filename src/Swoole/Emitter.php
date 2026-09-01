@@ -6,7 +6,10 @@ use Psr\Http\Message\ResponseInterface;
 
 class Emitter
 {
-    /** @phpstan-ignore class.notFound */
+    /**
+     * @phpstan-ignore class.notFound
+     * @noinspection PhpUndefinedClassInspection
+     */
     public function emit(ResponseInterface $response, \OpenSwoole\Http\Response|\Swoole\Http\Response $swooleResponse): void
     {
         $swooleResponse->status($response->getStatusCode());
