@@ -47,8 +47,10 @@ class ServerFactory
 
         /// @todo check with other $_SERVER vars we could/should set
         if (array_key_exists('listen_socket', $config['server']) && $config['server']['listen_socket'] != '') {
+            if ($serverClass == '\Swoole\Coroutine\Http\Server') {
+                throw new ConfigurationError("Swoole configuration error: enable_io-uring is not supported with unix sockets");
+            }
             // use integers to simplify working with both swoole and openswoole
-/// @todo... the constructor for \Swoole\Coroutine\Http\Server is different. Also, does it support unix sockets?
             $server = new $serverClass($config['server']['listen_socket'], 0, 1, 5);
         } else {
             $_SERVER['SERVER_ADDR'] = $config['server']['listen_ip'];

@@ -145,7 +145,10 @@ class TestServer
             } else {
                 /// @todo... this does not seem to flush the partial response the the client, despite doing the same as
                 ///          documented at https://openswoole.com/docs/modules/swoole-http-response
+                /// @todo... this also gives fatal errors, at least with some swoole configurations:
+                ///          `Uncaught Swoole\Error: Socket#9 has already been bound to another coroutine#866, writing of the same socket in coroutine#867 at the same time is not allowed`
                 $this->swooleResponse->write('.');
+
                 if (class_exists('\Swoole\Coroutine\System')) {
                     \Swoole\Coroutine\System::sleep(1);
                 } else {

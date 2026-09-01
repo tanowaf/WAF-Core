@@ -14,10 +14,16 @@ class Emitter
     {
         $swooleResponse->status($response->getStatusCode());
 
+        if ($swooleResponse instanceof \Swoole\Http\Response) {
+            foreach ($response->getHeaders() as $key => $headerArray) {
+                $swooleResponse->header($key, $headerArray);
+            }
+        } else {
+/// @todo test if openswoole accepts array values besides strings too. In case, do not glue stuff
 /// @todo... handle correctly the known cases of headers requiring different glueing
-///          NB: swoole 6.2.2 accepts array values besides strings. Test if openswoole does too. In case, do not glue stuff
-        foreach ($response->getHeaders() as $key => $headerArray) {
-            $swooleResponse->header($key, implode('; ', $headerArray));
+            foreach ($response->getHeaders() as $key => $headerArray) {
+                $swooleResponse->header($key, implode('; ', $headerArray));
+            }
         }
 
 /// @todo... are there specific cases we should take into account? see https://github.com/imefisto/psr-swoole-native/blob/master/src/ResponseMerger.php

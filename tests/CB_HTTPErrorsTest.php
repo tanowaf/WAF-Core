@@ -21,8 +21,8 @@ class CB_HTTPErrorsTest extends WAFTestCase
     public function testSlowUpstream(string|null $clientType = null, string $wafScheme = 'http',
         string|null $upstreamClientType = null, string $serverScheme = 'http')
     {
-        if ($upstreamClientType === 'guzzle_stream') {
-            $this->markTestIncomplete('Test known to fail atm with Guzzle/Stream client. See issue #3809...');
+        if ($upstreamClientType === 'guzzle_stream' || $_ENV['SERVER_TYPE'] === 'swoole') {
+            $this->markTestIncomplete('Test known to fail atm with Guzzle/Stream client as well as Swoole server. See issue #3809...');
         }
 
         $rule = [['always' => true]];

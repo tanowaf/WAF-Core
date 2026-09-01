@@ -405,9 +405,28 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
             ///       we should probably add single \r and \n
         ];
 
+        return self::mergeCommonDataProviderOptions($cases);
+    }
+
+    /**
+     * Test http headers which cause all (tested) servers to return a 400 error
+     */
+    #[DataProvider('bigHttpHeaderDataProvider')]
+    public function testBigHttpHeader(string $headers, string $httpVersion = '1.0', string $serverScheme = 'http'): void
+    {
+        $response = $this->customRequest('GET', '', $headers, '', $httpVersion, $serverScheme);
+        $failureMessage = $this->getRespDetails($response);
+        /// @todo check which servers send back a 413 and which ones a 40x
+        $this->assertStatusCode([400, 413], $response, $failureMessage);
+    }
+
+    public static function bigHttpHeaderDataProvider(): array
+    {
         // header length over any reasonable buffer (100K)
-        $cases[] = ['Custom: '. str_repeat('1234567890', 10000)];
-        $cases[] = ['Cookie: x='. str_repeat('1234567890', 10000)];
+        $cases = [
+            ['Custom: '. str_repeat('1234567890', 10000)],
+            ['Cookie: x='. str_repeat('1234567890', 10000)]
+        ];
 
         return self::mergeCommonDataProviderOptions($cases);
     }
@@ -667,10 +686,16 @@ class BA_ServerRequestFactoryTest extends ServerTestCase
         return "Server response:\n$response\n";
     }
 
-    protected function assertStatusCode(int|string $retCode, string $response, string $message = ''): void
+    protected function assertStatusCode(int|string|array $retCode, string $response, string $message = ''): void
     {
+        if (is_array($retCode)) {
+            $retCode = array_map(function ($v) {return preg_quote((string)$v, '#');}, $retCode);
+            $retCode = '(' . implode('|', $retCode) . ')';
+        } else {
+            $retCode = preg_quote((string)$retCode, '#');
+        }
         $this->assertMatchesRegularExpression(
-            '#^HTTP/1\\.(0|1) ' . preg_quote((string)$retCode, '#') . ' #',
+            '#^HTTP/1\\.(0|1) ' . $retCode . ' #',
             $this->extractStartLine($response),
             $message
         );
