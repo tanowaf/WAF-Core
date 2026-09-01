@@ -45,6 +45,9 @@ class QueryStringParamNameMatcher extends BaseMatcher
 
     public function matchesRequest(RequestInterface $request): bool
     {
+        /// @todo... note that atm we are kind of abusing the ServerRequestInterface method `getQueryParams`:
+        ///          no other class but our own ServerRequest will use the queryStringParser to build the values returned
+        ///          (take this into account as well when developing a cookie matcher/filter and its interfaces)
         $queryParams = $request->getQueryParams();
 
         /// @todo optimize: would it be faster to do `$queryParams = array_keys($queryParams)` then use php array functions?

@@ -19,7 +19,8 @@ use TanoWAF\WAFCore\Exception\UnsupportedMediaType;
  *       in use in the wild: bzip2,lzip, lzma, peerdist, rsync, xpress and xz. Should we support those?
  *
  * @todo use RequestInterface|ResponseInterface for typehinting, instead of MessageInterface?
- * @todo change the API, given that this is now implemented by ServerRequest and Response, instead of matchers/filters
+ * @todo change the API, given that this is now implemented by ServerRequest and Response, instead of matchers/filters...
+ *       Also, should we implement it in a standalone object instead of as a trait of Req/Resp?
  */
 trait BodyCompressorTrait
 {

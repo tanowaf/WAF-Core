@@ -16,7 +16,7 @@ use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 /**
  * Original code taken from Nyholm\Psr7\Response, which unfortunately has all properties private...
  */
-class Response implements ResponseInterface, HeaderParsingCapableInterface, BodyUncompressingCapableInterface
+class Response implements InspectableResponseInterface
 {
     use MessageTrait;
 
