@@ -11,11 +11,9 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use TanoWAF\WAFCore\Exception\RequestDenied;
-use TanoWAF\WAFCore\Http\BodyUncompressingCapableInterface;
-use TanoWAF\WAFCore\Http\HeaderParsingCapableInterface;
 use TanoWAF\WAFCore\Http\InspectableMessageInterface;
 use TanoWAF\WAFCore\Logger\PrivateLoggerTrait;
-//use TanoWAF\WAFCore\Response\Psr7\Response;
+use TanoWAF\WAFCore\Response\Psr7\InspectableResponseInterface;
 use TanoWAF\WAFCore\Response\Psr7\ResponseConverterInterface;
 use TanoWAF\WAFCore\ServerRequest\Psr7\ServerRequestConverterInterface;
 use TanoWAF\WAFCore\Stdlib;
@@ -110,20 +108,12 @@ class Firewall implements MiddlewareInterface, LoggerAwareInterface
         throw new RequestDenied();
     }
 
-    /// @todo either typehint to our own Response, or create an interface for ResponseInterface + HeaderParsingCapableInterface + BodyUncompressingCapableInterface
-    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    protected function forwardRequest(ServerRequestInterface $request, RequestHandlerInterface $handler): InspectableResponseInterface
     {
         $response = $handler->handle($request);
 
         if (! $response instanceof InspectableMessageInterface) {
             $response = $this->responseFactory->fromResponse($response);
-            /*$response = Response::fromResponse($response);
-            if ($this->cookieParser !== null) {
-                $response->setCookieParser($this->cookieParser);
-            }
-            if ($this->headerParser !== null) {
-                $response->setHeaderParser($this->headerParser);
-            }*/
         }
 
         return $response;
